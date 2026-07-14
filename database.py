@@ -163,3 +163,57 @@ def backup_db():
 if __name__ == "__main__":
     init_db()
     print("Base de datos inicializada correctamente.")
+
+# --- Funciones de Categorías ---
+def get_categorias():
+    conn = get_connection()
+    categorias = conn.execute("SELECT * FROM categorias").fetchall()
+    conn.close()
+    return categorias
+
+def add_categoria(nombre):
+    conn = get_connection()
+    try:
+        conn.execute("INSERT INTO categorias (nombre) VALUES (?)", (nombre,))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+    return True
+
+# --- Funciones de Proveedores ---
+def get_proveedores():
+    conn = get_connection()
+    proveedores = conn.execute("SELECT * FROM proveedores").fetchall()
+    conn.close()
+    return proveedores
+
+def add_proveedor(nombre, contacto, telefono, condiciones_pago):
+    conn = get_connection()
+    conn.execute("INSERT INTO proveedores (nombre, contacto, telefono, condiciones_pago) VALUES (?, ?, ?, ?)",
+                 (nombre, contacto, telefono, condiciones_pago))
+    conn.commit()
+    conn.close()
+
+# --- Funciones de Productos ---
+def get_productos():
+    conn = get_connection()
+    productos = conn.execute("""
+        SELECT p.*, c.nombre as categoria_nombre, prov.nombre as proveedor_nombre 
+        FROM productos p
+        LEFT JOIN categorias c ON p.categoria_id = c.id
+        LEFT JOIN proveedores prov ON p.proveedor_id = prov.id
+        WHERE p.activo = 1
+    """).fetchall()
+    conn.close()
+    return productos
+
+def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
+    conn = get_connection()
+    conn.execute("""
+        INSERT INTO productos (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta))
+    conn.commit()
+    conn.close()
