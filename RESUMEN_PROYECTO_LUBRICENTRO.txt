@@ -1,0 +1,205 @@
+===============================================================================
+RESUMEN DE PROYECTO: SISTEMA DE GESTIÓN - LUBRICENTRO FAMILIAR (WINTER)
+===============================================================================
+Fecha: Julio 2026
+Autor: Federico Winter
+Objetivo: Documento de referencia único para retomar el desarrollo en cualquier
+momento, con todas las decisiones tomadas y los requerimientos relevados.
+
+===============================================================================
+1. CONTEXTO Y ORIGEN DEL PROYECTO
+===============================================================================
+
+La familia de Federico tiene un lubricentro y estaba evaluando comprar un
+software de gestión comercial. Federico propuso desarrollarlo él mismo con
+ayuda de Claude, dado que:
+- Es un caso de uso real con usuarios reales (feedback directo y honesto)
+- El alcance es acotado y resoluble sin sobre-dimensionar
+- Le sirve como proyecto de portfolio técnico
+- Ahorra el costo de un software comercial sobredimensionado para las
+  necesidades reales del negocio
+
+===============================================================================
+2. DECISIONES TÉCNICAS TOMADAS
+===============================================================================
+
+- Interfaz: aplicación WEB con Streamlit (no programa de escritorio).
+  Motivo: accesible desde cualquier dispositivo en la red local (PC del
+  mostrador, tablet, celular) sin instalar nada; Federico ya tiene experiencia
+  con Streamlit (proyecto de ruteo TSP); tiene camino más directo a la nube
+  si en el futuro se necesita acceso remoto.
+
+- Base de datos: SQLite.
+  Motivo: cero configuración, un solo archivo (.db) fácil de respaldar,
+  ideal para una sola máquina / un solo usuario concurrente. Migración
+  futura a Postgres/SQL Server es posible sin rehacer todo si el negocio
+  crece o se necesita multiusuario real.
+
+- Arquitectura: app multipágina de Streamlit (carpeta /pages), con toda la
+  lógica de base de datos centralizada en un módulo database.py separado
+  de la interfaz.
+
+- Alcance de arranque: se decidió empezar con un ESQUELETO BÁSICO funcional
+  y luego ir completando módulo por módulo, en lugar de diseñar todo el
+  modelo de datos de una sola vez.
+
+===============================================================================
+3. ESTADO ACTUAL DEL DESARROLLO (esqueleto ya construido)
+===============================================================================
+
+Se construyó y probó un primer esqueleto funcional con la siguiente
+estructura:
+
+  lubricentro/
+    app.py                      -> Dashboard principal
+    database.py                 -> Toda la lógica de datos (SQLite)
+    requirements.txt
+    pages/
+      1_Productos.py            -> Alta / edición / baja de productos
+      2_Movimientos_Stock.py    -> Entradas y salidas de stock
+      3_Precios.py              -> Vista tipo planilla, costo/venta/margen
+      4_Proveedores.py          -> Alta / edición / baja de proveedores
+
+Tablas de base de datos ya implementadas:
+  - proveedores (id, nombre, contacto, telefono)
+  - productos (id, codigo, nombre, categoria, marca, unidad_medida,
+    stock_actual, stock_minimo, precio_costo, precio_venta, proveedor_id,
+    activo)
+  - movimientos_stock (id, producto_id, tipo [entrada/salida], cantidad,
+    fecha, motivo)
+
+Funcionalidad probada y funcionando:
+  - Dashboard: cantidad de productos activos, valor de inventario a costo,
+    alertas de stock bajo, últimos movimientos.
+  - Productos: alta con código, nombre, categoría, marca, unidad de medida,
+    stock inicial/mínimo, precios, proveedor asociado. Edición y baja lógica
+    (activo=0, no se borra el registro).
+  - Movimientos: registrar entrada/salida con validación de que no se puede
+    sacar más stock del disponible; actualiza stock_actual automáticamente.
+  - Precios: edición rápida tipo planilla con margen calculado en vivo
+    ((venta - costo) / costo * 100).
+  - Proveedores: alta/edición/baja básica (nombre, contacto, teléfono).
+
+IMPORTANTE - este esqueleto quedó DESACTUALIZADO respecto de lo que sigue
+en el punto 4 (relevamiento SRS). Falta ampliarlo con: código de barras,
+categorías reales, stock por fracciones, lotes/vencimiento (no requerido),
+tipos de movimiento adicionales (ajuste, devolución, uso interno en
+servicio), condiciones de pago de proveedores, catálogos de proveedor,
+servicios/mano de obra, ficha de cliente/vehículo, y reportes de
+ventas/ingresos-egresos.
+
+===============================================================================
+4. RELEVAMIENTO SRS COMPLETO (preguntas y respuestas de Federico)
+===============================================================================
+
+--- 4.1 Negocio y usuarios ---
+- Por ahora: UNA sola máquina, uso local, un solo usuario (no se necesita
+  login ni permisos diferenciados por rol todavía).
+
+--- 4.2 Productos y stock ---
+- Se maneja stock por CÓDIGO DE BARRAS y también por nombre/descripción.
+- SÍ necesita categorías (aceites, filtros, aditivos, repuestos, etc.).
+- Se controla stock por UNIDAD y también por FRACCIONES (ej. aceite a
+  granel vendido por litro/fracción de litro).
+- SÍ, alertas de stock mínimo. Las revisa el DUEÑO.
+- NO es necesario manejar lote ni vencimiento.
+
+--- 4.3 Precios ---
+- Precio único MINORISTA (no hay múltiples niveles mayorista/taller).
+- Actualización de precios por LISTA DE PROVEEDOR (suba de %, no
+  necesariamente carga manual producto por producto).
+- Se calcula margen sobre el costo automáticamente (ya implementado).
+
+--- 4.4 Movimientos de stock ---
+- Tipos de movimiento necesarios: COMPRA, VENTA, AJUSTE, DEVOLUCIÓN,
+  USO INTERNO EN SERVICIO.
+  (El esqueleto actual solo tiene "entrada"/"salida" genéricos — HAY QUE
+  AMPLIAR el campo tipo para contemplar estos 5 tipos específicos.)
+
+--- 4.5 Proveedores ---
+- Pocos proveedores: alrededor de 5.
+- Necesita registrar CONDICIONES DE PAGO además de datos de contacto.
+- Necesita CATÁLOGOS de proveedor (qué productos ofrece cada uno).
+- Los pedidos de reposición se hacen MANUALMENTE por ahora (no generar
+  pedidos automáticos desde el sistema todavía; evaluar a futuro).
+
+--- 4.6 Ventas / servicios ---
+- Confirmado: SÍ implementar. Incluye:
+  - Precios de TRABAJOS/SERVICIOS prestados (mano de obra), no solo
+    productos físicos.
+  - FICHA DE CLIENTE / VEHÍCULO (historial de servicios por cliente y
+    por vehículo).
+
+--- 4.7 Reportes ---
+- Ventas del día / mes / año.
+- Stock crítico.
+- Ingresos vs egresos.
+
+--- 4.8 Técnico ---
+- Por ahora: solo RED LOCAL. Acceso remoto se evalúa más adelante.
+- (Pendiente de definir con Federico: frecuencia de backup automático de
+  la base SQLite, y si en algún momento se migra a Postgres/multiusuario.)
+
+===============================================================================
+5. GAPS ENTRE EL ESQUELETO ACTUAL Y EL SRS (para próxima etapa de desarrollo)
+===============================================================================
+
+Cambios necesarios al modelo de datos existente:
+  1. Agregar campo código de barras a productos (además del código interno).
+  2. Categorías: pasar de texto libre a una tabla de categorías propia
+     (para reportes y filtros consistentes).
+  3. Contemplar unidad de medida "fraccionable" vs "por unidad" de forma
+     explícita (ya existe unidad_medida, pero falta lógica de fracciones
+     decimales bien validada en la UI, ej. 0.5 litros).
+  4. movimientos_stock: ampliar el campo "tipo" de (entrada/salida) a
+     (compra, venta, ajuste, devolución, uso_interno_servicio), manteniendo
+     la lógica de si suma o resta stock según el tipo.
+  5. proveedores: agregar condiciones de pago (texto o estructurado:
+     contado/cuenta corriente/días).
+  6. Nueva tabla: catalogo_proveedor (relación producto-proveedor con
+     precio de ese proveedor, para comparar antes de comprar).
+
+Módulos nuevos a construir:
+  7. Servicios/trabajos: tabla de servicios (nombre, precio, duración
+     estimada opcional) independiente de productos físicos.
+  8. Clientes: ficha de cliente (nombre, teléfono, etc.).
+  9. Vehículos: ficha de vehículo asociada a cliente (marca, modelo,
+     patente, año).
+  10. Órdenes de servicio / ventas: registro que une cliente + vehículo +
+      productos usados + servicios realizados + fecha, esto es lo que
+      alimenta "ventas del día" y descuenta stock automáticamente por
+      "uso_interno_servicio".
+  11. Reportes: nuevas vistas/páginas para ventas por período, stock
+      crítico (ya existe parcialmente en el dashboard) e ingresos vs
+      egresos (requiere sumar ventas y restar compras/gastos).
+
+Pendiente de decidir con Federico antes de programar:
+  - Estructura exacta de "condiciones de pago" (¿campo libre o
+    estructurado?).
+  - Si "ajuste" de stock necesita motivo obligatorio y/o aprobación.
+  - Si el módulo de servicios/clientes se integra en el mismo dashboard
+    o se separa en secciones bien diferenciadas.
+  - Frecuencia deseada de backup de la base SQLite.
+
+===============================================================================
+6. PRÓXIMOS PASOS SUGERIDOS
+===============================================================================
+
+1. Validar con la familia el esqueleto actual cargando productos reales
+   (ya se sugirió esto en la conversación previa).
+2. Rediseñar el modelo de datos incorporando los puntos del punto 5 antes
+   de seguir agregando funcionalidad sobre la base vieja.
+3. Priorizar en este orden (sugerido, a confirmar con Federico):
+   a) Ampliar tipos de movimiento de stock (compra/venta/ajuste/
+      devolución/uso interno).
+   b) Código de barras + categorías reales.
+   c) Módulo de clientes/vehículos/servicios (venta y ficha).
+   d) Condiciones de pago y catálogo de proveedores.
+   e) Reportes (ventas por período, ingresos vs egresos).
+4. Definir estrategia de backup de la base SQLite (por ejemplo, copia
+   automática diaria del archivo .db a otra carpeta o a un servicio en
+   la nube).
+
+===============================================================================
+FIN DEL DOCUMENTO
+===============================================================================
