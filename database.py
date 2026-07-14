@@ -167,6 +167,77 @@ if __name__ == "__main__":
     init_db()
     print("Base de datos inicializada correctamente.")
 
+# --- Funciones de Movimientos de Stock ---
+def get_movimientos(limit=10):
+    conn = get_connection()
+    movimientos = conn.execute("""
+        SELECT m.id, m.producto_id, m.tipo, m.cantidad, m.fecha, m.motivo, p.nombre as producto_nombre
+        FROM movimientos_stock m
+        JOIN productos p ON m.producto_id = p.id
+        ORDER BY m.fecha DESC
+        LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return movimientos
+
+def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None):
+    """
+    Registra un movimiento de stock y actualiza el stock_actual del producto.
+    Returns True si se realizó exitosamente, False si hay stock insuficiente u otro error.
+    """
+    # Validaciones básicas
+    if producto_id is None or tipo is None or cantidad is None:
+        return False
+    if tipo not in ('compra', 'venta', 'ajuste', 'devolucion', 'uso_interno'):
+        return False
+    try:
+        cantidad = float(cantidad)
+    except (ValueError, TypeError):
+        return False
+
+    conn = get_connection()
+    try:
+        # Obtener stock actual del producto
+        cursor = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (producto_id,))
+        row = cursor.fetchone()
+        if row is None:
+            return False  # producto no existe
+        stock_actual = float(row[0])
+
+        # Calcular el delta según el tipo
+        if tipo in ('compra', 'devolucion'):
+            delta = cantidad
+        elif tipo in ('venta', 'uso_interno'):
+            delta = -cantidad
+        else:  # ajuste
+            delta = cantidad  # cantidad puede ser positivo o negativo
+
+        nuevo_stock = stock_actual + delta
+        if nuevo_stock < 0:
+            # No hay suficiente stock
+            return False
+
+        # Insertar movimiento
+        if fecha is None:
+            fecha = datetime.now()
+        cursor = conn.execute("""
+            INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
+            VALUES (?, ?, ?, ?, ?)
+        """, (producto_id, tipo, cantidad, fecha, motivo))
+        movimiento_id = cursor.lastrowid
+
+        # Actualizar stock del producto
+        conn.execute("UPDATE productos SET stock_actual = ? WHERE id = ?", (nuevo_stock, producto_id))
+
+        conn.commit()
+        return True
+    except Exception as e:
+        # En caso de cualquier error, hacemos rollback
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
 # --- Funciones de Categorías ---
 def get_categorias():
     conn = get_connection()
