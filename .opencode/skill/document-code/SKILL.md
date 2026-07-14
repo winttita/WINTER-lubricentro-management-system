@@ -11,7 +11,7 @@ Este skill proporciona un conjunto de pautas y pasos para documentar el código 
 
 1. **Docstrings estándar**: Usa el formato de docstring de tu lenguaje (por ejemplo, PEP 257 para Python, Javadoc para Java, JSDoc para JavaScript).
 2. **Comentarios explicativos**: Añade comentarios para explicar el *porqué* de decisiones complejas, no el *qué* (que debería quedar claro por el nombre).
-3. **Mantener actualizada la documentación**: Cada vez que modifies una función o clase, revisa su documentación.
+3. **Mantener actualizada la documentación**: Cada vez que modificas una función o clase, revisa su documentación.
 4. **Ejemplos de uso**: Incluye ejemplos simples dentro de los docstrings cuando sea útil.
 5. **Evitar redundancia**: No documentes lo obvio; enfócate en la intención, parámetros poco claros, valores de retorno y excepciones.
 
