@@ -60,4 +60,8 @@ Usá el menú lateral izquierdo para acceder a las distintas secciones del siste
 - **Proveedores**: Gestión de proveedores y condiciones de pago
 - **Productos**: Alta y gestión de productos
 - **Movimientos**: Registro de entradas y salidas de stock
+- **Clientes**: Gestión de clientes
+- **Vehículos**: Gestión de vehículos
+- **Servicios**: Gestión de servicios
+- **Órdenes de Servicio**: Creación de órdenes de trabajo (servicios y consumo de productos)
 """)

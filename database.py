@@ -163,10 +163,6 @@ def backup_db():
         return backup_path
     return None
 
-if __name__ == "__main__":
-    init_db()
-    print("Base de datos inicializada correctamente.")
-
 # --- Funciones de Movimientos de Stock ---
 def get_movimientos(limit=10):
     conn = get_connection()
@@ -237,6 +233,159 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None):
         return False
     finally:
         conn.close()
+
+# --- Funciones de Clientes ---
+def get_clientes():
+    conn = get_connection()
+    clientes = conn.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
+    conn.close()
+    return clientes
+
+def add_cliente(nombre, telefono, email):
+    if not nombre or not nombre.strip():
+        return False
+    conn = get_connection()
+    try:
+        conn.execute("INSERT INTO clientes (nombre, telefono, email) VALUES (?, ?, ?)",
+                     (nombre.strip(), telefono, email))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+    return True
+
+# --- Funciones de Vehículos ---
+def get_vehiculos():
+    conn = get_connection()
+    vehiculos = conn.execute("""SELECT v.id, v.cliente_id, v.patente, v.marca, v.modelo, v.anio, c.nombre as cliente_nombre
+                               FROM vehiculos v
+                               LEFT JOIN clientes c ON v.cliente_id = c.id
+                               ORDER BY v.patente""").fetchall()
+    conn.close()
+    return vehiculos
+
+def add_vehiculo(cliente_id, patente, marca, modelo, anio):
+    if not patente or not patente.strip():
+        return False
+    conn = get_connection()
+    try:
+        conn.execute("INSERT INTO vehiculos (cliente_id, patente, marca, modelo, anio) VALUES (?, ?, ?, ?, ?)",
+                     (cliente_id, patente.strip(), marca, modelo, anio))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+    return True
+
+# --- Funciones de Servicios ---
+def get_servicios():
+    conn = get_connection()
+    servicios = conn.execute("SELECT * FROM servicios ORDER BY nombre").fetchall()
+    conn.close()
+    return servicios
+
+def add_servicio(nombre, precio):
+    if not nombre or not nombre.strip():
+        return False
+    try:
+        precio = float(precio)
+        if precio < 0:
+            return False
+    except ValueError:
+        return False
+    conn = get_connection()
+    try:
+        conn.execute("INSERT INTO servicios (nombre, precio) VALUES (?, ?)",
+                     (nombre.strip(), precio))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+    return True
+
+# --- Funciones de Ordenes de Servicio ---
+def get_ordenes(limit=10):
+    conn = get_connection()
+    ordenes = conn.execute("""SELECT o.id, o.fecha, o.total_productos, o.total_servicios, o.total_final,
+                                   c.nombre as cliente_nombre, v.patente as vehiculo_patente
+                            FROM ordenes_servicio o
+                            LEFT JOIN clientes c ON o.cliente_id = c.id
+                            LEFT JOIN vehiculos v ON o.vehiculo_id = v.id
+                            ORDER BY o.fecha DESC
+                            LIMIT ?""", (limit,)).fetchall()
+    conn.close()
+    return ordenes
+
+def add_orden_servicio(cliente_id, vehiculo_id, fecha=None):
+    if fecha is None:
+        fecha = datetime.now()
+    conn = get_connection()
+    try:
+        cursor = conn.execute("INSERT INTO ordenes_servicio (fecha, cliente_id, vehiculo_id, total_productos, total_servicios, total_final) VALUES (?, ?, ?, 0, 0, 0)",
+                              (fecha, cliente_id, vehiculo_id))
+        conn.commit()
+        orden_id = cursor.lastrowid
+        return orden_id
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, precio_unitario=None):
+    conn = get_connection()
+    try:
+        if producto_id is not None:
+            # get product price
+            prod = conn.execute("SELECT precio_venta FROM productos WHERE id = ?", (producto_id,)).fetchone()
+            if prod is None:
+                return False
+            if precio_unitario is None:
+                precio_unitario = prod[0]
+            # Insert detalle
+            conn.execute("INSERT INTO orden_detalle (orden_id, producto_id, servicio_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?, ?)",
+                         (orden_id, producto_id, None, cantidad, precio_unitario))
+            # Update order totals: add to total_productos
+            conn.execute("UPDATE ordenes_servicio SET total_productos = total_productos + ? WHERE id = ?", (cantidad * precio_unitario, orden_id))
+            # Also create movement of tipo 'uso_interno' for stock deduction
+            add_movimiento(producto_id, 'uso_interno', cantidad, f'Uso en orden de servicio #{orden_id}')
+        elif servicio_id is not None:
+            serv = conn.execute("SELECT precio FROM servicios WHERE id = ?", (servicio_id,)).fetchone()
+            if serv is None:
+                return False
+            if precio_unitario is None:
+                precio_unitario = serv[0]
+            conn.execute("INSERT INTO orden_detalle (orden_id, producto_id, servicio_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?, ?)",
+                         (orden_id, None, servicio_id, cantidad, precio_unitario))
+            # Update total_servicios
+            conn.execute("UPDATE ordenes_servicio SET total_servicios = total_servicios + ? WHERE id = ?", (cantidad * precio_unitario, orden_id))
+        else:
+            return False
+        # Update total_final
+        conn.execute("""UPDATE ordenes_servicio SET total_final = 
+                        (SELECT COALESCE(SUM(cantidad * precio_unitario), 0) 
+                         FROM orden_detalle 
+                         WHERE orden_id = ?) WHERE id = ?""", (orden_id, orden_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def get_orden_detalle(orden_id):
+    conn = get_connection()
+    detalle = conn.execute("""SELECT d.id, d.producto_id, d.servicio_id, d.cantidad, d.precio_unitario,
+                                   p.nombre as producto_nombre, s.nombre as servicio_nombre
+                            FROM orden_detalle d
+                            LEFT JOIN productos p ON d.producto_id = p.id
+                            LEFT JOIN servicios s ON d.servicio_id = s.id
+                            WHERE d.orden_id = ?""", (orden_id,)).fetchall()
+    conn.close()
+    return detalle
 
 # --- Funciones de Categorías ---
 def get_categorias():
