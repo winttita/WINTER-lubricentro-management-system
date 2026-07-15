@@ -4,7 +4,7 @@
 Proyecto de sistema de gestión de stock y punto de venta (POS) para el lubricentro familiar, desarrollado bajo requerimientos específicos para optimizar el control de inventario y servicios.
 
 ## Estado del Proyecto
-Finalizada la Fase 1 (Infraestructura), Fase 2 (Gestión de Inventario: Productos, Categorías, Proveedores), Fase 3 (Movimientos de Stock) y Fase 4 (Gestión de Clientes, Vehículos y Servicios).
+Finalizada la Fase 1 (Infraestructura), Fase 2 (Gestión de Inventario: Productos, Categorías, Proveedores), Fase 3 (Movimientos de Stock), Fase 4 (Gestión de Clientes, Vehículos y Servicios) y Fase 5 (Reportes).
 
 ## Estructura Técnica
 - **Framework:** Streamlit
@@ -19,7 +19,8 @@ Finalizada la Fase 1 (Infraestructura), Fase 2 (Gestión de Inventario: Producto
    - `pages/6_Vehiculos.py`: Gestión de vehículos.
    - `pages/7_Servicios.py`: Gestión de servicios.
    - `pages/8_OrdenesServicio.py`: Gestión de órdenes de servicio (productos y servicios).
+   - `pages/9_Reportes.py`: Reportes de ventas, inventario y balance ingresos vs egresos.
    - `app.py`: Dashboard principal con métricas y navegación.
 
 ## Próximos Pasos
-- Fase 5: Reportes (ventas, inventario, ingresos vs egresos).
+- Mejoras futuras y feedback de usuarios.

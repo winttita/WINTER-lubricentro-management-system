@@ -64,4 +64,5 @@ Usá el menú lateral izquierdo para acceder a las distintas secciones del siste
 - **Vehículos**: Gestión de vehículos
 - **Servicios**: Gestión de servicios
 - **Órdenes de Servicio**: Creación de órdenes de trabajo (servicios y consumo de productos)
+- **Reportes**: Reportes de ventas, inventario y balance ingresos vs egresos
 """)

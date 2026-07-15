@@ -492,3 +492,93 @@ def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_i
     finally:
         conn.close()
     return True
+
+# --- Funciones de Reportes ---
+def get_reporte_ventas(fecha_desde=None, fecha_hasta=None):
+    """Reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fechas.
+    Devuelve tuplas (fecha, tipo, concepto, cantidad, monto)."""
+    conn = get_connection()
+    try:
+        query_ordenes = """SELECT o.fecha, 'Orden de Servicio' as tipo, c.nombre as concepto, 1 as cantidad, o.total_final as monto
+                          FROM ordenes_servicio o
+                          LEFT JOIN clientes c ON o.cliente_id = c.id
+                          WHERE 1=1"""
+        params = []
+        if fecha_desde:
+            query_ordenes += " AND date(o.fecha) >= date(?)"
+            params.append(fecha_desde)
+        if fecha_hasta:
+            query_ordenes += " AND date(o.fecha) <= date(?)"
+            params.append(fecha_hasta)
+        query_ordenes += " ORDER BY o.fecha DESC"
+        ordenes = conn.execute(query_ordenes, params).fetchall()
+
+        query_movs = """SELECT m.fecha, 'Venta (stock)' as tipo, p.nombre as concepto, m.cantidad, (m.cantidad * p.precio_venta) as monto
+                       FROM movimientos_stock m
+                       JOIN productos p ON m.producto_id = p.id
+                       WHERE m.tipo = 'venta'"""
+        params2 = []
+        if fecha_desde:
+            query_movs += " AND date(m.fecha) >= date(?)"
+            params2.append(fecha_desde)
+        if fecha_hasta:
+            query_movs += " AND date(m.fecha) <= date(?)"
+            params2.append(fecha_hasta)
+        movs = conn.execute(query_movs, params2).fetchall()
+        return list(ordenes) + list(movs)
+    finally:
+        conn.close()
+
+def get_reporte_inventario():
+    """Reporte de inventario actual: productos con stock y valorizacion."""
+    conn = get_connection()
+    try:
+        inventario = conn.execute("""SELECT p.id, p.nombre, p.stock_actual, p.stock_minimo, p.precio_costo, p.precio_venta,
+                                            c.nombre as categoria,
+                                            (p.stock_actual * p.precio_costo) as valor_costo,
+                                            (p.stock_actual * p.precio_venta) as valor_venta
+                                     FROM productos p
+                                     LEFT JOIN categorias c ON p.categoria_id = c.id
+                                     WHERE p.activo = 1
+                                     ORDER BY p.nombre""").fetchall()
+        return inventario
+    finally:
+        conn.close()
+
+def get_reporte_ingresos_egresos(fecha_desde=None, fecha_hasta=None):
+    """Reporte de ingresos vs egresos.
+    Ingresos = precio_venta * cantidad FROM movimientos_stock de tipo venta
+    + total_final FROM ordenes_servicio  (los movimientos venta pueden duplicarse? ver nora).
+    Egresos = precio_costo * cantidad FROM movimientos_stock donde tipo = compra."""
+    conn = get_connection()
+    try:
+        egresos_query = """SELECT p.nombre as concepto, m.cantidad, (m.cantidad * p.precio_costo) as monto, m.fecha
+                           FROM movimientos_stock m
+                           JOIN productos p ON m.producto_id = p.id
+                           WHERE m.tipo = 'compra'"""
+        params_e = []
+        if fecha_desde:
+            egresos_query += " AND date(m.fecha) >= date(?)"
+            params_e.append(fecha_desde)
+        if fecha_hasta:
+            egresos_query += " AND date(m.fecha) <= date(?)"
+            params_e.append(fecha_hasta)
+        egresos = conn.execute(egresos_query, params_e).fetchall()
+
+        ingresos_query = """SELECT c.nombre as concepto, o.total_final as monto, o.fecha
+                            FROM ordenes_servicio o
+                            LEFT JOIN clientes c ON o.cliente_id = c.id"""
+        params_i = []
+        if fecha_desde:
+            ingresos_query += " WHERE date(o.fecha) >= date(?)"
+            params_i.append(fecha_desde)
+            if fecha_hasta:
+                ingresos_query += " AND date(o.fecha) <= date(?)"
+                params_i.append(fecha_hasta)
+        elif fecha_hasta:
+            ingresos_query += " WHERE date(o.fecha) <= date(?)"
+            params_i.append(fecha_hasta)
+        ingresos = conn.execute(ingresos_query, params_i).fetchall()
+        return list(ingresos), list(egresos)
+    finally:
+        conn.close()
