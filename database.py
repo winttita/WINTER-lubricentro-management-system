@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 import shutil
 
+# Adapter for datetime -> ISO 8601 string to avoid deprecation warning in Python 3.12+
+sqlite3.register_adapter(datetime, lambda val: val.isoformat())
+
 DB_NAME = "lubricentro.db"
 BACKUP_DIR = "backups"
 
