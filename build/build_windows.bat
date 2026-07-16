@@ -4,7 +4,7 @@ REM Build script para Lubricentro Winter (Windows).
 REM
 REM Genera dist/LubricentroWinter_vX.Y.Z.zip listo para subir a GitHub Releases.
 REM Contenido del zip:
-REM   LubricentroWinter.exe         (launcher compilado con PyInstaller)
+REM   LubricentroWinter.exe         (launcher compilado con PyInstaller, ventana oculta)
 REM   runtime/                       (Python embebido + deps)
 REM   app/                           (codigo fuente de la app)
 REM   requirements.txt
@@ -48,11 +48,11 @@ if exist "%STAGE%" rmdir /s /q "%STAGE%"
 if exist "%ZIP%" del "%ZIP%"
 mkdir "%STAGE%"
 
-REM --- 1. Compilar launcher.exe con PyInstaller -----------------------------
-echo [1/4] Compilando launcher.exe con PyInstaller...
+REM --- 1. Compilar launcher.exe con PyInstaller (ventana oculta) -----------
+echo [1/8] Compilando launcher.exe con PyInstaller...
 cd /d %ROOT%
 python -m pip install --quiet pyinstaller
-python -m PyInstaller --onefile --noconfirm --name LubricentroWinter ^
+python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter ^
     --distpath "%STAGE%" --workpath "%DIST%\build_launcher" ^
     --specpath "%DIST%\build_launcher" ^
     build\launcher.py
@@ -61,8 +61,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM --- 2. Descargar y preparar Python embebido -----------------------------
-echo [2/4] Preparando Python embebido...
+REM --- 2. Descargar y preparar Python embebido ----------------------------
+echo [2/8] Preparando Python embebido...
 set PYVER=3.12.7
 set PYARCH=amd64
 set PYURL=https://www.python.org/ftp/python/%PYVER%/python-%PYVER%-embed-%PYARCH%.zip
@@ -92,11 +92,11 @@ python.exe get-pip.py --no-warn-script-location
 popd
 
 REM Instalar dependencias de la app en el runtime embebido
-echo Instalando dependencias en runtime embebido...
+echo [3/8] Instalando dependencias en el runtime embebido...
 "%PYDIR%\python.exe" -m pip install --no-warn-script-location -r "%ROOT%\requirements.txt"
 
-REM --- 3. Copiar codigo fuente ---------------------------------------------
-echo [3/4] Copiando codigo fuente...
+REM --- 4. Copiar codigo fuente ---------------------------------------------
+echo [4/8] Copiando codigo fuente...
 mkdir "%STAGE%\app" 2>nul
 copy /Y "%ROOT%\app.py"       "%STAGE%\app\app.py"       >nul
 copy /Y "%ROOT%\database.py" "%STAGE%\app\database.py"  >nul
@@ -104,8 +104,8 @@ xcopy /E /I /Q "%ROOT%\pages" "%STAGE%\app\pages\"      >nul
 copy /Y "%ROOT%\updater.py"      "%STAGE%\updater.py"      >nul
 copy /Y "%ROOT%\requirements.txt" "%STAGE%\requirements.txt" >nul
 
-REM --- 4. Empaquetar ZIP ---------------------------------------------------
-echo [4/4] Empaquetando %ZIP% ...
+REM --- 5. Empaquetar ZIP ---------------------------------------------------
+echo [5/8] Empaquetando %ZIP% ...
 powershell -NoProfile -Command "Compress-Archive -Path '%STAGE%\*' -DestinationPath '%ZIP%' -Force"
 
 echo.
