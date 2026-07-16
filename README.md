@@ -24,3 +24,31 @@ Finalizada la Fase 1 (Infraestructura), Fase 2 (Gestión de Inventario: Producto
 
 ## Próximos Pasos
 - Mejoras futuras y feedback de usuarios.
+
+## Actualizaciones Remotas
+La aplicación consulta automáticamente GitHub Releases al iniciar y muestra un
+aviso en el sidebar si hay una versión más nueva. El usuario puede descargarla
+con un botón; al reiniciar la app, el `launcher.exe` aplica el cambio.
+
+- Repo de releases: https://github.com/winttita/WINTER-lubricentro-management-system/releases
+- Convención de versiones: semver `MAJOR.MINOR.PATCH` (tag `v0.1.0`, etc.).
+- El archivo `updater.py` contiene toda la lógica de checkeo y descarga.
+
+## Build del .exe (Windows)
+Para generar el .zip distribuible:
+
+```bat
+build\build_windows.bat
+```
+
+El script:
+1. Compila `build/launcher.py` con PyInstaller -> `LubricentroWinter.exe`.
+2. Descarga Python embebido 3.12 (amd64), instala pip y dependencias.
+3. Copia `app.py`, `database.py`, `pages/`, `updater.py` al paquete.
+4. Genera `dist/LubricentroWinter_vX.Y.Z.zip`.
+
+Subir ese .zip a una nueva GitHub Release (tag `vX.Y.Z`) para que la app lo
+detecte como actualización.
+
+### Cambiar la versión actual
+Editá `APP_VERSION` en `updater.py` antes de compilar/release.

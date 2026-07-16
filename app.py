@@ -1,6 +1,11 @@
 import streamlit as st
 import database as db
 
+try:
+    import updater
+except Exception:
+    updater = None
+
 st.set_page_config(
     page_title="Lubricentro Winter",
     page_icon="🔧",
@@ -11,6 +16,54 @@ st.title("🔧 Lubricentro Winter")
 st.markdown("Sistema de gestión de stock y punto de venta")
 
 db.init_db()
+
+# --- Chequeo de actualizaciones -------------------------------------------
+if updater is not None:
+    try:
+        update = updater.check_for_update()
+    except updater.UpdateError as exc:
+        update = None
+        st.sidebar.warning(f"No se pudo chequear actualizaciones: {exc}")
+    if update:
+        with st.sidebar:
+            st.markdown("### ⬆️ Actualización disponible")
+            st.markdown(
+                f"**Versión {update['latest_version']}** (tenés la "
+                f"{update['current_version']})"
+            )
+            if update["release_notes"]:
+                with st.expander("Ver notas de la versión"):
+                    st.markdown(update["release_notes"])
+            if st.button("Descargar actualización", type="primary",
+                         key="btn_download_update", use_container_width=True):
+                asset = updater.find_asset({"assets": update["assets"]})
+                if asset is None:
+                    st.error(
+                        "No se encontró un archivo descargable en la release. "
+                        "Descargala manualmente desde el repositorio."
+                    )
+                else:
+                    progress = st.progress(0.0, text="Descargando...")
+                    last_pct = [0.0]
+
+                    def _cb(done: int, total: int) -> None:
+                        if total > 0:
+                            pct = done / total
+                            if pct - last_pct[0] >= 0.01:
+                                last_pct[0] = pct
+                                progress.progress(pct, text=f"Descargando... {pct:.0%}")
+
+                    try:
+                        path = updater.download_asset(asset, progress_callback=_cb)
+                        updater.apply_update(path)
+                        progress.empty()
+                        st.success(
+                            "Actualización descargada. Cerrá y volvé a abrir la "
+                            "aplicación para completar la actualización."
+                        )
+                        st.info(f"Archivo guardado en:\n`{path}`")
+                    except updater.UpdateError as exc:
+                        st.error(f"Error en la descarga: {exc}")
 
 st.divider()
 
