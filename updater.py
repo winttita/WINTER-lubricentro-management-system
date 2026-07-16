@@ -203,30 +203,22 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
 
 # --- Aplicación ------------------------------------------------------------
 
-def _current_executable_path() -> str:
-    """Devuelve la ruta al binario actual (launcher.exe o python SCRIPT)."""
-    if getattr(sys, "frozen", False):
-        # PyInstaller one-file: sys.executable es el .exe
-        return sys.executable
-    # Modo launcher con Python embebido: el launcher está en sys.executable
-    if os.name == "nt" and sys.executable.lower().endswith("lubricentrowinter.exe"):
-        return sys.executable
-    # Modo desarrollo: __file__ es updater.py, no hay binario a reemplazar.
-    return os.path.abspath(__file__)
-
 
 def apply_update(downloaded_path: str) -> str:
     """
-    Marca `downloaded_path` como actualización pendiente. Devuelve el path al
-    lock file creado.
+    Marca `downloaded_path` como actualización pendiente y escribe update.bat.
+    Devuelve el path al lock file creado.
 
-    El launcher (.exe del inicio) leerá `UPDATE_LOCK` en el próximo arranque y
-    reemplazará su propio binario por el descargado. El reemplazo no se hace
-    acá porque en Windows no se puede sobrescribir un .exe en ejecución.
+    El launcher leerá UPDATE_LOCK en el próximo arranque, lanzará update.bat
+    con su PID y saldrá. update.bat esperará a que el proceso muera,
+    descomprimirá el zip (incluyendo el nuevo .exe) y relanzará la app.
     """
     os.makedirs(UPDATE_DIR, exist_ok=True)
     with open(UPDATE_LOCK, "w", encoding="utf-8") as f:
         f.write(downloaded_path + "\n")
+    # Escribir también el script de post-update
+    root = os.path.dirname(UPDATE_DIR)
+    _write_update_bat(root, downloaded_path)
     return UPDATE_LOCK
 
 

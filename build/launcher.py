@@ -2,13 +2,13 @@
 Launcher de Lubricentro Winter.
 
 Este script se compila a un .exe pequeño con PyInstaller:
-    pyinstaller --onefile --name LubricentroWinter launcher.py
+    pyinstaller --onefile --windowed --name LubricentroWinter launcher.py
 
 El launcher.exe se distribuye junto a una carpeta `runtime/` que contiene
 Python embebido + dependencias. El launcher:
-  1. Aplica actualizaciones pendientes (update_lock) reemplazando archivos.
-  2. Verifica/instala dependencias en primera ejecución.
-  3. Arranca Streamlit y abre el navegador.
+  1. Detecta actualización pendiente (update_lock)
+  2. Si hay update: escribe update.bat, lo lanza con PID actual y sale
+  3. Si no hay update: verifica runtime, instala deps y arranca Streamlit
 
 Debe mantenerse MÍNIMO para que el PyInstaller one-file sea pequeño y rápido
 de descargar (las deps pesadas viven en runtime/, no dentro del .exe).
@@ -18,14 +18,10 @@ from __future__ import annotations
 import os
 import sys
 import shutil
-import hashlib
 import subprocess
-import tempfile
 import zipfile
 import time
-import urllib.request
-import urllib.error
-import json
+import tempfile
 
 # --- Rutas base ------------------------------------------------------------
 
@@ -38,17 +34,15 @@ APP_DIR = os.path.join(ROOT, "app")
 APP_ENTRY = os.path.join(APP_DIR, "app.py")
 REQUIREMENTS = os.path.join(ROOT, "requirements.txt")
 
-# Mismo layout de updater
+# Layout de updater
 UPDATE_DIR = os.path.join(ROOT, ".updates")
 UPDATE_LOCK = os.path.join(UPDATE_DIR, "pending_update")
-# Ruta donde se copia el launcher.exe en cada arranque para poder sobrescribirlo
 LAUNCHER_EXE = sys.executable if getattr(sys, "frozen", False) else __file__
-
 
 # --- Logging simple --------------------------------------------------------
 
 def log(msg: str) -> None:
-    """Escribe un log en updates/install.log del directorio raíz."""
+    """Escribe un log en _logs/launcher.log del directorio raíz."""
     log_dir = os.path.join(ROOT, "_logs")
     try:
         os.makedirs(log_dir, exist_ok=True)
@@ -58,60 +52,133 @@ def log(msg: str) -> None:
         pass
 
 
-# --- Aplicación de actualizaciones ----------------------------------------
+# --- Auto-actualización ----------------------------------------------------
 
-def apply_pending_update() -> bool:
+def _write_update_batch(zip_path: str, pid: int) -> str:
     """
-    Si existe un update lock, renombra/mueve los archivos descargados al
-    directorio raíz. En Windows no se puede sobrescribir un .exe en ejecución,
-    pero el .exe en sí (launcher) no cambia; lo que cambia es el contenido
-    de runtime/ y app/. El updater descarga un .zip y acá se descomprime.
+    Escribe update.bat que:
+      1. Espera a que termine el proceso PID (el launcher actual)
+      2. Reemplaza LubricentroWinter.exe por el nuevo (si vino en el zip)
+      3. Descomprime el zip en ROOT
+      4. Lanza el nuevo .exe
+    Devuelve la ruta al batch escrito.
+    """
+    bat_path = os.path.join(ROOT, "update.bat")
+    # Launcher exe name (with .exe)
+    launcher_name = os.path.basename(LAUNCHER_EXE)
+    # Escape backslashes for the batch file content
+    root_escaped = ROOT.replace("\\", "\\\\")
+    zip_escaped = zip_path.replace("\\", "\\\\")
+    bat_content = rf"""@echo off
+REM ========================================================================
+REM Auto-update batch para Lubricentro Winter
+REM Se ejecuta después de que el launcher descargue una actualización.
+REM ========================================================================
+
+setlocal enabledelayedexpansion
+
+set ROOT=%~dp0
+set ZIP_PATH={zip_escaped}
+set PID={pid}
+set LAUNCHER={launcher_name}
+
+echo [UPDATE] Esperando a que termine el launcher anterior (PID %PID%)...
+:WAIT_LOOP
+tasklist /FI "PID eq %PID%" 2>nul | find "%PID%" >nul
+if errorlevel 1 (
+    echo [UPDATE] Proceso %PID% finalizado.
+) else (
+    timeout /t 1 /nobreak >nul
+    goto WAIT_LOOP
+)
+
+echo [UPDATE] Aplicando actualización desde %ZIP_PATH%...
+
+REM Backup del launcher actual por si acaso
+if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
+if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
+
+REM Descomprimir el zip (sobrescribe todo: app/, runtime/, etc.)
+powershell -NoProfile -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
+
+REM Verificar que el nuevo launcher existe
+if not exist "%ROOT%\{launcher_name}" (
+    echo [ERROR] No se encontró {launcher_name} tras descomprimir. Restaurando backup...
+    if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
+    pause
+    exit /b 1
+)
+
+echo [UPDATE] Limpieza...
+if exist "%ZIP_PATH%" del "%ZIP_PATH%"
+if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
+if exist "%ROOT%\update.bat" del "%ROOT%\update.bat"
+if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
+
+echo [UPDATE] Iniciando nueva versión...
+start "" "%ROOT%\{launcher_name}"
+
+exit /b 0
+"""
+    with open(bat_path, "w", encoding="utf-8", newline="\r\n") as f:
+        f.write(bat_content)
+    return bat_path
+
+
+def check_and_launch_update() -> bool:
+    """
+    Si existe UPDATE_LOCK:
+      - Lee la ruta del zip descargado
+      - Escribe update.bat
+      - Lanza update.bat con PID actual (detached)
+      - Sale (return True => el caller debe hacer sys.exit(0))
+    Si no hay lock, return False.
     """
     if not os.path.exists(UPDATE_LOCK):
         return False
+
     try:
         with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
-            target = f.read().strip()
-        if not target or not os.path.exists(target):
-            log(f"Lock apunta a archivo inexistente: {target}")
-            os.remove(UPDATE_LOCK)
-            return False
-        log(f"Aplicando actualización desde: {target}")
-        # Si es zip, descomprimir en ROOT
-        if target.lower().endswith(".zip"):
-            with zipfile.ZipFile(target) as zf:
-                zf.extractall(ROOT)
-            log("Descompresión completa.")
-        else:
-            # Caso de binario standalone (PyInstaller one-file completo):
-            # reemplazar el launcher.exe por el nuevo.
-            # En Windows hacerlo in-place es problemático, así que renombramos
-            # el viejo con .bak y copiamos el nuevo.
-            backup = LAUNCHER_EXE + ".bak"
-            try:
-                if os.path.exists(backup):
-                    os.remove(backup)
-                os.rename(LAUNCHER_EXE, backup)
-                shutil.copy2(target, LAUNCHER_EXE)
-                log("Launcher reemplazado.")
-            except OSError as e:
-                log(f"No se pudo reemplazar el launcher: {e}")
-        os.remove(UPDATE_LOCK)
-        log("Actualización aplicada.")
-        return True
-    except Exception as e:
-        log(f"Error aplicando actualización: {e}")
+            zip_path = f.read().strip()
+    except OSError:
         return False
+
+    if not zip_path or not os.path.exists(zip_path):
+        log(f"Lock apunta a archivo inexistente: {zip_path}")
+        try:
+            os.remove(UPDATE_LOCK)
+        except OSError:
+            pass
+        return False
+
+    log(f"Actualización pendiente detectada: {zip_path}")
+
+    # Escribir update.bat y lanzarlo
+    pid = os.getpid()
+    bat_path = _write_update_batch(zip_path, pid)
+    log(f"Escrito {bat_path} para PID {pid}")
+
+    # Lanzar detached: start /b no espera; usamos start "" /b
+    try:
+        subprocess.Popen(
+            ["cmd", "/c", bat_path],
+            cwd=ROOT,
+            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception as e:
+        log(f"Error lanzando update.bat: {e}")
+        return False
+
+    log("Launcher cediendo control a update.bat...")
+    return True
 
 
 # --- Verificación del runtime ---------------------------------------------
 
 def ensure_runtime() -> bool:
-    """
-    Verifica que runtime/pythonw.exe exista. Si no, instruimos al usuario a
-    reinstalar o descargar el paquete completo. En una versión futura podría
-    descargar automáticamente el runtime desde GitHub Releases.
-    """
     if os.path.exists(PYTHON_EXE):
         return True
     log("Runtime de Python no encontrado en: " + PYTHON_EXE)
@@ -119,16 +186,11 @@ def ensure_runtime() -> bool:
 
 
 def ensure_dependencies() -> None:
-    """
-    Ejecuta `pip install -r requirements.txt` en el runtime embebido si la
-    carpeta runtime/ está presente. Pip no viene en python-embed por defecto;
-    el script de build se encarga de meter pip ahí.
-    """
     if not os.path.exists(REQUIREMENTS):
         return
     try:
         subprocess.run(
-            [sys.executable if not getattr(sys, "frozen", False) else PYTHON_EXE,
+            [PYTHON_EXE if os.path.exists(PYTHON_EXE) else sys.executable,
              "-m", "pip", "install", "--no-input", "-r", REQUIREMENTS],
             cwd=ROOT, check=False,
             stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
@@ -141,22 +203,14 @@ def ensure_dependencies() -> None:
 # --- Arranque de Streamlit -------------------------------------------------
 
 def python_executable() -> list[str]:
-    """Devuelve argv para ejecutar python: prioriza el runtime embebido."""
     if os.path.exists(PYTHON_EXE):
         return [PYTHON_EXE]
     return [sys.executable]
 
 
 def start_streamlit() -> int:
-    """
-    Lanza `pythonw.exe -X utf8 -m streamlit run app/app.py` y espera hasta
-    que el servidor devuelva algo. Luego abre el navegador.
-    """
-    # Carpeta donde está el código fuente: en el .zip distribuido vive en app/
-    # pero durante desarrollo vive junto al launcher; soportamos ambos.
     entry = APP_ENTRY
     if not os.path.exists(entry):
-        # Modo desarrollo: app.py está en el mismo dir que este script
         alt = os.path.join(ROOT, "app.py")
         if os.path.exists(alt):
             entry = alt
@@ -167,9 +221,7 @@ def start_streamlit() -> int:
                                  "--server.headless=true", "--browser.gatherUsageStats=false"]
     log("Iniciando: " + " ".join(cmd))
     proc = subprocess.Popen(cmd, cwd=ROOT)
-    # Streamlit tarda unos segundos en arrancar; mostramos un splash.
     time.sleep(1.5)
-    # Abrir navegador (hacia el localhost:8501)
     try:
         import webbrowser
         webbrowser.open("http://localhost:8501")
@@ -183,9 +235,13 @@ def start_streamlit() -> int:
 
 def main() -> int:
     log("=== Lubricentro Winter launcher ===")
-    apply_pending_update()
+
+    # 1. ¿Hay actualización pendiente? Si sí, lanzar update.bat y salir.
+    if check_and_launch_update():
+        return 0
+
+    # 2. No hay update: flujo normal
     if not ensure_runtime():
-        # Intentar arrancar de todos modos con el Python del sistema.
         log("Runtime no encontrado; intentando con Python del sistema.")
     ensure_dependencies()
     return start_streamlit()
