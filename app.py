@@ -1,6 +1,8 @@
 import streamlit as st
 import database as db
 import os
+import sys
+import time
 
 try:
     import updater
@@ -66,11 +68,9 @@ if updater is not None:
                         path = updater.download_asset(asset, progress_callback=_cb)
                         updater.apply_update(path)
                         progress.empty()
-                        st.success(
-                            "Actualización descargada. Cerrá y volvé a abrir la "
-                            "aplicación para completar la actualización."
-                        )
-                        st.info(f"Archivo guardado en:\n`{path}`")
+                        st.success("Actualización descargada. Reiniciando...")
+                        time.sleep(0.5)
+                        sys.exit(0)
                     except updater.UpdateError as exc:
                         st.error(f"Error en la descarga: {exc}")
 

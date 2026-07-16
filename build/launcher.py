@@ -236,15 +236,42 @@ def start_streamlit() -> int:
 def main() -> int:
     log("=== Lubricentro Winter launcher ===")
 
-    # 1. ¿Hay actualización pendiente? Si sí, lanzar update.bat y salir.
+    # 1. ¿Hay actualización pendiente al arrancar? Si sí, lanzar update.bat y salir.
     if check_and_launch_update():
         return 0
 
-    # 2. No hay update: flujo normal
+    # 2. Flujo normal
     if not ensure_runtime():
         log("Runtime no encontrado; intentando con Python del sistema.")
     ensure_dependencies()
-    return start_streamlit()
+    rc = start_streamlit()
+
+    # 3. Después de que Streamlit termine, verificar si hubo una actualización disparada en runtime
+    if os.path.exists(UPDATE_LOCK):
+        zip_path = ""
+        try:
+            with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
+                zip_path = f.read().strip()
+        except OSError:
+            zip_path = ""
+        if zip_path and os.path.exists(zip_path):
+            pid = os.getpid()
+            bat_path = _write_update_batch(zip_path, pid)
+            log("Actualización pendiente tras cierre de Streamlit. Lanzando update.bat...")
+            try:
+                subprocess.Popen(
+                    ["cmd", "/c", bat_path],
+                    cwd=ROOT,
+                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception as e:
+                log(f"Error lanzando update.bat: {e}")
+        else:
+            log("UPDATE_LOCK presente pero zip no encontrado; ignorando.")
+    return rc
 
 
 if __name__ == "__main__":
