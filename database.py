@@ -166,6 +166,22 @@ def backup_db():
         return backup_path
     return None
 
+def cleanup_old_backups(max_backups=10):
+    """Elimina los backups más antiguos, conservando solo los últimos max_backups."""
+    if not os.path.exists(BACKUP_DIR):
+        return
+    backups = []
+    for f in os.listdir(BACKUP_DIR):
+        path = os.path.join(BACKUP_DIR, f)
+        if f.startswith("lubricentro_backup_") and f.endswith(".db"):
+            backups.append((os.path.getmtime(path), path))
+    backups.sort(reverse=True)  # más recientes primero
+    for _, path in backups[max_backups:]:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
 # --- Funciones de Movimientos de Stock ---
 def get_movimientos(limit=10):
     conn = get_connection()

@@ -1,5 +1,6 @@
 import streamlit as st
 import database as db
+import os
 
 try:
     import updater
@@ -16,6 +17,14 @@ st.title("🔧 Lubricentro Winter")
 st.markdown("Sistema de gestión de stock y punto de venta")
 
 db.init_db()
+
+# --- Backup automático al iniciar -----------------------------------------
+try:
+    if os.path.exists("lubricentro.db"):
+        db.backup_db()
+        db.cleanup_old_backups()
+except Exception:
+    pass
 
 # --- Chequeo de actualizaciones -------------------------------------------
 if updater is not None:
@@ -64,6 +73,29 @@ if updater is not None:
                         st.info(f"Archivo guardado en:\n`{path}`")
                     except updater.UpdateError as exc:
                         st.error(f"Error en la descarga: {exc}")
+
+# --- Backup manual en sidebar ---------------------------------------------
+with st.sidebar:
+    st.markdown("### 💾 Backup de la base de datos")
+    if st.button("Crear backup ahora", key="btn_backup_manual",
+                 use_container_width=True):
+        try:
+            path = db.backup_db()
+            db.cleanup_old_backups()
+            if path:
+                st.success(f"Backup creado:\n`{os.path.basename(path)}`")
+            else:
+                st.warning("No se encontró la base de datos para respaldar.")
+        except Exception as exc:
+            st.error(f"Error creando backup: {exc}")
+    backups_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backups")
+    if os.path.isdir(backups_dir):
+        backups = [f for f in os.listdir(backups_dir)
+                   if f.startswith("lubricentro_backup_") and f.endswith(".db")]
+        if backups:
+            st.caption(f"Backups guardados: {len(backups)} (se conservan los últimos 10)")
+        else:
+            st.caption("Aún no hay backups guardados.")
 
 st.divider()
 
