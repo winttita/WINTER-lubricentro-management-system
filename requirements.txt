@@ -1,3 +1,4 @@
 streamlit
 pandas
+pytest
 # pyinstaller solo se necesita en la maquina que compila el .exe, no en runtime.
