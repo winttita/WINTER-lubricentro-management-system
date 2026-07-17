@@ -40,6 +40,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "PyInstaller failed with exit code $LASTEXITCODE"
           }
+          Write-Host "launcher.exe built successfully"
+          Write-Host "File size: $(Get-Item dist/LubricentroWinter.exe | Select-Object -ExpandProperty Length) bytes"
 
       - name: Download embedded Python
         shell: pwsh
@@ -138,11 +140,29 @@ jobs:
             throw "ZIP file was not created successfully"
           }
           
+          $ZIP_SIZE = (Get-Item $ZIP).Length
+          Write-Host "ZIP created successfully: $ZIP_SIZE bytes"
+          
+          # Set outputs for next steps
           echo "STAGE=$STAGE" >> $GITHUB_ENV
           echo "ZIP=$ZIP" >> $GITHUB_ENV
+          echo "ZIP_SIZE=$ZIP_SIZE" >> $GITHUB_ENV
+
+      - name: Verify ZIP contents
+        shell: pwsh
+        run: |
+          $ZIP = "${{ env.ZIP }}"
+          Write-Host "Verifying ZIP contents..."
+          $TMP = "dist/tmp_verify"
+          if (Test-Path $TMP) { Remove-Item -Recurse -Force $TMP }
+          Expand-Archive -Path $ZIP -DestinationPath $TMP
+          Get-ChildItem $TMP -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
+          Remove-Item -Recurse -Force $TMP
+          Write-Host "ZIP verification complete"
 
       - name: Generate release notes
         id: release_notes
+        shell: pwsh
         run: |
           # Get previous tag
           $PREV_TAG = git tag --sort=-version:refname | Select-Object -Skip 1 -First 1
@@ -198,6 +218,7 @@ Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `Lubrice
           echo "body_path=release_notes.md" >> $GITHUB_ENV
 
       - name: Create GitHub Release
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref }}
@@ -205,5 +226,15 @@ Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `Lubrice
           body_path: ${{ env.body_path }}
           files: ${{ env.ZIP }}
           generate_release_notes: false
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify release asset
+        if: always()
+        run: |
+          echo "Release created. Checking assets..."
+          echo "Tag: ${{ github.ref }}"
+          echo "ZIP path: ${{ env.ZIP }}"
+          echo "ZIP size: ${{ env.ZIP_SIZE }} bytes"
