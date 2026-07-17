@@ -105,13 +105,14 @@ jobs:
           Write-Host "Stage directory: $STAGE"
           Write-Host "ZIP file: $ZIP"
           
+          # Cleanup previous artifacts
           if (Test-Path $STAGE) {
             Write-Host "Removing existing stage directory..."
-            Remove-Item -Recurse -Force $STAGE
+            Remove-Item -Recurse -Force $STAGE -ErrorAction Stop
           }
           if (Test-Path $ZIP) {
             Write-Host "Removing existing ZIP file..."
-            Remove-Item -Force $ZIP
+            Remove-Item -Force $ZIP -ErrorAction Stop
           }
           
           Write-Host "Creating stage directory..."
@@ -119,49 +120,72 @@ jobs:
           
           # Copy launcher.exe
           Write-Host "Copying launcher.exe..."
-          Copy-Item dist/LubricentroWinter.exe $STAGE/
+          if (-not (Test-Path "dist/LubricentroWinter.exe")) {
+            Write-Error "launcher.exe not found at dist/LubricentroWinter.exe"
+            exit 1
+          }
+          Copy-Item dist/LubricentroWinter.exe $STAGE/ -ErrorAction Stop
           
           # Copy runtime (embedded Python + deps)
           Write-Host "Copying runtime..."
-          Copy-Item dist/runtime $STAGE/ -Recurse
+          if (-not (Test-Path "dist/runtime")) {
+            Write-Error "runtime directory not found at dist/runtime"
+            exit 1
+          }
+          Copy-Item dist/runtime $STAGE/ -Recurse -ErrorAction Stop
           
           # Copy app source
           Write-Host "Copying application files..."
           New-Item -ItemType Directory -Path "$STAGE/app" | Out-Null
-          Copy-Item app.py $STAGE/app/
-          Copy-Item database.py $STAGE/app/
-          Copy-Item pages $STAGE/app/pages -Recurse
-          Copy-Item updater.py $STAGE/
-          Copy-Item requirements.txt $STAGE/
+          Copy-Item app.py $STAGE/app/ -ErrorAction Stop
+          Copy-Item database.py $STAGE/app/ -ErrorAction Stop
+          Copy-Item pages $STAGE/app/pages -Recurse -ErrorAction Stop
+          Copy-Item updater.py $STAGE/ -ErrorAction Stop
+          Copy-Item requirements.txt $STAGE/ -ErrorAction Stop
           
           # Create ZIP
           Write-Host "Creating ZIP archive..."
-          Compress-Archive -Path "$STAGE\*" -DestinationPath $ZIP -Force
+          Compress-Archive -Path "$STAGE\*" -DestinationPath $ZIP -Force -ErrorAction Stop
           
-          if (!(Test-Path $ZIP)) {
-            throw "ZIP file was not created successfully"
+          if (-not (Test-Path $ZIP)) {
+            Write-Error "ZIP file was not created successfully at $ZIP"
+            exit 1
           }
           
           $ZIP_SIZE = (Get-Item $ZIP).Length
           Write-Host "ZIP created successfully: $ZIP_SIZE bytes"
           
-          # Set outputs for next steps (using step outputs, not GITHUB_ENV)
-          echo "STAGE=$STAGE" >> $GITHUB_OUTPUT
-          echo "ZIP=$ZIP" >> $GITHUB_OUTPUT
-          echo "ZIP_SIZE=$ZIP_SIZE" >> $GITHUB_OUTPUT
+          # Set step outputs using GITHUB_OUTPUT (PowerShell compatible)
+          "STAGE=$STAGE" >> $env:GITHUB_OUTPUT
+          "ZIP=$ZIP" >> $env:GITHUB_OUTPUT
+          "ZIP_SIZE=$ZIP_SIZE" >> $env:GITHUB_OUTPUT
+          
+          Write-Host "Step outputs set: STAGE=$STAGE, ZIP=$ZIP, ZIP_SIZE=$ZIP_SIZE"
 
       - name: Verify ZIP contents
+        id: verify_zip
         shell: pwsh
         run: |
           $ZIP = "${{ steps.package.outputs.ZIP }}"
-          if (-not (Test-Path $ZIP)) {
-            Write-Error "ZIP file not found at: $ZIP"
+          Write-Host "ZIP path from step output: $ZIP"
+          
+          if ([string]::IsNullOrEmpty($ZIP)) {
+            Write-Error "ZIP path is empty - step output not set"
             exit 1
           }
+          
+          if (-not (Test-Path $ZIP)) {
+            Write-Error "ZIP file not found at: $ZIP"
+            # Debug: list dist directory
+            Write-Host "Contents of dist/:"
+            Get-ChildItem dist/ -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
+            exit 1
+          }
+          
           Write-Host "Verifying ZIP contents: $ZIP"
           $TMP = "dist/tmp_verify"
           if (Test-Path $TMP) { Remove-Item -Recurse -Force $TMP }
-          Expand-Archive -Path $ZIP -DestinationPath $TMP
+          Expand-Archive -Path $ZIP -DestinationPath $TMP -ErrorAction Stop
           Get-ChildItem $TMP -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
           Remove-Item -Recurse -Force $TMP
           Write-Host "ZIP verification complete"
@@ -215,7 +239,7 @@ jobs:
           $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
           
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
-          echo "body_path=release_notes.md" >> $GITHUB_OUTPUT
+          "body_path=release_notes.md" >> $env:GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release
@@ -238,3 +262,31 @@ jobs:
           echo "Tag: ${{ github.ref }}"
           echo "ZIP path: ${{ steps.package.outputs.ZIP }}"
           echo "ZIP size: ${{ steps.package.outputs.ZIP_SIZE }} bytes"
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.runId;
+            const workflow = context.workflow;
+            const repo = context.repo;
+            const error_steps = context.job.steps.filter(s => s.conclusion === 'failure').map(s => s.name);
+            
+            const body = `## ❌ Workflow Failed: ${workflow}
+            **Run**: #${run}
+            **Repo**: ${repo.owner}/${repo.repo}
+            **Tag**: ${context.ref}
+            **Failed steps**: ${error_steps.join(', ')}
+            
+            Check the logs: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${run}
+            `;
+            
+            // Create issue for tracking
+            await github.rest.issues.create({
+              owner: repo.owner,
+              repo: repo.repo,
+              title: `[CI] ${workflow} failed for ${context.ref}`,
+              body: body,
+              labels: ['ci-failure', 'automated']
+            });
