@@ -94,6 +94,7 @@ jobs:
           }
 
       - name: Prepare release package
+        id: package
         shell: pwsh
         run: |
           $VERSION = "${{ steps.version.outputs.VERSION }}"
@@ -144,16 +145,20 @@ jobs:
           $ZIP_SIZE = (Get-Item $ZIP).Length
           Write-Host "ZIP created successfully: $ZIP_SIZE bytes"
           
-          # Set outputs for next steps
-          echo "STAGE=$STAGE" >> $GITHUB_ENV
-          echo "ZIP=$ZIP" >> $GITHUB_ENV
-          echo "ZIP_SIZE=$ZIP_SIZE" >> $GITHUB_ENV
+          # Set outputs for next steps (using step outputs, not GITHUB_ENV)
+          echo "STAGE=$STAGE" >> $GITHUB_OUTPUT
+          echo "ZIP=$ZIP" >> $GITHUB_OUTPUT
+          echo "ZIP_SIZE=$ZIP_SIZE" >> $GITHUB_OUTPUT
 
       - name: Verify ZIP contents
         shell: pwsh
         run: |
-          $ZIP = "${{ env.ZIP }}"
-          Write-Host "Verifying ZIP contents..."
+          $ZIP = "${{ steps.package.outputs.ZIP }}"
+          if (-not (Test-Path $ZIP)) {
+            Write-Error "ZIP file not found at: $ZIP"
+            exit 1
+          }
+          Write-Host "Verifying ZIP contents: $ZIP"
           $TMP = "dist/tmp_verify"
           if (Test-Path $TMP) { Remove-Item -Recurse -Force $TMP }
           Expand-Archive -Path $ZIP -DestinationPath $TMP
@@ -210,7 +215,7 @@ jobs:
           $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
           
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
-          echo "body_path=release_notes.md" >> $GITHUB_ENV
+          echo "body_path=release_notes.md" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release
@@ -218,8 +223,8 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           name: Lubricentro Winter - v${{ steps.version.outputs.VERSION }}
-          body_path: ${{ env.body_path }}
-          files: ${{ env.ZIP }}
+          body_path: ${{ steps.release_notes.outputs.body_path }}
+          files: ${{ steps.package.outputs.ZIP }}
           generate_release_notes: false
           draft: false
           prerelease: false
@@ -231,5 +236,5 @@ jobs:
         run: |
           echo "Release created. Checking assets..."
           echo "Tag: ${{ github.ref }}"
-          echo "ZIP path: ${{ env.ZIP }}"
-          echo "ZIP size: ${{ env.ZIP_SIZE }} bytes"
+          echo "ZIP path: ${{ steps.package.outputs.ZIP }}"
+          echo "ZIP size: ${{ steps.package.outputs.ZIP_SIZE }} bytes"
