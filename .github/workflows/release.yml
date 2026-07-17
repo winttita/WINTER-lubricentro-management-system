@@ -86,6 +86,7 @@ jobs:
           }
 
       - name: Install dependencies in embedded Python
+        shell: pwsh
         run: |
           dist/runtime/python.exe -m pip install --no-warn-script-location -r requirements.txt
           if ($LASTEXITCODE -ne 0) {
@@ -191,28 +192,22 @@ jobs:
             }
           }
           
-          $BODY = @"
-## 📦 Lubricentro Winter v$VERSION
-
-### 🎯 Cambios desde $PREV_TAG
-
-$COMMITS
-
-$(if ($CHANGELOG_CONTENT) { "### 📝 Changelog
-
-$CHANGELOG_CONTENT" } else { "" })
-
-### 📋 Detalles técnicos
-- Compilado con PyInstaller + Python embebido 3.12.7
-- Paquete ZIP autónomo para Windows (sin dependencias externas)
-- Verificación automática de actualizaciones integrada
-
-### 🔄 Cómo actualizar
-La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.
-
-### 📥 Descarga manual
-Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`.
-"@
+          # Build body using string concatenation to avoid here-doc issues
+          $BODY = "## 📦 Lubricentro Winter v$VERSION`n`n"
+          $BODY += "### 🎯 Cambios desde $PREV_TAG`n`n"
+          $BODY += "$COMMITS`n`n"
+          if ($CHANGELOG_CONTENT) {
+            $BODY += "### 📝 Changelog`n`n"
+            $BODY += "$CHANGELOG_CONTENT`n`n"
+          }
+          $BODY += "### 📋 Detalles técnicos`n"
+          $BODY += "- Compilado con PyInstaller + Python embebido 3.12.7`n"
+          $BODY += "- Paquete ZIP autónomo para Windows (sin dependencias externas)`n"
+          $BODY += "- Verificación automática de actualizaciones integrada`n`n"
+          $BODY += "### 🔄 Cómo actualizar`n"
+          $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
+          $BODY += "### 📥 Descarga manual`n"
+          $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
           
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
           echo "body_path=release_notes.md" >> $GITHUB_ENV
