@@ -28,12 +28,16 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Build launcher.exe
+        shell: pwsh
         run: |
           python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
             --distpath dist `
             --workpath build `
             --specpath build `
             build/launcher.py
+          if ($LASTEXITCODE -ne 0) {
+            throw "PyInstaller failed with exit code $LASTEXITCODE"
+          }
 
       - name: Download embedded Python
         shell: pwsh
@@ -42,18 +46,47 @@ jobs:
           $PYARCH = "amd64"
           $PYURL = "https://www.python.org/ftp/python/$PYVER/python-$PYVER-embed-$PYARCH.zip"
           $PYZIP = "dist/python-embed.zip"
-          Invoke-WebRequest -Uri $PYURL -OutFile $PYZIP
-          Expand-Archive -Force -Path $PYZIP -DestinationPath dist/runtime
+          
+          Write-Host "Downloading Python $PYVER embeddable package from $PYURL"
+          try {
+            Invoke-WebRequest -Uri $PYURL -OutFile $PYZIP -ErrorAction Stop
+          } catch {
+            Write-Error "Failed to download Python embeddable package: $_"
+            exit 1
+          }
+          
+          Write-Host "Extracting archive..."
+          try {
+            Expand-Archive -Force -Path $PYZIP -DestinationPath dist/runtime
+          } catch {
+            Write-Error "Failed to extract archive: $_"
+            exit 1
+          }
+          
           # Enable pip in embedded python
           Get-ChildItem dist/runtime/python*._pth | Rename-Item -NewName { $_.Name + ".disabled" }
           if (!(Test-Path dist/runtime/get-pip.py)) {
-            Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile dist/runtime/get-pip.py
+            Write-Host "Downloading get-pip.py..."
+            try {
+              Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile dist/runtime/get-pip.py -ErrorAction Stop
+            } catch {
+              Write-Error "Failed to download get-pip.py: $_"
+              exit 1
+            }
           }
+          
+          Write-Host "Installing pip in embedded Python..."
           & dist/runtime/python.exe get-pip.py --no-warn-script-location
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install pip in embedded Python"
+          }
 
       - name: Install dependencies in embedded Python
         run: |
           dist/runtime/python.exe -m pip install --no-warn-script-location -r requirements.txt
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install dependencies in embedded Python"
+          }
 
       - name: Prepare release package
         shell: pwsh
@@ -61,28 +94,48 @@ jobs:
           $VERSION = "${{ steps.version.outputs.VERSION }}"
           $STAGE = "dist/LubricentroWinter_v$VERSION"
           $ZIP = "dist/LubricentroWinter_v$VERSION.zip"
-
-          if (Test-Path $STAGE) { Remove-Item -Recurse -Force $STAGE }
-          if (Test-Path $ZIP) { Remove-Item -Force $ZIP }
+          
+          Write-Host "Preparing release package for version $VERSION"
+          Write-Host "Stage directory: $STAGE"
+          Write-Host "ZIP file: $ZIP"
+          
+          if (Test-Path $STAGE) {
+            Write-Host "Removing existing stage directory..."
+            Remove-Item -Recurse -Force $STAGE
+          }
+          if (Test-Path $ZIP) {
+            Write-Host "Removing existing ZIP file..."
+            Remove-Item -Force $ZIP
+          }
+          
+          Write-Host "Creating stage directory..."
           New-Item -ItemType Directory -Path $STAGE | Out-Null
-
+          
           # Copy launcher.exe
+          Write-Host "Copying launcher.exe..."
           Copy-Item dist/LubricentroWinter.exe $STAGE/
-
+          
           # Copy runtime (embedded Python + deps)
+          Write-Host "Copying runtime..."
           Copy-Item dist/runtime $STAGE/ -Recurse
-
+          
           # Copy app source
+          Write-Host "Copying application files..."
           New-Item -ItemType Directory -Path "$STAGE/app" | Out-Null
           Copy-Item app.py $STAGE/app/
           Copy-Item database.py $STAGE/app/
           Copy-Item pages $STAGE/app/pages -Recurse
           Copy-Item updater.py $STAGE/
           Copy-Item requirements.txt $STAGE/
-
+          
           # Create ZIP
+          Write-Host "Creating ZIP archive..."
           Compress-Archive -Path "$STAGE\*" -DestinationPath $ZIP -Force
-
+          
+          if (!(Test-Path $ZIP)) {
+            throw "ZIP file was not created successfully"
+          }
+          
           echo "STAGE=$STAGE" >> $GITHUB_ENV
           echo "ZIP=$ZIP" >> $GITHUB_ENV
 
