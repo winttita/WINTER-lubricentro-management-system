@@ -76,7 +76,7 @@ jobs:
           }
           
           Write-Host "Installing pip in embedded Python..."
-          & dist/runtime/python.exe get-pip.py --no-warn-script-location
+          & dist/runtime/python.exe dist/runtime/get-pip.py --no-warn-script-location
           if ($LASTEXITCODE -ne 0) {
             throw "Failed to install pip in embedded Python"
           }
