@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -139,12 +141,69 @@ jobs:
           echo "STAGE=$STAGE" >> $GITHUB_ENV
           echo "ZIP=$ZIP" >> $GITHUB_ENV
 
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Get previous tag
+          $PREV_TAG = git tag --sort=-version:refname | Select-Object -Skip 1 -First 1
+          if (-not $PREV_TAG) { $PREV_TAG = "inicio" }
+          
+          Write-Host "Previous tag: $PREV_TAG"
+          
+          # Get commits since last tag
+          $COMMITS = git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges
+          if (-not $COMMITS) { $COMMITS = "- Sin commits nuevos desde $PREV_TAG" }
+          
+          $VERSION = "${{ steps.version.outputs.VERSION }}"
+          
+          # Try to extract from CHANGELOG.md
+          $CHANGELOG_CONTENT = ""
+          if (Test-Path "CHANGELOG.md") {
+            $IN_SECTION = $false
+            $CHANGELOG_LINES = @()
+            Get-Content CHANGELOG.md | ForEach-Object {
+              if ($_ -match "^##\s+\[$VERSION\]") { $IN_SECTION = $true; return }
+              if ($IN_SECTION -and $_ -match "^##\s+\[") { $IN_SECTION = $false; return }
+              if ($IN_SECTION) { $CHANGELOG_LINES += $_ }
+            }
+            if ($CHANGELOG_LINES.Count -gt 0) {
+              $CHANGELOG_CONTENT = $CHANGELOG_LINES -join "`n"
+            }
+          }
+          
+          $BODY = @"
+## 📦 Lubricentro Winter v$VERSION
+
+### 🎯 Cambios desde $PREV_TAG
+
+$COMMITS
+
+$(if ($CHANGELOG_CONTENT) { "### 📝 Changelog
+
+$CHANGELOG_CONTENT" } else { "" })
+
+### 📋 Detalles técnicos
+- Compilado con PyInstaller + Python embebido 3.12.7
+- Paquete ZIP autónomo para Windows (sin dependencias externas)
+- Verificación automática de actualizaciones integrada
+
+### 🔄 Cómo actualizar
+La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.
+
+### 📥 Descarga manual
+Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`.
+"@
+          
+          $BODY | Out-File -FilePath release_notes.md -Encoding utf8
+          echo "body_path=release_notes.md" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref }}
           name: Lubricentro Winter - v${{ steps.version.outputs.VERSION }}
+          body_path: ${{ env.body_path }}
           files: ${{ env.ZIP }}
-          generate_release_notes: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

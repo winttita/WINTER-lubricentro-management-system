@@ -1,0 +1,88 @@
+name: Update Release Description
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag de la release a actualizar (ej: v0.2.2)'
+        required: true
+        type: string
+      body_file:
+        description: 'Ruta al archivo con el cuerpo de la release (opcional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine release body
+        id: body
+        run: |
+          if [ -n "${{ github.event.inputs.body_file }}" ] && [ -f "${{ github.event.inputs.body_file }}" ]; then
+            cat "${{ github.event.inputs.body_file }}" > release_body.md
+          else
+            # Generar body basado en commits desde último tag
+            LAST_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
+            echo "Último tag anterior: $LAST_TAG"
+            
+            cat > release_body.md << 'BODYEOF'
+## 📦 Lubricentro Winter v0.2.2
+
+### 🎯 Novedades principales
+
+**Nuevas funcionalidades**
+- Visualización de la versión actual en la barra lateral
+- Verificación automática de actualizaciones al iniciar la aplicación
+- Interfaz mejorada para el proceso de actualización
+
+**Infraestructura y CI/CD**
+- Workflow de GitHub Actions para compilación y liberación automática de releases de Windows
+- Compilación automatizada con PyInstaller + Python embebido
+- Generación de paquete ZIP listo para distribución
+
+**Documentación**
+- AGENTS.md: Contexto automático de arquitectura para asistentes de código (graphify)
+- Documentación de nodos centrales y estructura de comunidades del proyecto
+
+### 🔧 Correcciones y mejoras técnicas
+- Corrección de sintaxis en scripts PowerShell del workflow de GitHub Actions
+- Manejo robusto de errores con try/catch y códigos de salida
+- Corrección de ruta absoluta para `get-pip.py` en instalación de Python embebido
+- Mejora en logging y diagnóstico del proceso de build
+
+### 📋 Cambios internos
+- Refactorización de scripts de build para mayor confiabilidad
+- Validación de pasos críticos con verificación de códigos de salida
+
+---
+
+### 🔄 Cómo actualizar
+La aplicación verificará automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.
+
+### 📥 Descarga manual
+Si prefieres instalación manual, descarga el archivo `LubricentroWinter_v0.2.2.zip`, extrae y ejecuta `LubricentroWinter.exe`.
+
+---
+
+**Versión anterior**: v0.2.1 (auto-actualización con swap .exe + fix KeyError en productos)
+BODYEOF
+          fi
+          echo "body_path=release_body.md" >> $GITHUB_OUTPUT
+
+      - name: Update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          body_path: ${{ steps.body.outputs.body_path }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
