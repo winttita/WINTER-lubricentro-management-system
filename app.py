@@ -1,13 +1,6 @@
 import streamlit as st
 import database as db
-import os
-import sys
-import time
-
-try:
-    import updater
-except Exception:
-    updater = None
+from updater import APP_VERSION, check_for_update
 
 st.set_page_config(
     page_title="Lubricentro Winter",
@@ -20,82 +13,27 @@ st.markdown("Sistema de gestión de stock y punto de venta")
 
 db.init_db()
 
-# --- Backup automático al iniciar -----------------------------------------
-try:
-    if os.path.exists("lubricentro.db"):
-        db.backup_db()
-        db.cleanup_old_backups()
-except Exception:
-    pass
-
-# --- Chequeo de actualizaciones -------------------------------------------
-if updater is not None:
-    try:
-        update = updater.check_for_update()
-    except updater.UpdateError as exc:
-        update = None
-        st.sidebar.warning(f"No se pudo chequear actualizaciones: {exc}")
-    if update:
-        with st.sidebar:
-            st.markdown("### ⬆️ Actualización disponible")
-            st.markdown(
-                f"**Versión {update['latest_version']}** (tenés la "
-                f"{update['current_version']})"
-            )
-            if update["release_notes"]:
-                with st.expander("Ver notas de la versión"):
-                    st.markdown(update["release_notes"])
-            if st.button("Descargar actualización", type="primary",
-                         key="btn_download_update", use_container_width=True):
-                asset = updater.find_asset({"assets": update["assets"]})
-                if asset is None:
-                    st.error(
-                        "No se encontró un archivo descargable en la release. "
-                        "Descargala manualmente desde el repositorio."
-                    )
-                else:
-                    progress = st.progress(0.0, text="Descargando...")
-                    last_pct = [0.0]
-
-                    def _cb(done: int, total: int) -> None:
-                        if total > 0:
-                            pct = done / total
-                            if pct - last_pct[0] >= 0.01:
-                                last_pct[0] = pct
-                                progress.progress(pct, text=f"Descargando... {pct:.0%}")
-
-                    try:
-                        path = updater.download_asset(asset, progress_callback=_cb)
-                        updater.apply_update(path)
-                        progress.empty()
-                        st.success("Actualización descargada. Reiniciando...")
-                        time.sleep(0.5)
-                        sys.exit(0)
-                    except updater.UpdateError as exc:
-                        st.error(f"Error en la descarga: {exc}")
-
-# --- Backup manual en sidebar ---------------------------------------------
 with st.sidebar:
-    st.markdown("### 💾 Backup de la base de datos")
-    if st.button("Crear backup ahora", key="btn_backup_manual",
-                 use_container_width=True):
-        try:
-            path = db.backup_db()
-            db.cleanup_old_backups()
-            if path:
-                st.success(f"Backup creado:\n`{os.path.basename(path)}`")
-            else:
-                st.warning("No se encontró la base de datos para respaldar.")
-        except Exception as exc:
-            st.error(f"Error creando backup: {exc}")
-    backups_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backups")
-    if os.path.isdir(backups_dir):
-        backups = [f for f in os.listdir(backups_dir)
-                   if f.startswith("lubricentro_backup_") and f.endswith(".db")]
-        if backups:
-            st.caption(f"Backups guardados: {len(backups)} (se conservan los últimos 10)")
+    st.caption(f"Versión {APP_VERSION}")
+    try:
+        update_info = check_for_update()
+        if update_info:
+            st.warning(f"⬆️ Actualización disponible: **v{update_info['latest_version']}**")
+            if st.button("Descargar e instalar actualización", use_container_width=True):
+                with st.spinner("Descargando..."):
+                    from updater import download_asset, find_asset, apply_update
+                    asset = find_asset({"assets": update_info["assets"]})
+                    if asset:
+                        path = download_asset(asset)
+                        apply_update(path)
+                        st.success("Actualización lista. Reiniciando...")
+                        st.rerun()
+                    else:
+                        st.error("No se encontró el asset de actualización")
         else:
-            st.caption("Aún no hay backups guardados.")
+            st.caption("✅ Última versión")
+    except Exception as e:
+        st.caption(f"⚠️ No se pudo verificar actualizaciones: {e}")
 
 st.divider()
 
