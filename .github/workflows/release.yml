@@ -27,7 +27,15 @@ jobs:
 
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set version env
+        run: echo "RELEASE_VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
+        shell: bash
 
       - name: Build launcher.exe
         shell: pwsh
@@ -96,8 +104,10 @@ jobs:
       - name: Prepare release package
         id: package
         shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ env.VERSION }}
         run: |
-          $VERSION = "${{ steps.version.outputs.VERSION }}"
+          $VERSION = $env:RELEASE_VERSION
           $STAGE = "dist/LubricentroWinter_v$VERSION"
           $ZIP = "dist/LubricentroWinter_v$VERSION.zip"
           
@@ -193,6 +203,8 @@ jobs:
       - name: Generate release notes
         id: release_notes
         shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ env.VERSION }}
         run: |
           # Get previous tag
           $PREV_TAG = git tag --sort=-version:refname | Select-Object -Skip 1 -First 1
@@ -204,7 +216,7 @@ jobs:
           $COMMITS = git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges
           if (-not $COMMITS) { $COMMITS = "- Sin commits nuevos desde $PREV_TAG" }
           
-          $VERSION = "${{ steps.version.outputs.VERSION }}"
+          $VERSION = $env:RELEASE_VERSION
           
           # Try to extract from CHANGELOG.md
           $CHANGELOG_CONTENT = ""
@@ -246,7 +258,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref }}
-          name: Lubricentro Winter - v${{ steps.version.outputs.VERSION }}
+          name: Lubricentro Winter - v${{ env.VERSION }}
           body_path: ${{ steps.release_notes.outputs.body_path }}
           files: ${{ steps.package.outputs.ZIP }}
           generate_release_notes: false

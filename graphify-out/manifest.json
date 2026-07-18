@@ -10,8 +10,8 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1784296532.955266,
-    "ast_hash": "e2aff3e3c1a9d6d352bf8c0504ee354d",
+    "mtime": 1784417979.0489378,
+    "ast_hash": "5d5df833777e00906d3e91ba6bca1c3c",
     "semantic_hash": ""
   },
   "database.py": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1784417105.0526292,
-    "ast_hash": "5d2fcb22b8868b557af5c3aea621cc5e",
+    "mtime": 1784417879.6168516,
+    "ast_hash": "56bd43185e8685f68be7bfb62ce5c605",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1784417147.2766068,
-    "ast_hash": "031c1af31b472b0e7e8b9f4484cd494b",
+    "mtime": 1784418024.5129793,
+    "ast_hash": "79d5c2be900e1b051e1b1579e33dbc3d",
     "semantic_hash": ""
   },
   "optimized-prompt.md": {

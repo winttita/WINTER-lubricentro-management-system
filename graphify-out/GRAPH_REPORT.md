@@ -1,16 +1,16 @@
 # Graph Report - Lubricentro  (2026-07-18)
 
 ## Corpus Check
-- 21 files · ~15,249 words
+- 21 files · ~15,519 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 204 nodes · 356 edges · 33 communities (16 shown, 17 thin omitted)
+- 206 nodes · 363 edges · 33 communities (16 shown, 17 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7cd97ee7`
+- Built from commit: `ec83a4eb`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -78,11 +78,11 @@
 
 ### Community 0 - "updater.py"
 Cohesion: 0.11
-Nodes (24): Exception, apply_update(), check_for_update(), clear_update_dir(), compare_versions(), download_asset(), find_asset(), get_latest_release() (+16 more)
+Nodes (26): Exception, apply_update(), check_for_update(), clear_update_dir(), compare_versions(), download_asset(), find_asset(), get_latest_release() (+18 more)
 
 ### Community 1 - "test_database.py"
-Cohesion: 0.67
-Nodes (3): backup_db(), test_backup_db_crea_archivo(), test_backup_db_no_existe()
+Cohesion: 0.36
+Nodes (10): add_producto(), _crear_dependencias(), test_add_producto_codigo_barras_duplicado(), test_add_producto_codigo_duplicado(), test_add_producto_fraccionable(), test_add_producto_nombre_null(), test_add_producto_stock_precio_cero(), test_add_producto_tipo_unidad_invalido() (+2 more)
 
 ### Community 2 - "get_connection"
 Cohesion: 0.20
@@ -97,8 +97,8 @@ Cohesion: 0.10
 Nodes (19): [0.1.0] - 2026-07-16, [0.2.0] - 2026-07-17, [0.2.1] - 2026-07-17, [0.2.2] - 2026-07-17, [0.2.3] - 2026-07-18, Agregado, Agregado, Agregado (+11 more)
 
 ### Community 5 - "get_movimientos"
-Cohesion: 0.10
-Nodes (46): add_movimiento(), add_producto(), get_movimientos(), get_productos(), Registra un movimiento de stock y actualiza el stock_actual del producto.     Re, _crear_dependencias(), _crear_producto_con_stock(), Helper para crear un producto con categoría, proveedor y stock inicial (+38 more)
+Cohesion: 0.11
+Nodes (39): add_movimiento(), backup_db(), get_movimientos(), get_productos(), Registra un movimiento de stock y actualiza el stock_actual del producto.     Re, _crear_producto_con_stock(), Helper para crear un producto con categoría, proveedor y stock inicial, Debe devolver una lista vacía cuando no hay movimientos (+31 more)
 
 ### Community 6 - "_crear_producto_con_stock"
 Cohesion: 0.53
@@ -140,17 +140,17 @@ Nodes (6): add_categoria(), get_categorias(), test_add_categoria_duplicado_devue
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_connection()` connect `get_connection` to `get_movimientos`, `_crear_producto_con_stock`, `database.py`, `crear_venta`, `get_venta_completa`, `init_db`, `crear_ajuste_stock`, `get_ajustes_stock`, `get_clientes_con_deuda`, `test_add_movimiento_devolucion`, `get_cuenta_corriente_cliente`, `get_movimientos_cuenta_corriente`, `get_reporte_ingresos_egresos`, `get_reporte_inventario`, `get_reporte_ventas`, `get_reporte_ventas_detallado`, `get_ventas`, `update_categoria`, `update_proveedor`, `update_producto`, `update_cliente`, `update_vehiculo`, `update_servicio`?**
-  _High betweenness centrality (0.104) - this node is a cross-community bridge._
+- **Why does `get_connection()` connect `get_connection` to `test_database.py`, `get_movimientos`, `_crear_producto_con_stock`, `database.py`, `crear_venta`, `get_venta_completa`, `init_db`, `crear_ajuste_stock`, `get_ajustes_stock`, `get_clientes_con_deuda`, `test_add_movimiento_devolucion`, `get_cuenta_corriente_cliente`, `get_movimientos_cuenta_corriente`, `get_reporte_ingresos_egresos`, `get_reporte_inventario`, `get_reporte_ventas`, `get_reporte_ventas_detallado`, `get_ventas`, `update_categoria`, `update_proveedor`, `update_producto`, `update_cliente`, `update_vehiculo`, `update_servicio`?**
+  _High betweenness centrality (0.102) - this node is a cross-community bridge._
 - **Why does `add_movimiento()` connect `get_movimientos` to `database.py`, `crear_venta`, `get_connection`, `crear_ajuste_stock`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `get_productos()` connect `get_movimientos` to `database.py`, `get_connection`?**
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
+- **Why does `get_productos()` connect `get_movimientos` to `database.py`, `test_database.py`, `get_connection`?**
   _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **What connects `$schema`, `.opencode/plugins/graphify.js`, `Agregado` to the rest of the system?**
   _19 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `updater.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.1076923076923077 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
 - **Should `add_movimiento` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `get_movimientos` be split into smaller, more focused modules?**
-  _Cohesion score 0.10453283996299723 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11025641025641025 - nodes in this community are weakly interconnected._

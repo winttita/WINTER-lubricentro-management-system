@@ -139,7 +139,7 @@
       "label": "Cambiado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L25",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "changelog_cambiado",
       "community": 4,
@@ -150,7 +150,7 @@
       "label": "[0.2.2] - 2026-07-17",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L30",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "changelog_0_2_2_2026_07_17",
       "community": 4,
@@ -161,9 +161,9 @@
       "label": "Agregado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L32",
+      "source_location": "L33",
       "_origin": "ast",
-      "id": "changelog_agregado_32",
+      "id": "changelog_agregado_33",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "agregado"
@@ -172,9 +172,9 @@
       "label": "Corregido",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L39",
+      "source_location": "L40",
       "_origin": "ast",
-      "id": "changelog_corregido_39",
+      "id": "changelog_corregido_40",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "corregido"
@@ -183,9 +183,9 @@
       "label": "Cambiado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
-      "id": "changelog_cambiado_45",
+      "id": "changelog_cambiado_46",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "cambiado"
@@ -194,7 +194,7 @@
       "label": "[0.2.1] - 2026-07-17",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L49",
+      "source_location": "L50",
       "_origin": "ast",
       "id": "changelog_0_2_1_2026_07_17",
       "community": 4,
@@ -205,9 +205,9 @@
       "label": "Agregado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L51",
+      "source_location": "L52",
       "_origin": "ast",
-      "id": "changelog_agregado_51",
+      "id": "changelog_agregado_52",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "agregado"
@@ -216,9 +216,9 @@
       "label": "Corregido",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L55",
+      "source_location": "L56",
       "_origin": "ast",
-      "id": "changelog_corregido_55",
+      "id": "changelog_corregido_56",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "corregido"
@@ -227,7 +227,7 @@
       "label": "[0.2.0] - 2026-07-17",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L59",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "changelog_0_2_0_2026_07_17",
       "community": 4,
@@ -238,9 +238,9 @@
       "label": "Agregado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L61",
+      "source_location": "L62",
       "_origin": "ast",
-      "id": "changelog_agregado_61",
+      "id": "changelog_agregado_62",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "agregado"
@@ -249,9 +249,9 @@
       "label": "Corregido",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L68",
+      "source_location": "L69",
       "_origin": "ast",
-      "id": "changelog_corregido_68",
+      "id": "changelog_corregido_69",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "corregido"
@@ -260,7 +260,7 @@
       "label": "[0.1.0] - 2026-07-16",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L71",
+      "source_location": "L72",
       "_origin": "ast",
       "id": "changelog_0_1_0_2026_07_16",
       "community": 4,
@@ -271,9 +271,9 @@
       "label": "Agregado",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L73",
+      "source_location": "L74",
       "_origin": "ast",
-      "id": "changelog_agregado_73",
+      "id": "changelog_agregado_74",
       "community": 4,
       "community_name": "add_movimiento",
       "norm_label": "agregado"
@@ -282,7 +282,7 @@
       "label": "Formato de versiones",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L81",
+      "source_location": "L82",
       "_origin": "ast",
       "id": "changelog_formato_de_versiones",
       "community": 4,
@@ -293,7 +293,7 @@
       "label": "Convenciones de commits",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L87",
+      "source_location": "L88",
       "_origin": "ast",
       "id": "changelog_convenciones_de_commits",
       "community": 4,
@@ -301,719 +301,15 @@
       "norm_label": "convenciones de commits"
     },
     {
-      "label": "database.py",
+      "label": "app.py",
       "file_type": "code",
-      "source_file": "database.py",
+      "source_file": "app.py",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "database",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "database.py"
-    },
-    {
-      "label": "get_connection()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L12",
-      "_origin": "ast",
-      "id": "database_get_connection",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_connection()"
-    },
-    {
-      "label": "init_db()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L18",
-      "_origin": "ast",
-      "id": "database_init_db",
-      "community": 13,
-      "community_name": "init_db",
-      "norm_label": "init_db()"
-    },
-    {
-      "label": "backup_db()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L236",
-      "_origin": "ast",
-      "id": "database_backup_db",
-      "community": 1,
-      "community_name": "test_database.py",
-      "norm_label": "backup_db()"
-    },
-    {
-      "label": "cleanup_old_backups()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L247",
-      "_origin": "ast",
-      "id": "database_cleanup_old_backups",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "cleanup_old_backups()"
-    },
-    {
-      "label": "get_movimientos()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L264",
-      "_origin": "ast",
-      "id": "database_get_movimientos",
-      "community": 5,
-      "community_name": "get_movimientos",
-      "norm_label": "get_movimientos()"
-    },
-    {
-      "label": "add_movimiento()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L276",
-      "_origin": "ast",
-      "id": "database_add_movimiento",
-      "community": 5,
-      "community_name": "get_movimientos",
-      "norm_label": "add_movimiento()"
-    },
-    {
-      "label": "get_clientes()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L335",
-      "_origin": "ast",
-      "id": "database_get_clientes",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_clientes()"
-    },
-    {
-      "label": "add_cliente()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L341",
-      "_origin": "ast",
-      "id": "database_add_cliente",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "add_cliente()"
-    },
-    {
-      "label": "get_vehiculos()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L356",
-      "_origin": "ast",
-      "id": "database_get_vehiculos",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_vehiculos()"
-    },
-    {
-      "label": "add_vehiculo()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L365",
-      "_origin": "ast",
-      "id": "database_add_vehiculo",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "add_vehiculo()"
-    },
-    {
-      "label": "get_servicios()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L380",
-      "_origin": "ast",
-      "id": "database_get_servicios",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_servicios()"
-    },
-    {
-      "label": "add_servicio()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L386",
-      "_origin": "ast",
-      "id": "database_add_servicio",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "add_servicio()"
-    },
-    {
-      "label": "get_ordenes()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L407",
-      "_origin": "ast",
-      "id": "database_get_ordenes",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_ordenes()"
-    },
-    {
-      "label": "add_orden_servicio()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L419",
-      "_origin": "ast",
-      "id": "database_add_orden_servicio",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "add_orden_servicio()"
-    },
-    {
-      "label": "add_orden_detalle()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L434",
-      "_origin": "ast",
-      "id": "database_add_orden_detalle",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "add_orden_detalle()"
-    },
-    {
-      "label": "get_orden_detalle()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L476",
-      "_origin": "ast",
-      "id": "database_get_orden_detalle",
-      "community": 2,
-      "community_name": "get_connection",
-      "norm_label": "get_orden_detalle()"
-    },
-    {
-      "label": "get_categorias()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L488",
-      "_origin": "ast",
-      "id": "database_get_categorias",
-      "community": 17,
-      "community_name": "test_add_movimiento_devolucion",
-      "norm_label": "get_categorias()"
-    },
-    {
-      "label": "add_categoria()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L494",
-      "_origin": "ast",
-      "id": "database_add_categoria",
-      "community": 17,
-      "community_name": "test_add_movimiento_devolucion",
-      "norm_label": "add_categoria()"
-    },
-    {
-      "label": "get_proveedores()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L527",
-      "_origin": "ast",
-      "id": "database_get_proveedores",
-      "community": 6,
-      "community_name": "_crear_producto_con_stock",
-      "norm_label": "get_proveedores()"
-    },
-    {
-      "label": "add_proveedor()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L533",
-      "_origin": "ast",
-      "id": "database_add_proveedor",
-      "community": 6,
-      "community_name": "_crear_producto_con_stock",
-      "norm_label": "add_proveedor()"
-    },
-    {
-      "label": "get_productos()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L565",
-      "_origin": "ast",
-      "id": "database_get_productos",
-      "community": 5,
-      "community_name": "get_movimientos",
-      "norm_label": "get_productos()"
-    },
-    {
-      "label": "add_producto()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L577",
-      "_origin": "ast",
-      "id": "database_add_producto",
-      "community": 5,
-      "community_name": "get_movimientos",
-      "norm_label": "add_producto()"
-    },
-    {
-      "label": "get_reporte_ventas()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L596",
-      "_origin": "ast",
-      "id": "database_get_reporte_ventas",
-      "community": 22,
-      "community_name": "get_reporte_ventas",
-      "norm_label": "get_reporte_ventas()"
-    },
-    {
-      "label": "get_reporte_inventario()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L631",
-      "_origin": "ast",
-      "id": "database_get_reporte_inventario",
-      "community": 21,
-      "community_name": "get_reporte_inventario",
-      "norm_label": "get_reporte_inventario()"
-    },
-    {
-      "label": "update_categoria()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L649",
-      "_origin": "ast",
-      "id": "database_update_categoria",
-      "community": 25,
-      "community_name": "update_categoria",
-      "norm_label": "update_categoria()"
-    },
-    {
-      "label": "update_proveedor()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L669",
-      "_origin": "ast",
-      "id": "database_update_proveedor",
-      "community": 26,
-      "community_name": "update_proveedor",
-      "norm_label": "update_proveedor()"
-    },
-    {
-      "label": "update_producto()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L699",
-      "_origin": "ast",
-      "id": "database_update_producto",
-      "community": 27,
-      "community_name": "update_producto",
-      "norm_label": "update_producto()"
-    },
-    {
-      "label": "update_cliente()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L747",
-      "_origin": "ast",
-      "id": "database_update_cliente",
-      "community": 28,
-      "community_name": "update_cliente",
-      "norm_label": "update_cliente()"
-    },
-    {
-      "label": "update_vehiculo()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L766",
-      "_origin": "ast",
-      "id": "database_update_vehiculo",
-      "community": 29,
-      "community_name": "update_vehiculo",
-      "norm_label": "update_vehiculo()"
-    },
-    {
-      "label": "update_servicio()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L793",
-      "_origin": "ast",
-      "id": "database_update_servicio",
-      "community": 30,
-      "community_name": "update_servicio",
-      "norm_label": "update_servicio()"
-    },
-    {
-      "label": "get_reporte_ingresos_egresos()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L818",
-      "_origin": "ast",
-      "id": "database_get_reporte_ingresos_egresos",
-      "community": 20,
-      "community_name": "get_reporte_ingresos_egresos",
-      "norm_label": "get_reporte_ingresos_egresos()"
-    },
-    {
-      "label": "get_ultimo_numero_comprobante()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L858",
-      "_origin": "ast",
-      "id": "database_get_ultimo_numero_comprobante",
-      "community": 9,
-      "community_name": "crear_venta",
-      "norm_label": "get_ultimo_numero_comprobante()"
-    },
-    {
-      "label": "crear_venta()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L871",
-      "_origin": "ast",
-      "id": "database_crear_venta",
-      "community": 9,
-      "community_name": "crear_venta",
-      "norm_label": "crear_venta()"
-    },
-    {
-      "label": "get_ventas()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L950",
-      "_origin": "ast",
-      "id": "database_get_ventas",
-      "community": 24,
-      "community_name": "get_ventas",
-      "norm_label": "get_ventas()"
-    },
-    {
-      "label": "get_venta_detalle()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L985",
-      "_origin": "ast",
-      "id": "database_get_venta_detalle",
-      "community": 11,
-      "community_name": "get_venta_completa",
-      "norm_label": "get_venta_detalle()"
-    },
-    {
-      "label": "get_venta_completa()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1001",
-      "_origin": "ast",
-      "id": "database_get_venta_completa",
-      "community": 11,
-      "community_name": "get_venta_completa",
-      "norm_label": "get_venta_completa()"
-    },
-    {
-      "label": "crear_ajuste_stock()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1024",
-      "_origin": "ast",
-      "id": "database_crear_ajuste_stock",
-      "community": 14,
-      "community_name": "crear_ajuste_stock",
-      "norm_label": "crear_ajuste_stock()"
-    },
-    {
-      "label": "get_ajustes_stock()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1063",
-      "_origin": "ast",
-      "id": "database_get_ajustes_stock",
-      "community": 15,
-      "community_name": "get_ajustes_stock",
-      "norm_label": "get_ajustes_stock()"
-    },
-    {
-      "label": "get_cuenta_corriente_cliente()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1096",
-      "_origin": "ast",
-      "id": "database_get_cuenta_corriente_cliente",
-      "community": 18,
-      "community_name": "get_cuenta_corriente_cliente",
-      "norm_label": "get_cuenta_corriente_cliente()"
-    },
-    {
-      "label": "get_movimientos_cuenta_corriente()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1108",
-      "_origin": "ast",
-      "id": "database_get_movimientos_cuenta_corriente",
-      "community": 19,
-      "community_name": "get_movimientos_cuenta_corriente",
-      "norm_label": "get_movimientos_cuenta_corriente()"
-    },
-    {
-      "label": "get_clientes_con_deuda()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1126",
-      "_origin": "ast",
-      "id": "database_get_clientes_con_deuda",
-      "community": 16,
-      "community_name": "get_clientes_con_deuda",
-      "norm_label": "get_clientes_con_deuda()"
-    },
-    {
-      "label": "get_reporte_ventas_detallado()",
-      "file_type": "code",
-      "source_file": "database.py",
-      "source_location": "L1145",
-      "_origin": "ast",
-      "id": "database_get_reporte_ventas_detallado",
-      "community": 23,
-      "community_name": "get_reporte_ventas_detallado",
-      "norm_label": "get_reporte_ventas_detallado()"
-    },
-    {
-      "label": "Elimina los backups m\u00e1s antiguos, conservando solo los \u00faltimos max_backups.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L248",
-      "_origin": "ast",
-      "id": "database_rationale_248",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "elimina los backups mas antiguos, conservando solo los ultimos max_backups."
-    },
-    {
-      "label": "Registra un movimiento de stock y actualiza el stock_actual del producto.     Re",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L277",
-      "_origin": "ast",
-      "id": "database_rationale_277",
-      "community": 5,
-      "community_name": "get_movimientos",
-      "norm_label": "registra un movimiento de stock y actualiza el stock_actual del producto.     re"
-    },
-    {
-      "label": "Reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fec",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L597",
-      "_origin": "ast",
-      "id": "database_rationale_597",
-      "community": 22,
-      "community_name": "get_reporte_ventas",
-      "norm_label": "reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fec"
-    },
-    {
-      "label": "Reporte de inventario actual: productos con stock y valorizacion.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L632",
-      "_origin": "ast",
-      "id": "database_rationale_632",
-      "community": 21,
-      "community_name": "get_reporte_inventario",
-      "norm_label": "reporte de inventario actual: productos con stock y valorizacion."
-    },
-    {
-      "label": "Actualiza el nombre de una categor\u00eda existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L650",
-      "_origin": "ast",
-      "id": "database_rationale_650",
-      "community": 25,
-      "community_name": "update_categoria",
-      "norm_label": "actualiza el nombre de una categoria existente."
-    },
-    {
-      "label": "Actualiza los datos de un proveedor existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L670",
-      "_origin": "ast",
-      "id": "database_rationale_670",
-      "community": 26,
-      "community_name": "update_proveedor",
-      "norm_label": "actualiza los datos de un proveedor existente."
-    },
-    {
-      "label": "Actualiza los datos de un producto existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L700",
-      "_origin": "ast",
-      "id": "database_rationale_700",
-      "community": 27,
-      "community_name": "update_producto",
-      "norm_label": "actualiza los datos de un producto existente."
-    },
-    {
-      "label": "Actualiza los datos de un cliente existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L748",
-      "_origin": "ast",
-      "id": "database_rationale_748",
-      "community": 28,
-      "community_name": "update_cliente",
-      "norm_label": "actualiza los datos de un cliente existente."
-    },
-    {
-      "label": "Actualiza los datos de un veh\u00edculo existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L767",
-      "_origin": "ast",
-      "id": "database_rationale_767",
-      "community": 29,
-      "community_name": "update_vehiculo",
-      "norm_label": "actualiza los datos de un vehiculo existente."
-    },
-    {
-      "label": "Actualiza los datos de un servicio existente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L794",
-      "_origin": "ast",
-      "id": "database_rationale_794",
-      "community": 30,
-      "community_name": "update_servicio",
-      "norm_label": "actualiza los datos de un servicio existente."
-    },
-    {
-      "label": "Reporte de ingresos vs egresos.     Ingresos = precio_venta * cantidad FROM movi",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L819",
-      "_origin": "ast",
-      "id": "database_rationale_819",
-      "community": 20,
-      "community_name": "get_reporte_ingresos_egresos",
-      "norm_label": "reporte de ingresos vs egresos.     ingresos = precio_venta * cantidad from movi"
-    },
-    {
-      "label": "Obtiene el \u00faltimo n\u00famero de comprobante para un tipo y punto de venta.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L859",
-      "_origin": "ast",
-      "id": "database_rationale_859",
-      "community": 9,
-      "community_name": "crear_venta",
-      "norm_label": "obtiene el ultimo numero de comprobante para un tipo y punto de venta."
-    },
-    {
-      "label": "Crea una venta completa con items, actualiza stock y registra movimiento.     it",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L872",
-      "_origin": "ast",
-      "id": "database_rationale_872",
-      "community": 9,
-      "community_name": "crear_venta",
-      "norm_label": "crea una venta completa con items, actualiza stock y registra movimiento.     it"
-    },
-    {
-      "label": "Obtiene lista de ventas con filtros opcionales.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L951",
-      "_origin": "ast",
-      "id": "database_rationale_951",
-      "community": 24,
-      "community_name": "get_ventas",
-      "norm_label": "obtiene lista de ventas con filtros opcionales."
-    },
-    {
-      "label": "Obtiene el detalle de una venta.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L986",
-      "_origin": "ast",
-      "id": "database_rationale_986",
-      "community": 11,
-      "community_name": "get_venta_completa",
-      "norm_label": "obtiene el detalle de una venta."
-    },
-    {
-      "label": "Obtiene venta completa con cabecera y items.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1002",
-      "_origin": "ast",
-      "id": "database_rationale_1002",
-      "community": 11,
-      "community_name": "get_venta_completa",
-      "norm_label": "obtiene venta completa con cabecera y items."
-    },
-    {
-      "label": "Crea un ajuste de stock con auditor\u00eda.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1025",
-      "_origin": "ast",
-      "id": "database_rationale_1025",
-      "community": 14,
-      "community_name": "crear_ajuste_stock",
-      "norm_label": "crea un ajuste de stock con auditoria."
-    },
-    {
-      "label": "Obtiene historial de ajustes de stock.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1064",
-      "_origin": "ast",
-      "id": "database_rationale_1064",
-      "community": 15,
-      "community_name": "get_ajustes_stock",
-      "norm_label": "obtiene historial de ajustes de stock."
-    },
-    {
-      "label": "Obtiene el saldo actual de cuenta corriente de un cliente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1097",
-      "_origin": "ast",
-      "id": "database_rationale_1097",
-      "community": 18,
-      "community_name": "get_cuenta_corriente_cliente",
-      "norm_label": "obtiene el saldo actual de cuenta corriente de un cliente."
-    },
-    {
-      "label": "Obtiene movimientos de cuenta corriente de un cliente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1109",
-      "_origin": "ast",
-      "id": "database_rationale_1109",
-      "community": 19,
-      "community_name": "get_movimientos_cuenta_corriente",
-      "norm_label": "obtiene movimientos de cuenta corriente de un cliente."
-    },
-    {
-      "label": "Obtiene clientes que tienen deuda en cuenta corriente.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1127",
-      "_origin": "ast",
-      "id": "database_rationale_1127",
-      "community": 16,
-      "community_name": "get_clientes_con_deuda",
-      "norm_label": "obtiene clientes que tienen deuda en cuenta corriente."
-    },
-    {
-      "label": "Reporte de ventas con detalle de items.",
-      "file_type": "rationale",
-      "source_file": "database.py",
-      "source_location": "L1146",
-      "_origin": "ast",
-      "id": "database_rationale_1146",
-      "community": 23,
-      "community_name": "get_reporte_ventas_detallado",
-      "norm_label": "reporte de ventas con detalle de items."
+      "id": "app",
+      "community": 0,
+      "community_name": "updater.py",
+      "norm_label": "app.py"
     },
     {
       "label": "optimized-prompt.md",
@@ -1025,83 +321,6 @@
       "community": 31,
       "community_name": "optimized-prompt.md",
       "norm_label": "optimized-prompt.md"
-    },
-    {
-      "label": "0_Configuracion.py",
-      "file_type": "code",
-      "source_file": "pages/0_Configuracion.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_0_configuracion",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "0_configuracion.py"
-    },
-    {
-      "label": "3_Productos.py",
-      "file_type": "code",
-      "source_file": "pages/3_Productos.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_3_productos",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "3_productos.py"
-    },
-    {
-      "label": "4_Movimientos_Stock.py",
-      "file_type": "code",
-      "source_file": "pages/4_Movimientos_Stock.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_4_movimientos_stock",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "4_movimientos_stock.py"
-    },
-    {
-      "label": "5_Ajustes_Stock.py",
-      "file_type": "code",
-      "source_file": "pages/5_Ajustes_Stock.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_5_ajustes_stock",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "5_ajustes_stock.py"
-    },
-    {
-      "label": "6_Vehiculos.py",
-      "file_type": "code",
-      "source_file": "pages/6_Vehiculos.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_6_vehiculos",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "6_vehiculos.py"
-    },
-    {
-      "label": "7_Ventas.py",
-      "file_type": "code",
-      "source_file": "pages/7_Ventas.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_7_ventas",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "7_ventas.py"
-    },
-    {
-      "label": "9_Reportes.py",
-      "file_type": "code",
-      "source_file": "pages/9_Reportes.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "pages_9_reportes",
-      "community": 8,
-      "community_name": "database.py",
-      "norm_label": "9_reportes.py"
     },
     {
       "label": "prompt_optimizado.md",
@@ -1390,10 +609,21 @@
       "norm_label": "apply_update()"
     },
     {
-      "label": "rollback_pending_update()",
+      "label": "_write_update_batch()",
       "file_type": "code",
       "source_file": "updater.py",
       "source_location": "L225",
+      "_origin": "ast",
+      "id": "updater_write_update_batch",
+      "community": 0,
+      "community_name": "updater.py",
+      "norm_label": "_write_update_batch()"
+    },
+    {
+      "label": "rollback_pending_update()",
+      "file_type": "code",
+      "source_file": "updater.py",
+      "source_location": "L285",
       "_origin": "ast",
       "id": "updater_rollback_pending_update",
       "community": 0,
@@ -1404,7 +634,7 @@
       "label": "clear_update_dir()",
       "file_type": "code",
       "source_file": "updater.py",
-      "source_location": "L236",
+      "source_location": "L296",
       "_origin": "ast",
       "id": "updater_clear_update_dir",
       "community": 0,
@@ -1415,7 +645,7 @@
       "label": "check_for_update()",
       "file_type": "code",
       "source_file": "updater.py",
-      "source_location": "L255",
+      "source_location": "L315",
       "_origin": "ast",
       "id": "updater_check_for_update",
       "community": 0,
@@ -1426,7 +656,7 @@
       "label": "_main()",
       "file_type": "code",
       "source_file": "updater.py",
-      "source_location": "L280",
+      "source_location": "L340",
       "_origin": "ast",
       "id": "updater_main",
       "community": 0,
@@ -1522,12 +752,23 @@
       "norm_label": "marca `downloaded_path` como actualizacion pendiente y escribe update.bat.     d"
     },
     {
-      "label": "Elimina la marca de actualizaci\u00f3n pendiente. \u00datil si el checkeo falla.",
+      "label": "Escribe update.bat en root que:       1. Espera a que termine el proceso PID (el",
       "file_type": "rationale",
       "source_file": "updater.py",
       "source_location": "L226",
       "_origin": "ast",
       "id": "updater_rationale_226",
+      "community": 0,
+      "community_name": "updater.py",
+      "norm_label": "escribe update.bat en root que:       1. espera a que termine el proceso pid (el"
+    },
+    {
+      "label": "Elimina la marca de actualizaci\u00f3n pendiente. \u00datil si el checkeo falla.",
+      "file_type": "rationale",
+      "source_file": "updater.py",
+      "source_location": "L286",
+      "_origin": "ast",
+      "id": "updater_rationale_286",
       "community": 0,
       "community_name": "updater.py",
       "norm_label": "elimina la marca de actualizacion pendiente. util si el checkeo falla."
@@ -1536,9 +777,9 @@
       "label": "Elimina archivos temporales de descargas anteriores para ahorrar disco.",
       "file_type": "rationale",
       "source_file": "updater.py",
-      "source_location": "L237",
+      "source_location": "L297",
       "_origin": "ast",
-      "id": "updater_rationale_237",
+      "id": "updater_rationale_297",
       "community": 0,
       "community_name": "updater.py",
       "norm_label": "elimina archivos temporales de descargas anteriores para ahorrar disco."
@@ -1547,9 +788,9 @@
       "label": "Chequea si hay una actualizaci\u00f3n disponible.      Devuelve un dict con la info d",
       "file_type": "rationale",
       "source_file": "updater.py",
-      "source_location": "L256",
+      "source_location": "L316",
       "_origin": "ast",
-      "id": "updater_rationale_256",
+      "id": "updater_rationale_316",
       "community": 0,
       "community_name": "updater.py",
       "norm_label": "chequea si hay una actualizacion disponible.      devuelve un dict con la info d"
@@ -1558,23 +799,804 @@
       "label": "Permite ejecutar `python updater.py` desde la terminal para checkear.",
       "file_type": "rationale",
       "source_file": "updater.py",
-      "source_location": "L281",
+      "source_location": "L341",
       "_origin": "ast",
-      "id": "updater_rationale_281",
+      "id": "updater_rationale_341",
       "community": 0,
       "community_name": "updater.py",
       "norm_label": "permite ejecutar `python updater.py` desde la terminal para checkear."
     },
     {
-      "label": "app.py",
+      "label": "database.py",
       "file_type": "code",
-      "source_file": "app.py",
+      "source_file": "database.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 0,
-      "community_name": "updater.py",
-      "norm_label": "app.py",
-      "id": "app"
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "database.py",
+      "id": "database"
+    },
+    {
+      "label": "get_connection()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L12",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_connection()",
+      "id": "database_get_connection"
+    },
+    {
+      "label": "init_db()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L18",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "init_db",
+      "norm_label": "init_db()",
+      "id": "database_init_db"
+    },
+    {
+      "label": "backup_db()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L236",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "get_movimientos",
+      "norm_label": "backup_db()",
+      "id": "database_backup_db"
+    },
+    {
+      "label": "cleanup_old_backups()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L247",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "cleanup_old_backups()",
+      "id": "database_cleanup_old_backups"
+    },
+    {
+      "label": "get_movimientos()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L264",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "get_movimientos",
+      "norm_label": "get_movimientos()",
+      "id": "database_get_movimientos"
+    },
+    {
+      "label": "add_movimiento()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L276",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "get_movimientos",
+      "norm_label": "add_movimiento()",
+      "id": "database_add_movimiento"
+    },
+    {
+      "label": "get_clientes()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L335",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_clientes()",
+      "id": "database_get_clientes"
+    },
+    {
+      "label": "add_cliente()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L341",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "add_cliente()",
+      "id": "database_add_cliente"
+    },
+    {
+      "label": "get_vehiculos()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L356",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_vehiculos()",
+      "id": "database_get_vehiculos"
+    },
+    {
+      "label": "add_vehiculo()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L365",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "add_vehiculo()",
+      "id": "database_add_vehiculo"
+    },
+    {
+      "label": "get_servicios()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L380",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_servicios()",
+      "id": "database_get_servicios"
+    },
+    {
+      "label": "add_servicio()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L386",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "add_servicio()",
+      "id": "database_add_servicio"
+    },
+    {
+      "label": "get_ordenes()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L407",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_ordenes()",
+      "id": "database_get_ordenes"
+    },
+    {
+      "label": "add_orden_servicio()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L419",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "add_orden_servicio()",
+      "id": "database_add_orden_servicio"
+    },
+    {
+      "label": "add_orden_detalle()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L434",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "add_orden_detalle()",
+      "id": "database_add_orden_detalle"
+    },
+    {
+      "label": "get_orden_detalle()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L476",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "get_connection",
+      "norm_label": "get_orden_detalle()",
+      "id": "database_get_orden_detalle"
+    },
+    {
+      "label": "get_categorias()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L488",
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "test_add_movimiento_devolucion",
+      "norm_label": "get_categorias()",
+      "id": "database_get_categorias"
+    },
+    {
+      "label": "add_categoria()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L494",
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "test_add_movimiento_devolucion",
+      "norm_label": "add_categoria()",
+      "id": "database_add_categoria"
+    },
+    {
+      "label": "get_proveedores()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L527",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "_crear_producto_con_stock",
+      "norm_label": "get_proveedores()",
+      "id": "database_get_proveedores"
+    },
+    {
+      "label": "add_proveedor()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L533",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "_crear_producto_con_stock",
+      "norm_label": "add_proveedor()",
+      "id": "database_add_proveedor"
+    },
+    {
+      "label": "get_productos()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L565",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "get_movimientos",
+      "norm_label": "get_productos()",
+      "id": "database_get_productos"
+    },
+    {
+      "label": "add_producto()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L577",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "test_database.py",
+      "norm_label": "add_producto()",
+      "id": "database_add_producto"
+    },
+    {
+      "label": "get_reporte_ventas()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L596",
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "get_reporte_ventas",
+      "norm_label": "get_reporte_ventas()",
+      "id": "database_get_reporte_ventas"
+    },
+    {
+      "label": "get_reporte_inventario()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L631",
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "get_reporte_inventario",
+      "norm_label": "get_reporte_inventario()",
+      "id": "database_get_reporte_inventario"
+    },
+    {
+      "label": "update_categoria()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L649",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "update_categoria",
+      "norm_label": "update_categoria()",
+      "id": "database_update_categoria"
+    },
+    {
+      "label": "update_proveedor()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L669",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "update_proveedor",
+      "norm_label": "update_proveedor()",
+      "id": "database_update_proveedor"
+    },
+    {
+      "label": "update_producto()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L699",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "update_producto",
+      "norm_label": "update_producto()",
+      "id": "database_update_producto"
+    },
+    {
+      "label": "update_cliente()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L747",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "update_cliente",
+      "norm_label": "update_cliente()",
+      "id": "database_update_cliente"
+    },
+    {
+      "label": "update_vehiculo()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L766",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "update_vehiculo",
+      "norm_label": "update_vehiculo()",
+      "id": "database_update_vehiculo"
+    },
+    {
+      "label": "update_servicio()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L793",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "update_servicio",
+      "norm_label": "update_servicio()",
+      "id": "database_update_servicio"
+    },
+    {
+      "label": "get_reporte_ingresos_egresos()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L818",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "get_reporte_ingresos_egresos",
+      "norm_label": "get_reporte_ingresos_egresos()",
+      "id": "database_get_reporte_ingresos_egresos"
+    },
+    {
+      "label": "get_ultimo_numero_comprobante()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L858",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "crear_venta",
+      "norm_label": "get_ultimo_numero_comprobante()",
+      "id": "database_get_ultimo_numero_comprobante"
+    },
+    {
+      "label": "crear_venta()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L871",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "crear_venta",
+      "norm_label": "crear_venta()",
+      "id": "database_crear_venta"
+    },
+    {
+      "label": "get_ventas()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L950",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "get_ventas",
+      "norm_label": "get_ventas()",
+      "id": "database_get_ventas"
+    },
+    {
+      "label": "get_venta_detalle()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L985",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "get_venta_completa",
+      "norm_label": "get_venta_detalle()",
+      "id": "database_get_venta_detalle"
+    },
+    {
+      "label": "get_venta_completa()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1001",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "get_venta_completa",
+      "norm_label": "get_venta_completa()",
+      "id": "database_get_venta_completa"
+    },
+    {
+      "label": "crear_ajuste_stock()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1024",
+      "_origin": "ast",
+      "community": 14,
+      "community_name": "crear_ajuste_stock",
+      "norm_label": "crear_ajuste_stock()",
+      "id": "database_crear_ajuste_stock"
+    },
+    {
+      "label": "get_ajustes_stock()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1063",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "get_ajustes_stock",
+      "norm_label": "get_ajustes_stock()",
+      "id": "database_get_ajustes_stock"
+    },
+    {
+      "label": "get_cuenta_corriente_cliente()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1096",
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "get_cuenta_corriente_cliente",
+      "norm_label": "get_cuenta_corriente_cliente()",
+      "id": "database_get_cuenta_corriente_cliente"
+    },
+    {
+      "label": "get_movimientos_cuenta_corriente()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1108",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "get_movimientos_cuenta_corriente",
+      "norm_label": "get_movimientos_cuenta_corriente()",
+      "id": "database_get_movimientos_cuenta_corriente"
+    },
+    {
+      "label": "get_clientes_con_deuda()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1126",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "get_clientes_con_deuda",
+      "norm_label": "get_clientes_con_deuda()",
+      "id": "database_get_clientes_con_deuda"
+    },
+    {
+      "label": "get_reporte_ventas_detallado()",
+      "file_type": "code",
+      "source_file": "database.py",
+      "source_location": "L1145",
+      "_origin": "ast",
+      "community": 23,
+      "community_name": "get_reporte_ventas_detallado",
+      "norm_label": "get_reporte_ventas_detallado()",
+      "id": "database_get_reporte_ventas_detallado"
+    },
+    {
+      "label": "Elimina los backups m\u00e1s antiguos, conservando solo los \u00faltimos max_backups.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L248",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "elimina los backups mas antiguos, conservando solo los ultimos max_backups.",
+      "id": "database_rationale_248"
+    },
+    {
+      "label": "Registra un movimiento de stock y actualiza el stock_actual del producto.     Re",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L277",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "get_movimientos",
+      "norm_label": "registra un movimiento de stock y actualiza el stock_actual del producto.     re",
+      "id": "database_rationale_277"
+    },
+    {
+      "label": "Reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fec",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L597",
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "get_reporte_ventas",
+      "norm_label": "reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fec",
+      "id": "database_rationale_597"
+    },
+    {
+      "label": "Reporte de inventario actual: productos con stock y valorizacion.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L632",
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "get_reporte_inventario",
+      "norm_label": "reporte de inventario actual: productos con stock y valorizacion.",
+      "id": "database_rationale_632"
+    },
+    {
+      "label": "Actualiza el nombre de una categor\u00eda existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L650",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "update_categoria",
+      "norm_label": "actualiza el nombre de una categoria existente.",
+      "id": "database_rationale_650"
+    },
+    {
+      "label": "Actualiza los datos de un proveedor existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L670",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "update_proveedor",
+      "norm_label": "actualiza los datos de un proveedor existente.",
+      "id": "database_rationale_670"
+    },
+    {
+      "label": "Actualiza los datos de un producto existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L700",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "update_producto",
+      "norm_label": "actualiza los datos de un producto existente.",
+      "id": "database_rationale_700"
+    },
+    {
+      "label": "Actualiza los datos de un cliente existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L748",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "update_cliente",
+      "norm_label": "actualiza los datos de un cliente existente.",
+      "id": "database_rationale_748"
+    },
+    {
+      "label": "Actualiza los datos de un veh\u00edculo existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L767",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "update_vehiculo",
+      "norm_label": "actualiza los datos de un vehiculo existente.",
+      "id": "database_rationale_767"
+    },
+    {
+      "label": "Actualiza los datos de un servicio existente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L794",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "update_servicio",
+      "norm_label": "actualiza los datos de un servicio existente.",
+      "id": "database_rationale_794"
+    },
+    {
+      "label": "Reporte de ingresos vs egresos.     Ingresos = precio_venta * cantidad FROM movi",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L819",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "get_reporte_ingresos_egresos",
+      "norm_label": "reporte de ingresos vs egresos.     ingresos = precio_venta * cantidad from movi",
+      "id": "database_rationale_819"
+    },
+    {
+      "label": "Obtiene el \u00faltimo n\u00famero de comprobante para un tipo y punto de venta.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L859",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "crear_venta",
+      "norm_label": "obtiene el ultimo numero de comprobante para un tipo y punto de venta.",
+      "id": "database_rationale_859"
+    },
+    {
+      "label": "Crea una venta completa con items, actualiza stock y registra movimiento.     it",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L872",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "crear_venta",
+      "norm_label": "crea una venta completa con items, actualiza stock y registra movimiento.     it",
+      "id": "database_rationale_872"
+    },
+    {
+      "label": "Obtiene lista de ventas con filtros opcionales.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L951",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "get_ventas",
+      "norm_label": "obtiene lista de ventas con filtros opcionales.",
+      "id": "database_rationale_951"
+    },
+    {
+      "label": "Obtiene el detalle de una venta.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L986",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "get_venta_completa",
+      "norm_label": "obtiene el detalle de una venta.",
+      "id": "database_rationale_986"
+    },
+    {
+      "label": "Obtiene venta completa con cabecera y items.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1002",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "get_venta_completa",
+      "norm_label": "obtiene venta completa con cabecera y items.",
+      "id": "database_rationale_1002"
+    },
+    {
+      "label": "Crea un ajuste de stock con auditor\u00eda.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1025",
+      "_origin": "ast",
+      "community": 14,
+      "community_name": "crear_ajuste_stock",
+      "norm_label": "crea un ajuste de stock con auditoria.",
+      "id": "database_rationale_1025"
+    },
+    {
+      "label": "Obtiene historial de ajustes de stock.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1064",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "get_ajustes_stock",
+      "norm_label": "obtiene historial de ajustes de stock.",
+      "id": "database_rationale_1064"
+    },
+    {
+      "label": "Obtiene el saldo actual de cuenta corriente de un cliente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1097",
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "get_cuenta_corriente_cliente",
+      "norm_label": "obtiene el saldo actual de cuenta corriente de un cliente.",
+      "id": "database_rationale_1097"
+    },
+    {
+      "label": "Obtiene movimientos de cuenta corriente de un cliente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1109",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "get_movimientos_cuenta_corriente",
+      "norm_label": "obtiene movimientos de cuenta corriente de un cliente.",
+      "id": "database_rationale_1109"
+    },
+    {
+      "label": "Obtiene clientes que tienen deuda en cuenta corriente.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1127",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "get_clientes_con_deuda",
+      "norm_label": "obtiene clientes que tienen deuda en cuenta corriente.",
+      "id": "database_rationale_1127"
+    },
+    {
+      "label": "Reporte de ventas con detalle de items.",
+      "file_type": "rationale",
+      "source_file": "database.py",
+      "source_location": "L1146",
+      "_origin": "ast",
+      "community": 23,
+      "community_name": "get_reporte_ventas_detallado",
+      "norm_label": "reporte de ventas con detalle de items.",
+      "id": "database_rationale_1146"
+    },
+    {
+      "label": "0_Configuracion.py",
+      "file_type": "code",
+      "source_file": "pages/0_Configuracion.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "0_configuracion.py",
+      "id": "pages_0_configuracion"
+    },
+    {
+      "label": "3_Productos.py",
+      "file_type": "code",
+      "source_file": "pages/3_Productos.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "3_productos.py",
+      "id": "pages_3_productos"
+    },
+    {
+      "label": "4_Movimientos_Stock.py",
+      "file_type": "code",
+      "source_file": "pages/4_Movimientos_Stock.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "4_movimientos_stock.py",
+      "id": "pages_4_movimientos_stock"
+    },
+    {
+      "label": "5_Ajustes_Stock.py",
+      "file_type": "code",
+      "source_file": "pages/5_Ajustes_Stock.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "5_ajustes_stock.py",
+      "id": "pages_5_ajustes_stock"
+    },
+    {
+      "label": "6_Vehiculos.py",
+      "file_type": "code",
+      "source_file": "pages/6_Vehiculos.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "6_vehiculos.py",
+      "id": "pages_6_vehiculos"
+    },
+    {
+      "label": "7_Ventas.py",
+      "file_type": "code",
+      "source_file": "pages/7_Ventas.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "7_ventas.py",
+      "id": "pages_7_ventas"
+    },
+    {
+      "label": "9_Reportes.py",
+      "file_type": "code",
+      "source_file": "pages/9_Reportes.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "database.py",
+      "norm_label": "9_reportes.py",
+      "id": "pages_9_reportes"
     },
     {
       "label": "AGENTS.md",
@@ -1769,9 +1791,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L102",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "_crear_dependencias()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_crear_dependencias"
     },
     {
@@ -1780,9 +1802,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L110",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_y_get_productos()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_y_get_productos"
     },
     {
@@ -1791,9 +1813,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L122",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_tipo_unidad_invalido()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_tipo_unidad_invalido"
     },
     {
@@ -1802,9 +1824,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L132",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_codigo_duplicado()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_codigo_duplicado"
     },
     {
@@ -1813,9 +1835,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L139",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_codigo_barras_duplicado()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_codigo_barras_duplicado"
     },
     {
@@ -1824,9 +1846,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L146",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_fraccionable()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_fraccionable"
     },
     {
@@ -1835,9 +1857,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L155",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_stock_precio_cero()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_stock_precio_cero"
     },
     {
@@ -1846,9 +1868,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L169",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_add_producto_nombre_null()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_add_producto_nombre_null"
     },
     {
@@ -1857,9 +1879,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L178",
       "_origin": "ast",
-      "community": 5,
+      "community": 1,
       "norm_label": "test_get_productos_excluye_inactivos()",
-      "community_name": "get_movimientos",
+      "community_name": "test_database.py",
       "id": "tests_test_database_test_get_productos_excluye_inactivos"
     },
     {
@@ -1868,9 +1890,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L190",
       "_origin": "ast",
-      "community": 1,
+      "community": 5,
       "norm_label": "test_backup_db_crea_archivo()",
-      "community_name": "test_database.py",
+      "community_name": "get_movimientos",
       "id": "tests_test_database_test_backup_db_crea_archivo"
     },
     {
@@ -1879,9 +1901,9 @@
       "source_file": "tests/test_database.py",
       "source_location": "L198",
       "_origin": "ast",
-      "community": 1,
+      "community": 5,
       "norm_label": "test_backup_db_no_existe()",
-      "community_name": "test_database.py",
+      "community_name": "get_movimientos",
       "id": "tests_test_database_test_backup_db_no_existe"
     },
     {
@@ -2320,7 +2342,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2331,7 +2353,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2342,7 +2364,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2353,7 +2375,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2375,7 +2397,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L87",
+      "source_location": "L88",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2386,7 +2408,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L81",
+      "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_changelog_lubricentro_winter",
@@ -2408,7 +2430,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_3_2026_07_18",
@@ -2430,88 +2452,88 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_2_2026_07_17",
-      "target": "changelog_agregado_32",
+      "target": "changelog_agregado_33",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_2_2026_07_17",
-      "target": "changelog_cambiado_45",
+      "target": "changelog_cambiado_46",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_2_2026_07_17",
-      "target": "changelog_corregido_39",
+      "target": "changelog_corregido_40",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L51",
+      "source_location": "L52",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_1_2026_07_17",
-      "target": "changelog_agregado_51",
+      "target": "changelog_agregado_52",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_1_2026_07_17",
-      "target": "changelog_corregido_55",
+      "target": "changelog_corregido_56",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L61",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_0_2026_07_17",
-      "target": "changelog_agregado_61",
+      "target": "changelog_agregado_62",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L68",
+      "source_location": "L69",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_2_0_2026_07_17",
-      "target": "changelog_corregido_68",
+      "target": "changelog_corregido_69",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0,
       "_origin": "ast",
       "source": "changelog_0_1_0_2026_07_16",
-      "target": "changelog_agregado_73",
+      "target": "changelog_agregado_74",
       "confidence_score": 1.0
     },
     {
@@ -2522,9 +2544,712 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "app",
-      "target": "database"
+      "target": "database",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app",
+      "target": "updater",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app",
+      "target": "updater_apply_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app",
+      "target": "updater_check_for_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app",
+      "target": "updater_download_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app",
+      "target": "updater_find_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_formatear_monto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_generar_factura_a_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_generar_factura_b_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L124",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_generar_factura_c_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_generar_ticket_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_guardar_comprobante_archivo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_imprimir_comprobante",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets",
+      "target": "tickets_metodo_pago_nombre",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_generar_factura_a_texto",
+      "target": "tickets_formatear_monto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_generar_ticket_texto",
+      "target": "tickets_formatear_monto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_8",
+      "target": "tickets_formatear_monto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_12",
+      "target": "tickets_generar_ticket_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L112",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_generar_factura_a_texto",
+      "target": "tickets_metodo_pago_nombre",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L121",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_generar_factura_b_texto",
+      "target": "tickets_generar_factura_a_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L126",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_generar_factura_c_texto",
+      "target": "tickets_generar_factura_a_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L76",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_76",
+      "target": "tickets_generar_factura_a_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_120",
+      "target": "tickets_generar_factura_b_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L125",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_125",
+      "target": "tickets_generar_factura_c_texto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_140",
+      "target": "tickets_guardar_comprobante_archivo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tickets.py",
+      "source_location": "L150",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tickets_rationale_150",
+      "target": "tickets_imprimir_comprobante",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L207",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_apply_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L315",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_check_for_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L296",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_clear_update_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_compare_versions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L169",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_download_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_find_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_get_latest_release",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L340",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_normalize_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L285",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_rollback_pending_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_updateerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L225",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater",
+      "target": "updater_write_update_batch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_1",
+      "target": "updater",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L178",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_download_asset",
+      "target": "updater_updateerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L127",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_get_latest_release",
+      "target": "updater_updateerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_normalize_version",
+      "target": "updater_updateerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_55",
+      "target": "updater_updateerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_updateerror",
+      "target": "exception",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_compare_versions",
+      "target": "updater_normalize_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_61",
+      "target": "updater_normalize_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L326",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_check_for_update",
+      "target": "updater_compare_versions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_80",
+      "target": "updater_compare_versions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L322",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_check_for_update",
+      "target": "updater_get_latest_release",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L102",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_102",
+      "target": "updater_get_latest_release",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L356",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_main",
+      "target": "updater_find_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_140",
+      "target": "updater_find_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L360",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_main",
+      "target": "updater_download_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_171",
+      "target": "updater_download_asset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L221",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_apply_update",
+      "target": "updater_write_update_batch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L361",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_main",
+      "target": "updater_apply_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L208",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_208",
+      "target": "updater_apply_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L226",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_226",
+      "target": "updater_write_update_batch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L286",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_286",
+      "target": "updater_rollback_pending_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_297",
+      "target": "updater_clear_update_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L346",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_main",
+      "target": "updater_check_for_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L316",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_316",
+      "target": "updater_check_for_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "updater.py",
+      "source_location": "L341",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "updater_rationale_341",
+      "target": "updater_main",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2533,9 +3258,9 @@
       "source_location": "L494",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_categoria",
-      "confidence_score": 1.0
+      "target": "database_add_categoria"
     },
     {
       "relation": "contains",
@@ -2544,9 +3269,9 @@
       "source_location": "L341",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_cliente",
-      "confidence_score": 1.0
+      "target": "database_add_cliente"
     },
     {
       "relation": "contains",
@@ -2555,9 +3280,9 @@
       "source_location": "L276",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_movimiento",
-      "confidence_score": 1.0
+      "target": "database_add_movimiento"
     },
     {
       "relation": "contains",
@@ -2566,9 +3291,9 @@
       "source_location": "L434",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_orden_detalle",
-      "confidence_score": 1.0
+      "target": "database_add_orden_detalle"
     },
     {
       "relation": "contains",
@@ -2577,9 +3302,9 @@
       "source_location": "L419",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_orden_servicio",
-      "confidence_score": 1.0
+      "target": "database_add_orden_servicio"
     },
     {
       "relation": "contains",
@@ -2588,9 +3313,9 @@
       "source_location": "L577",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_producto",
-      "confidence_score": 1.0
+      "target": "database_add_producto"
     },
     {
       "relation": "contains",
@@ -2599,9 +3324,9 @@
       "source_location": "L533",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_proveedor",
-      "confidence_score": 1.0
+      "target": "database_add_proveedor"
     },
     {
       "relation": "contains",
@@ -2610,9 +3335,9 @@
       "source_location": "L386",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_servicio",
-      "confidence_score": 1.0
+      "target": "database_add_servicio"
     },
     {
       "relation": "contains",
@@ -2621,9 +3346,9 @@
       "source_location": "L365",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_add_vehiculo",
-      "confidence_score": 1.0
+      "target": "database_add_vehiculo"
     },
     {
       "relation": "contains",
@@ -2632,9 +3357,9 @@
       "source_location": "L236",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_backup_db",
-      "confidence_score": 1.0
+      "target": "database_backup_db"
     },
     {
       "relation": "contains",
@@ -2643,9 +3368,9 @@
       "source_location": "L247",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_cleanup_old_backups",
-      "confidence_score": 1.0
+      "target": "database_cleanup_old_backups"
     },
     {
       "relation": "contains",
@@ -2654,9 +3379,9 @@
       "source_location": "L1024",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_crear_ajuste_stock",
-      "confidence_score": 1.0
+      "target": "database_crear_ajuste_stock"
     },
     {
       "relation": "contains",
@@ -2665,9 +3390,9 @@
       "source_location": "L871",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_crear_venta",
-      "confidence_score": 1.0
+      "target": "database_crear_venta"
     },
     {
       "relation": "contains",
@@ -2676,9 +3401,9 @@
       "source_location": "L1063",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_ajustes_stock",
-      "confidence_score": 1.0
+      "target": "database_get_ajustes_stock"
     },
     {
       "relation": "contains",
@@ -2687,9 +3412,9 @@
       "source_location": "L488",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_categorias",
-      "confidence_score": 1.0
+      "target": "database_get_categorias"
     },
     {
       "relation": "contains",
@@ -2698,9 +3423,9 @@
       "source_location": "L335",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_clientes",
-      "confidence_score": 1.0
+      "target": "database_get_clientes"
     },
     {
       "relation": "contains",
@@ -2709,9 +3434,9 @@
       "source_location": "L1126",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_clientes_con_deuda",
-      "confidence_score": 1.0
+      "target": "database_get_clientes_con_deuda"
     },
     {
       "relation": "contains",
@@ -2720,9 +3445,9 @@
       "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "contains",
@@ -2731,9 +3456,9 @@
       "source_location": "L1096",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_cuenta_corriente_cliente",
-      "confidence_score": 1.0
+      "target": "database_get_cuenta_corriente_cliente"
     },
     {
       "relation": "contains",
@@ -2742,9 +3467,9 @@
       "source_location": "L264",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_movimientos",
-      "confidence_score": 1.0
+      "target": "database_get_movimientos"
     },
     {
       "relation": "contains",
@@ -2753,9 +3478,9 @@
       "source_location": "L1108",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_movimientos_cuenta_corriente",
-      "confidence_score": 1.0
+      "target": "database_get_movimientos_cuenta_corriente"
     },
     {
       "relation": "contains",
@@ -2764,9 +3489,9 @@
       "source_location": "L476",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_orden_detalle",
-      "confidence_score": 1.0
+      "target": "database_get_orden_detalle"
     },
     {
       "relation": "contains",
@@ -2775,9 +3500,9 @@
       "source_location": "L407",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_ordenes",
-      "confidence_score": 1.0
+      "target": "database_get_ordenes"
     },
     {
       "relation": "contains",
@@ -2786,9 +3511,9 @@
       "source_location": "L565",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_productos",
-      "confidence_score": 1.0
+      "target": "database_get_productos"
     },
     {
       "relation": "contains",
@@ -2797,9 +3522,9 @@
       "source_location": "L527",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_proveedores",
-      "confidence_score": 1.0
+      "target": "database_get_proveedores"
     },
     {
       "relation": "contains",
@@ -2808,9 +3533,9 @@
       "source_location": "L818",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_reporte_ingresos_egresos",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_ingresos_egresos"
     },
     {
       "relation": "contains",
@@ -2819,9 +3544,9 @@
       "source_location": "L631",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_reporte_inventario",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_inventario"
     },
     {
       "relation": "contains",
@@ -2830,9 +3555,9 @@
       "source_location": "L596",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_reporte_ventas",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_ventas"
     },
     {
       "relation": "contains",
@@ -2841,9 +3566,9 @@
       "source_location": "L1145",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_reporte_ventas_detallado",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_ventas_detallado"
     },
     {
       "relation": "contains",
@@ -2852,9 +3577,9 @@
       "source_location": "L380",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_servicios",
-      "confidence_score": 1.0
+      "target": "database_get_servicios"
     },
     {
       "relation": "contains",
@@ -2863,9 +3588,9 @@
       "source_location": "L858",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_ultimo_numero_comprobante",
-      "confidence_score": 1.0
+      "target": "database_get_ultimo_numero_comprobante"
     },
     {
       "relation": "contains",
@@ -2874,9 +3599,9 @@
       "source_location": "L356",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_vehiculos",
-      "confidence_score": 1.0
+      "target": "database_get_vehiculos"
     },
     {
       "relation": "contains",
@@ -2885,9 +3610,9 @@
       "source_location": "L1001",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_venta_completa",
-      "confidence_score": 1.0
+      "target": "database_get_venta_completa"
     },
     {
       "relation": "contains",
@@ -2896,9 +3621,9 @@
       "source_location": "L985",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_venta_detalle",
-      "confidence_score": 1.0
+      "target": "database_get_venta_detalle"
     },
     {
       "relation": "contains",
@@ -2907,9 +3632,9 @@
       "source_location": "L950",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_get_ventas",
-      "confidence_score": 1.0
+      "target": "database_get_ventas"
     },
     {
       "relation": "contains",
@@ -2918,9 +3643,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_init_db",
-      "confidence_score": 1.0
+      "target": "database_init_db"
     },
     {
       "relation": "contains",
@@ -2929,9 +3654,9 @@
       "source_location": "L649",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_categoria",
-      "confidence_score": 1.0
+      "target": "database_update_categoria"
     },
     {
       "relation": "contains",
@@ -2940,9 +3665,9 @@
       "source_location": "L747",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_cliente",
-      "confidence_score": 1.0
+      "target": "database_update_cliente"
     },
     {
       "relation": "contains",
@@ -2951,9 +3676,9 @@
       "source_location": "L699",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_producto",
-      "confidence_score": 1.0
+      "target": "database_update_producto"
     },
     {
       "relation": "contains",
@@ -2962,9 +3687,9 @@
       "source_location": "L669",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_proveedor",
-      "confidence_score": 1.0
+      "target": "database_update_proveedor"
     },
     {
       "relation": "contains",
@@ -2973,9 +3698,9 @@
       "source_location": "L793",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_servicio",
-      "confidence_score": 1.0
+      "target": "database_update_servicio"
     },
     {
       "relation": "contains",
@@ -2984,9 +3709,9 @@
       "source_location": "L766",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database",
-      "target": "database_update_vehiculo",
-      "confidence_score": 1.0
+      "target": "database_update_vehiculo"
     },
     {
       "relation": "imports",
@@ -2996,9 +3721,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_0_configuracion",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3008,9 +3733,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_3_productos",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3020,9 +3745,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_4_movimientos_stock",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3032,9 +3757,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_5_ajustes_stock",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3044,9 +3769,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_6_vehiculos",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3056,9 +3781,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_7_ventas",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3068,9 +3793,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pages_9_reportes",
-      "target": "database",
-      "confidence_score": 1.0
+      "target": "database"
     },
     {
       "relation": "imports",
@@ -3092,9 +3817,9 @@
       "source_location": "L495",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_categoria",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3104,9 +3829,9 @@
       "source_location": "L344",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_cliente",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3116,9 +3841,9 @@
       "source_location": "L291",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_movimiento",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3128,9 +3853,9 @@
       "source_location": "L435",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_orden_detalle",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3140,9 +3865,9 @@
       "source_location": "L422",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_orden_servicio",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3152,9 +3877,9 @@
       "source_location": "L581",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_producto",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3164,9 +3889,9 @@
       "source_location": "L534",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_proveedor",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3176,9 +3901,9 @@
       "source_location": "L395",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_servicio",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3188,9 +3913,9 @@
       "source_location": "L368",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_vehiculo",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3200,9 +3925,9 @@
       "source_location": "L1029",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_crear_ajuste_stock",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3212,9 +3937,9 @@
       "source_location": "L881",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_crear_venta",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3224,9 +3949,9 @@
       "source_location": "L1065",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_ajustes_stock",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3236,9 +3961,9 @@
       "source_location": "L489",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_categorias",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3248,9 +3973,9 @@
       "source_location": "L336",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_clientes",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3260,9 +3985,9 @@
       "source_location": "L1128",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_clientes_con_deuda",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3272,9 +3997,9 @@
       "source_location": "L1098",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_cuenta_corriente_cliente",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3284,9 +4009,9 @@
       "source_location": "L265",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_movimientos",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3296,9 +4021,9 @@
       "source_location": "L1110",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_movimientos_cuenta_corriente",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3308,9 +4033,9 @@
       "source_location": "L477",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_orden_detalle",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3320,9 +4045,9 @@
       "source_location": "L408",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_ordenes",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3332,9 +4057,9 @@
       "source_location": "L566",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_productos",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3344,9 +4069,9 @@
       "source_location": "L528",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_proveedores",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3356,9 +4081,9 @@
       "source_location": "L823",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_reporte_ingresos_egresos",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3368,9 +4093,9 @@
       "source_location": "L633",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_reporte_inventario",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3380,9 +4105,9 @@
       "source_location": "L599",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_reporte_ventas",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3392,9 +4117,9 @@
       "source_location": "L1147",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_reporte_ventas_detallado",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3404,9 +4129,9 @@
       "source_location": "L381",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_servicios",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3416,9 +4141,9 @@
       "source_location": "L860",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_ultimo_numero_comprobante",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3428,9 +4153,9 @@
       "source_location": "L357",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_vehiculos",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3440,9 +4165,9 @@
       "source_location": "L1003",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_venta_completa",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3452,9 +4177,9 @@
       "source_location": "L987",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_venta_detalle",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3464,9 +4189,9 @@
       "source_location": "L952",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_ventas",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3476,9 +4201,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_init_db",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3488,9 +4213,9 @@
       "source_location": "L653",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_categoria",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3500,9 +4225,9 @@
       "source_location": "L751",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_cliente",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3512,9 +4237,9 @@
       "source_location": "L715",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_producto",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3524,9 +4249,9 @@
       "source_location": "L681",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_proveedor",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3536,9 +4261,9 @@
       "source_location": "L804",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_servicio",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3548,9 +4273,9 @@
       "source_location": "L777",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_update_vehiculo",
-      "target": "database_get_connection",
-      "confidence_score": 1.0
+      "target": "database_get_connection"
     },
     {
       "relation": "calls",
@@ -3631,9 +4356,9 @@
       "source_location": "L248",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_248",
-      "target": "database_cleanup_old_backups",
-      "confidence_score": 1.0
+      "target": "database_cleanup_old_backups"
     },
     {
       "relation": "calls",
@@ -3715,9 +4440,9 @@
       "source_location": "L450",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_add_orden_detalle",
-      "target": "database_add_movimiento",
-      "confidence_score": 1.0
+      "target": "database_add_movimiento"
     },
     {
       "relation": "calls",
@@ -3727,9 +4452,9 @@
       "source_location": "L1052",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_crear_ajuste_stock",
-      "target": "database_add_movimiento",
-      "confidence_score": 1.0
+      "target": "database_add_movimiento"
     },
     {
       "relation": "calls",
@@ -3739,9 +4464,9 @@
       "source_location": "L925",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_crear_venta",
-      "target": "database_add_movimiento",
-      "confidence_score": 1.0
+      "target": "database_add_movimiento"
     },
     {
       "relation": "rationale_for",
@@ -3750,9 +4475,9 @@
       "source_location": "L277",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_277",
-      "target": "database_add_movimiento",
-      "confidence_score": 1.0
+      "target": "database_add_movimiento"
     },
     {
       "relation": "calls",
@@ -4553,9 +5278,9 @@
       "source_location": "L597",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_597",
-      "target": "database_get_reporte_ventas",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_ventas"
     },
     {
       "relation": "rationale_for",
@@ -4564,9 +5289,9 @@
       "source_location": "L632",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_632",
-      "target": "database_get_reporte_inventario",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_inventario"
     },
     {
       "relation": "rationale_for",
@@ -4575,9 +5300,9 @@
       "source_location": "L650",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_650",
-      "target": "database_update_categoria",
-      "confidence_score": 1.0
+      "target": "database_update_categoria"
     },
     {
       "relation": "rationale_for",
@@ -4586,9 +5311,9 @@
       "source_location": "L670",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_670",
-      "target": "database_update_proveedor",
-      "confidence_score": 1.0
+      "target": "database_update_proveedor"
     },
     {
       "relation": "rationale_for",
@@ -4597,9 +5322,9 @@
       "source_location": "L700",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_700",
-      "target": "database_update_producto",
-      "confidence_score": 1.0
+      "target": "database_update_producto"
     },
     {
       "relation": "rationale_for",
@@ -4608,9 +5333,9 @@
       "source_location": "L748",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_748",
-      "target": "database_update_cliente",
-      "confidence_score": 1.0
+      "target": "database_update_cliente"
     },
     {
       "relation": "rationale_for",
@@ -4619,9 +5344,9 @@
       "source_location": "L767",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_767",
-      "target": "database_update_vehiculo",
-      "confidence_score": 1.0
+      "target": "database_update_vehiculo"
     },
     {
       "relation": "rationale_for",
@@ -4630,9 +5355,9 @@
       "source_location": "L794",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_794",
-      "target": "database_update_servicio",
-      "confidence_score": 1.0
+      "target": "database_update_servicio"
     },
     {
       "relation": "rationale_for",
@@ -4641,9 +5366,9 @@
       "source_location": "L819",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_819",
-      "target": "database_get_reporte_ingresos_egresos",
-      "confidence_score": 1.0
+      "target": "database_get_reporte_ingresos_egresos"
     },
     {
       "relation": "calls",
@@ -4653,9 +5378,9 @@
       "source_location": "L900",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_crear_venta",
-      "target": "database_get_ultimo_numero_comprobante",
-      "confidence_score": 1.0
+      "target": "database_get_ultimo_numero_comprobante"
     },
     {
       "relation": "rationale_for",
@@ -4664,9 +5389,9 @@
       "source_location": "L859",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_859",
-      "target": "database_get_ultimo_numero_comprobante",
-      "confidence_score": 1.0
+      "target": "database_get_ultimo_numero_comprobante"
     },
     {
       "relation": "rationale_for",
@@ -4675,9 +5400,9 @@
       "source_location": "L872",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_872",
-      "target": "database_crear_venta",
-      "confidence_score": 1.0
+      "target": "database_crear_venta"
     },
     {
       "relation": "rationale_for",
@@ -4686,9 +5411,9 @@
       "source_location": "L951",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_951",
-      "target": "database_get_ventas",
-      "confidence_score": 1.0
+      "target": "database_get_ventas"
     },
     {
       "relation": "calls",
@@ -4698,9 +5423,9 @@
       "source_location": "L1017",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_get_venta_completa",
-      "target": "database_get_venta_detalle",
-      "confidence_score": 1.0
+      "target": "database_get_venta_detalle"
     },
     {
       "relation": "rationale_for",
@@ -4709,9 +5434,9 @@
       "source_location": "L986",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_986",
-      "target": "database_get_venta_detalle",
-      "confidence_score": 1.0
+      "target": "database_get_venta_detalle"
     },
     {
       "relation": "rationale_for",
@@ -4720,9 +5445,9 @@
       "source_location": "L1002",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1002",
-      "target": "database_get_venta_completa",
-      "confidence_score": 1.0
+      "target": "database_get_venta_completa"
     },
     {
       "relation": "rationale_for",
@@ -4731,9 +5456,9 @@
       "source_location": "L1025",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1025",
-      "target": "database_crear_ajuste_stock",
-      "confidence_score": 1.0
+      "target": "database_crear_ajuste_stock"
     },
     {
       "relation": "rationale_for",
@@ -4742,9 +5467,9 @@
       "source_location": "L1064",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1064",
-      "target": "database_get_ajustes_stock",
-      "confidence_score": 1.0
+      "target": "database_get_ajustes_stock"
     },
     {
       "relation": "rationale_for",
@@ -4753,9 +5478,9 @@
       "source_location": "L1097",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1097",
-      "target": "database_get_cuenta_corriente_cliente",
-      "confidence_score": 1.0
+      "target": "database_get_cuenta_corriente_cliente"
     },
     {
       "relation": "rationale_for",
@@ -4764,9 +5489,9 @@
       "source_location": "L1109",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1109",
-      "target": "database_get_movimientos_cuenta_corriente",
-      "confidence_score": 1.0
+      "target": "database_get_movimientos_cuenta_corriente"
     },
     {
       "relation": "rationale_for",
@@ -4775,9 +5500,9 @@
       "source_location": "L1127",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "database_rationale_1127",
-      "target": "database_get_clientes_con_deuda",
-      "confidence_score": 1.0
+      "target": "database_get_clientes_con_deuda"
     },
     {
       "relation": "rationale_for",
@@ -4786,630 +5511,9 @@
       "source_location": "L1146",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "database_rationale_1146",
-      "target": "database_get_reporte_ventas_detallado",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_formatear_monto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L75",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_generar_factura_a_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L119",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_generar_factura_b_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L124",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_generar_factura_c_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_generar_ticket_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L139",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_guardar_comprobante_archivo",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L149",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_imprimir_comprobante",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L129",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets",
-      "target": "tickets_metodo_pago_nombre",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L108",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_generar_factura_a_texto",
-      "target": "tickets_formatear_monto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L40",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_generar_ticket_texto",
-      "target": "tickets_formatear_monto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_8",
-      "target": "tickets_formatear_monto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_12",
-      "target": "tickets_generar_ticket_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L112",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_generar_factura_a_texto",
-      "target": "tickets_metodo_pago_nombre",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L121",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_generar_factura_b_texto",
-      "target": "tickets_generar_factura_a_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L126",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_generar_factura_c_texto",
-      "target": "tickets_generar_factura_a_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L76",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_76",
-      "target": "tickets_generar_factura_a_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L120",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_120",
-      "target": "tickets_generar_factura_b_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L125",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_125",
-      "target": "tickets_generar_factura_c_texto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L140",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_140",
-      "target": "tickets_guardar_comprobante_archivo",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "tickets.py",
-      "source_location": "L150",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "tickets_rationale_150",
-      "target": "tickets_imprimir_comprobante",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app.py",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
       "confidence_score": 1.0,
-      "source": "app",
-      "target": "updater"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L207",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_apply_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L255",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_check_for_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L236",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_clear_update_dir",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L79",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_compare_versions",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L169",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_download_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L139",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_find_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L101",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_get_latest_release",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L280",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_main",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L60",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_normalize_version",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L225",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_rollback_pending_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L54",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater",
-      "target": "updater_updateerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L1",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_1",
-      "target": "updater",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L178",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_download_asset",
-      "target": "updater_updateerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L127",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_get_latest_release",
-      "target": "updater_updateerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L68",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_normalize_version",
-      "target": "updater_updateerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L55",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_55",
-      "target": "updater_updateerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "inherits",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L54",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_updateerror",
-      "target": "exception",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L86",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_compare_versions",
-      "target": "updater_normalize_version",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L61",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_61",
-      "target": "updater_normalize_version",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L266",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_check_for_update",
-      "target": "updater_compare_versions",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L80",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_80",
-      "target": "updater_compare_versions",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L262",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_check_for_update",
-      "target": "updater_get_latest_release",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L102",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_102",
-      "target": "updater_get_latest_release",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L296",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_main",
-      "target": "updater_find_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L140",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_140",
-      "target": "updater_find_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L300",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_main",
-      "target": "updater_download_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L171",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_171",
-      "target": "updater_download_asset",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L301",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_main",
-      "target": "updater_apply_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L208",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_208",
-      "target": "updater_apply_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L226",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_226",
-      "target": "updater_rollback_pending_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L237",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_237",
-      "target": "updater_clear_update_dir",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L286",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_main",
-      "target": "updater_check_for_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L256",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_256",
-      "target": "updater_check_for_update",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "updater.py",
-      "source_location": "L281",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "updater_rationale_281",
-      "target": "updater_main",
-      "confidence_score": 1.0
+      "source": "database_rationale_1146",
+      "target": "database_get_reporte_ventas_detallado"
     },
     {
       "relation": "contains",
@@ -6336,5 +6440,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7cd97ee7039127ec254f432bee647afae1cf5a59"
+  "built_at_commit": "ec83a4eb06fdb378b9b6b3662d183231a9858d84"
 }
