@@ -218,8 +218,68 @@ def apply_update(downloaded_path: str) -> str:
         f.write(downloaded_path + "\n")
     # Escribir también el script de post-update
     root = os.path.dirname(UPDATE_DIR)
-    _write_update_bat(root, downloaded_path)
+    _write_update_batch(root, downloaded_path)
     return UPDATE_LOCK
+
+
+def _write_update_batch(root: str, zip_path: str) -> str:
+    """
+    Escribe update.bat en root que:
+      1. Espera a que termine el proceso PID (el launcher actual)
+      2. Reemplaza LubricentroWinter.exe por el nuevo (si vino en el zip)
+      3. Descomprime el zip en ROOT
+      4. Lanza el nuevo .exe
+    Devuelve la ruta al batch escrito.
+    """
+    bat_path = os.path.join(root, "update.bat")
+    launcher_name = "LubricentroWinter.exe"
+    # Escape backslashes for the batch file content
+    root_escaped = root.replace("\\", "\\\\")
+    zip_escaped = zip_path.replace("\\", "\\\\")
+    bat_content = rf"""@echo off
+REM ========================================================================
+REM Auto-update batch para Lubricentro Winter
+REM Se ejecuta después de que el launcher descargue una actualización.
+REM ========================================================================
+
+setlocal enabledelayedexpansion
+
+set ROOT=%~dp0
+set ZIP_PATH={zip_escaped}
+set PID=0
+set LAUNCHER={launcher_name}
+
+echo [UPDATE] Aplicando actualización desde %ZIP_PATH%...
+
+REM Backup del launcher actual por si acaso
+if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
+if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
+
+REM Descomprimir el zip (sobrescribe todo: app/, runtime/, etc.)
+powershell -NoProfile -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
+
+REM Verificar que el nuevo launcher existe
+if not exist "%ROOT%\{launcher_name}" (
+    echo [ERROR] No se encontró {launcher_name} tras descomprimir. Restaurando backup...
+    if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
+    pause
+    exit /b 1
+)
+
+echo [UPDATE] Limpieza...
+if exist "%ZIP_PATH%" del "%ZIP_PATH%"
+if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
+if exist "%ROOT%\update.bat" del "%ROOT%\update.bat"
+if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
+
+echo [UPDATE] Iniciando nueva versión...
+start "" "%ROOT%\{launcher_name}"
+
+exit /b 0
+"""
+    with open(bat_path, "w", encoding="utf-8", newline="\r\n") as f:
+        f.write(bat_content)
+    return bat_path
 
 
 def rollback_pending_update() -> bool:

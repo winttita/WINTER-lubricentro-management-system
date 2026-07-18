@@ -61,7 +61,15 @@ if movimientos_recientes:
     data = []
     for m in movimientos_recientes:
         # m: (id, producto_id, tipo, cantidad, fecha, motivo, producto_nombre)
-        fecha_str = m[4].strftime("%d/%m/%y %H:%M") if m[4] else ""
+        # m[4] can be datetime or string from SQLite
+        fecha_raw = m[4]
+        if fecha_raw:
+            try:
+                fecha_str = fecha_raw.strftime("%d/%m/%y %H:%M")
+            except AttributeError:
+                fecha_str = str(fecha_raw)
+        else:
+            fecha_str = ""
         data.append({
             "Fecha": fecha_str,
             "Producto": m[6],

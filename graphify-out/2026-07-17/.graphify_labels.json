@@ -1,0 +1,15 @@
+{
+  "0": "updater.py",
+  "1": "test_database.py",
+  "2": "get_connection",
+  "3": "database.py",
+  "4": "add_movimiento",
+  "5": "get_movimientos",
+  "6": "_crear_producto_con_stock",
+  "7": "add_categoria",
+  "8": "add_proveedor",
+  "9": "init_db",
+  "10": "graphify.js",
+  "17": "test_add_movimiento_devolucion",
+  "18": "test_add_movimiento_tipo_invalido"
+}

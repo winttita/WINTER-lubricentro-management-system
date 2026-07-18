@@ -1,0 +1,122 @@
+{
+  ".opencode/opencode.json": {
+    "mtime": 1784320303.9918146,
+    "ast_hash": "e5f74d14a81702b55bdf53b33ec991d7",
+    "semantic_hash": ""
+  },
+  ".opencode/plugins/graphify.js": {
+    "mtime": 1784295214.1930985,
+    "ast_hash": "3ea725724bc8ebe483c9f13d6aa1124f",
+    "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
+  },
+  "app.py": {
+    "mtime": 1784296532.955266,
+    "ast_hash": "e2aff3e3c1a9d6d352bf8c0504ee354d",
+    "semantic_hash": ""
+  },
+  "database.py": {
+    "mtime": 1784415967.888256,
+    "ast_hash": "f74996e202784aede742da1b040ff633",
+    "semantic_hash": ""
+  },
+  "pages/3_Productos.py": {
+    "mtime": 1784416353.5248625,
+    "ast_hash": "3d9cd1ebdefc497833e79a5dd4152db8",
+    "semantic_hash": ""
+  },
+  "pages/4_Movimientos_Stock.py": {
+    "mtime": 1784416187.5085943,
+    "ast_hash": "66eaafcffadc2c07c1e67fbd53ee821d",
+    "semantic_hash": ""
+  },
+  "pages/6_Vehiculos.py": {
+    "mtime": 1784416465.0490472,
+    "ast_hash": "bd1aebb1f81377b47f077f532d7892c4",
+    "semantic_hash": ""
+  },
+  "pages/9_Reportes.py": {
+    "mtime": 1784416494.4370964,
+    "ast_hash": "9d1cdec3a79e916225aff10896605216",
+    "semantic_hash": ""
+  },
+  "tests/test_database.py": {
+    "mtime": 1784299439.721911,
+    "ast_hash": "6a664675e6dc4ec173c1e93191e2ac2e",
+    "semantic_hash": ""
+  },
+  "updater.py": {
+    "mtime": 1784417105.0526292,
+    "ast_hash": "5d2fcb22b8868b557af5c3aea621cc5e",
+    "semantic_hash": ""
+  },
+  ".opencode/agents/testing.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "709b6127185a22207af576709284531a",
+    "semantic_hash": ""
+  },
+  ".opencode/skill/document-code/SKILL.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "67a99b192dab73e0120c562d7d366df0",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1784295730.6460016,
+    "ast_hash": "9edd8915ef3e02ae6eadb5b86668b83e",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "0ee0f8a0dfda573b96393fdc7ffaa272",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "003e8ef67a249e5cdf234fc61add273a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1784326191.5600033,
+    "ast_hash": "b2886db1103c0e13056e18207f07af24",
+    "semantic_hash": ""
+  },
+  ".github/workflows/update-release.yml": {
+    "mtime": 1784324604.3618548,
+    "ast_hash": "980cdd46fa4ecbb0a4b663c663912edb",
+    "semantic_hash": ""
+  },
+  "CHANGELOG.md": {
+    "mtime": 1784417147.2766068,
+    "ast_hash": "031c1af31b472b0e7e8b9f4484cd494b",
+    "semantic_hash": ""
+  },
+  "optimized-prompt.md": {
+    "mtime": 1784326111.1171656,
+    "ast_hash": "20add5b7100e3a3e1929d912ae7987e6",
+    "semantic_hash": ""
+  },
+  "pages/0_Configuracion.py": {
+    "mtime": 1784416406.4409497,
+    "ast_hash": "9126e43e4e4c9434d6ff696ea9c56b81",
+    "semantic_hash": ""
+  },
+  "pages/5_Ajustes_Stock.py": {
+    "mtime": 1784416165.196559,
+    "ast_hash": "65ff974034a85b15890da9009d97f584",
+    "semantic_hash": ""
+  },
+  "pages/7_Ventas.py": {
+    "mtime": 1784416089.4404404,
+    "ast_hash": "0c28302fc08e3fd55ff50ae42ab56bb3",
+    "semantic_hash": ""
+  },
+  "tickets.py": {
+    "mtime": 1784416008.740317,
+    "ast_hash": "e4703b4ee6717a5b8e86e4f8098a545a",
+    "semantic_hash": ""
+  },
+  "prompt_optimizado.md": {
+    "mtime": 1784415124.4873948,
+    "ast_hash": "f0d24a4f8e20773da0fa55e061462856",
+    "semantic_hash": ""
+  }
+}

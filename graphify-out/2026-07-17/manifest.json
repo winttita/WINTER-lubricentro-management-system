@@ -1,0 +1,107 @@
+{
+  ".opencode/opencode.json": {
+    "mtime": 1784320303.9918146,
+    "ast_hash": "e5f74d14a81702b55bdf53b33ec991d7",
+    "semantic_hash": ""
+  },
+  ".opencode/plugins/graphify.js": {
+    "mtime": 1784295214.1930985,
+    "ast_hash": "3ea725724bc8ebe483c9f13d6aa1124f",
+    "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
+  },
+  "app.py": {
+    "mtime": 1784296532.955266,
+    "ast_hash": "e2aff3e3c1a9d6d352bf8c0504ee354d",
+    "semantic_hash": ""
+  },
+  "database.py": {
+    "mtime": 1784321724.9082484,
+    "ast_hash": "e2dcf79629903a399b48aa1af4db4ba3",
+    "semantic_hash": ""
+  },
+  "pages/1_Categorias.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "696601b7a5fc85dc025619f9e3a1020c",
+    "semantic_hash": "696601b7a5fc85dc025619f9e3a1020c"
+  },
+  "pages/2_Proveedores.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "077cc90f65c2233d0355f3a06b6f0541",
+    "semantic_hash": "077cc90f65c2233d0355f3a06b6f0541"
+  },
+  "pages/3_Productos.py": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "b6898b6a4d2d7e0d6c615b594dc6d807",
+    "semantic_hash": ""
+  },
+  "pages/4_Movimientos_Stock.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "532c96658c4ca374b71bfd8be6a48414",
+    "semantic_hash": "532c96658c4ca374b71bfd8be6a48414"
+  },
+  "pages/5_Clientes.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "7682e7fce676d0fc965536c3b91fdd02",
+    "semantic_hash": "7682e7fce676d0fc965536c3b91fdd02"
+  },
+  "pages/6_Vehiculos.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "8008bef7eaf7b923e218681c9c86e371",
+    "semantic_hash": "8008bef7eaf7b923e218681c9c86e371"
+  },
+  "pages/7_Servicios.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "a3734e7f51a1c97d29911d9b17811171",
+    "semantic_hash": "a3734e7f51a1c97d29911d9b17811171"
+  },
+  "pages/8_OrdenesServicio.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "5fe1aa7b5bcb547bf1692593b586d5f6",
+    "semantic_hash": "5fe1aa7b5bcb547bf1692593b586d5f6"
+  },
+  "pages/9_Reportes.py": {
+    "mtime": 1784295665.9261668,
+    "ast_hash": "6d3bed97b0646e667403a07db87a9573",
+    "semantic_hash": "6d3bed97b0646e667403a07db87a9573"
+  },
+  "tests/test_database.py": {
+    "mtime": 1784299439.721911,
+    "ast_hash": "6a664675e6dc4ec173c1e93191e2ac2e",
+    "semantic_hash": ""
+  },
+  "updater.py": {
+    "mtime": 1784299439.721911,
+    "ast_hash": "6301b71baeaf731ad80aa6f8fbd8e0fc",
+    "semantic_hash": ""
+  },
+  ".opencode/agents/testing.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "709b6127185a22207af576709284531a",
+    "semantic_hash": ""
+  },
+  ".opencode/skill/document-code/SKILL.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "67a99b192dab73e0120c562d7d366df0",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1784295730.6460016,
+    "ast_hash": "9edd8915ef3e02ae6eadb5b86668b83e",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "0ee0f8a0dfda573b96393fdc7ffaa272",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "003e8ef67a249e5cdf234fc61add273a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1784324182.7817302,
+    "ast_hash": "d4c6ebbe3b3bbb88166116145a3d3715",
+    "semantic_hash": ""
+  }
+}

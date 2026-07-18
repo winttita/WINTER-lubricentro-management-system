@@ -21,6 +21,7 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 - Reporte de ingresos/egresos: ahora cierra correctamente la conexión a base de datos
 - Validaciones de stock en creación de ventas (evita venta sin stock)
 - Manejo de errores en constraints únicos (código de barras, nombres duplicados)
+- **Updater**: Función `_write_update_batch` faltante que causaba error "name 'write_update_bat' is not defined" al descargar e instalar actualizaciones
 
 ### Cambiado
 - Reorganización de páginas: Categorías y Proveedores unificadas en Configuración (0_Configuracion.py)

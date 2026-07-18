@@ -1,0 +1,319 @@
+{
+  "communities": {
+    "0": [
+      "app",
+      "app_cb",
+      "exception",
+      "updater",
+      "updater_apply_update",
+      "updater_check_for_update",
+      "updater_clear_update_dir",
+      "updater_compare_versions",
+      "updater_download_asset",
+      "updater_find_asset",
+      "updater_get_latest_release",
+      "updater_main",
+      "updater_normalize_version",
+      "updater_rationale_1",
+      "updater_rationale_102",
+      "updater_rationale_140",
+      "updater_rationale_171",
+      "updater_rationale_208",
+      "updater_rationale_226",
+      "updater_rationale_237",
+      "updater_rationale_256",
+      "updater_rationale_281",
+      "updater_rationale_55",
+      "updater_rationale_61",
+      "updater_rationale_80",
+      "updater_rollback_pending_update",
+      "updater_updateerror"
+    ],
+    "1": [
+      "database_add_producto",
+      "database_backup_db",
+      "database_get_productos",
+      "tests_test_database",
+      "tests_test_database_crear_dependencias",
+      "tests_test_database_test_add_producto_codigo_barras_duplicado",
+      "tests_test_database_test_add_producto_codigo_duplicado",
+      "tests_test_database_test_add_producto_fraccionable",
+      "tests_test_database_test_add_producto_nombre_null",
+      "tests_test_database_test_add_producto_stock_precio_cero",
+      "tests_test_database_test_add_producto_tipo_unidad_invalido",
+      "tests_test_database_test_add_y_get_productos",
+      "tests_test_database_test_backup_db_crea_archivo",
+      "tests_test_database_test_backup_db_no_existe",
+      "tests_test_database_test_get_productos_excluye_inactivos"
+    ],
+    "2": [
+      "database_add_cliente",
+      "database_add_orden_servicio",
+      "database_add_servicio",
+      "database_add_vehiculo",
+      "database_get_clientes",
+      "database_get_connection",
+      "database_get_orden_detalle",
+      "database_get_ordenes",
+      "database_get_servicios",
+      "database_get_vehiculos",
+      "tests_test_database_test_init_db_crea_diez_tablas"
+    ],
+    "3": [
+      "database",
+      "pages_1_categorias",
+      "pages_2_proveedores",
+      "pages_3_productos",
+      "pages_4_movimientos_stock",
+      "pages_5_clientes",
+      "pages_6_vehiculos",
+      "pages_7_servicios",
+      "pages_8_ordenesservicio",
+      "pages_9_reportes"
+    ],
+    "4": [
+      "database_add_movimiento",
+      "database_add_orden_detalle",
+      "database_rationale_199",
+      "tests_test_database_rationale_343",
+      "tests_test_database_rationale_375",
+      "tests_test_database_rationale_390",
+      "tests_test_database_rationale_404",
+      "tests_test_database_test_add_movimiento_cantidad_invalida",
+      "tests_test_database_test_add_movimiento_producto_id_nulo",
+      "tests_test_database_test_add_movimiento_producto_inexistente",
+      "tests_test_database_test_add_movimiento_uso_interno"
+    ],
+    "5": [
+      "database_get_movimientos",
+      "tests_test_database_rationale_225",
+      "tests_test_database_rationale_258",
+      "tests_test_database_rationale_357",
+      "tests_test_database_rationale_428",
+      "tests_test_database_test_add_movimiento_compra_exitosa",
+      "tests_test_database_test_add_movimiento_fecha_personalizada",
+      "tests_test_database_test_add_movimiento_stock_insuficiente",
+      "tests_test_database_test_get_movimientos_sin_movimientos"
+    ],
+    "6": [
+      "tests_test_database_crear_producto_con_stock",
+      "tests_test_database_rationale_207",
+      "tests_test_database_rationale_301",
+      "tests_test_database_rationale_410",
+      "tests_test_database_test_add_movimiento_ajuste_negativo",
+      "tests_test_database_test_add_movimiento_ajuste_positivo",
+      "tests_test_database_test_add_movimiento_cantidad_nula",
+      "tests_test_database_test_add_movimiento_tipo_nulo"
+    ],
+    "7": [
+      "database_add_categoria",
+      "database_get_categorias",
+      "tests_test_database_test_add_categoria_duplicado_devuelve_false",
+      "tests_test_database_test_add_categoria_null",
+      "tests_test_database_test_add_categoria_string_vacio",
+      "tests_test_database_test_add_y_get_categorias"
+    ],
+    "8": [
+      "database_add_proveedor",
+      "database_get_proveedores",
+      "tests_test_database_test_add_proveedor_condicion_pago_invalida",
+      "tests_test_database_test_add_proveedor_condicion_pago_valida",
+      "tests_test_database_test_add_proveedor_null_condicion",
+      "tests_test_database_test_add_y_get_proveedores"
+    ],
+    "9": [
+      "database_init_db",
+      "tests_test_database_rationale_11",
+      "tests_test_database_temp_db"
+    ],
+    "10": [
+      "opencode_plugins_graphify",
+      "opencode_plugins_graphify_graphifyplugin",
+      "opencode_plugins_graphify_rationale_4"
+    ],
+    "11": [
+      "database_cleanup_old_backups",
+      "database_rationale_170"
+    ],
+    "12": [
+      "database_get_reporte_ingresos_egresos",
+      "database_rationale_568"
+    ],
+    "13": [
+      "database_get_reporte_inventario",
+      "database_rationale_552"
+    ],
+    "14": [
+      "database_get_reporte_ventas",
+      "database_rationale_517"
+    ],
+    "15": [
+      "tests_test_database_rationale_231",
+      "tests_test_database_test_get_movimientos_con_datos"
+    ],
+    "16": [
+      "tests_test_database_rationale_280",
+      "tests_test_database_test_add_movimiento_venta_exitosa"
+    ],
+    "17": [
+      "tests_test_database_rationale_329",
+      "tests_test_database_test_add_movimiento_devolucion"
+    ],
+    "18": [
+      "tests_test_database_rationale_381",
+      "tests_test_database_test_add_movimiento_tipo_invalido"
+    ]
+  },
+  "cohesion": {
+    "0": 0.10256410256410256,
+    "1": 0.3238095238095238,
+    "2": 0.18181818181818182,
+    "3": 0.2,
+    "4": 0.18181818181818182,
+    "5": 0.2222222222222222,
+    "6": 0.32142857142857145,
+    "7": 0.5333333333333333,
+    "8": 0.5333333333333333,
+    "9": 0.6666666666666666,
+    "10": 0.6666666666666666,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0
+  },
+  "gods": [
+    {
+      "id": "database_get_connection",
+      "label": "get_connection()",
+      "degree": 26
+    },
+    {
+      "id": "tests_test_database_crear_producto_con_stock",
+      "label": "_crear_producto_con_stock()",
+      "degree": 21
+    },
+    {
+      "id": "database_get_productos",
+      "label": "get_productos()",
+      "degree": 20
+    },
+    {
+      "id": "database_add_movimiento",
+      "label": "add_movimiento()",
+      "degree": 19
+    },
+    {
+      "id": "tests_test_database_crear_dependencias",
+      "label": "_crear_dependencias()",
+      "degree": 13
+    },
+    {
+      "id": "database_add_producto",
+      "label": "add_producto()",
+      "degree": 11
+    },
+    {
+      "id": "database_get_movimientos",
+      "label": "get_movimientos()",
+      "degree": 8
+    },
+    {
+      "id": "database_get_categorias",
+      "label": "get_categorias()",
+      "degree": 8
+    },
+    {
+      "id": "database_add_categoria",
+      "label": "add_categoria()",
+      "degree": 8
+    },
+    {
+      "id": "database_get_proveedores",
+      "label": "get_proveedores()",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "_crear_producto_con_stock()",
+      "target": "get_connection()",
+      "source_files": [
+        "tests/test_database.py",
+        "database.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_get_productos_excluye_inactivos()",
+      "target": "get_connection()",
+      "source_files": [
+        "tests/test_database.py",
+        "database.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_init_db_crea_diez_tablas()",
+      "target": "get_connection()",
+      "source_files": [
+        "tests/test_database.py",
+        "database.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; peripheral node `test_init_db_crea_diez_tablas()` unexpectedly reaches hub `get_connection()`"
+    },
+    {
+      "source": "test_add_movimiento_venta_exitosa()",
+      "target": "get_movimientos()",
+      "source_files": [
+        "tests/test_database.py",
+        "database.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_get_movimientos_con_datos()",
+      "target": "get_movimientos()",
+      "source_files": [
+        "tests/test_database.py",
+        "database.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `add_movimiento()` connect `add_movimiento` to `get_connection`, `database.py`, `get_movimientos`, `_crear_producto_con_stock`, `test_get_movimientos_con_datos`, `test_add_movimiento_venta_exitosa`, `test_add_movimiento_devolucion`, `test_add_movimiento_tipo_invalido`?",
+      "why": "High betweenness centrality (0.105) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `get_connection()` connect `get_connection` to `test_database.py`, `database.py`, `add_movimiento`, `get_movimientos`, `_crear_producto_con_stock`, `add_categoria`, `add_proveedor`, `init_db`, `get_reporte_ingresos_egresos`, `get_reporte_inventario`, `get_reporte_ventas`?",
+      "why": "High betweenness centrality (0.083) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `get_productos()` connect `test_database.py` to `get_connection`, `database.py`, `add_movimiento`, `get_movimientos`, `_crear_producto_con_stock`, `test_get_movimientos_con_datos`, `test_add_movimiento_venta_exitosa`, `test_add_movimiento_devolucion`, `test_add_movimiento_tipo_invalido`?",
+      "why": "High betweenness centrality (0.083) - this node is a cross-community bridge."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `updater.py` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.10256410256410256 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
