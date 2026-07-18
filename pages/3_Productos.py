@@ -13,11 +13,16 @@ cat_dict = {c[1]: c[0] for c in categorias}
 prov_dict = {p[1]: p[0] for p in proveedores}
 
 if not categorias:
-    st.warning("No hay categorías cargadas. Primero cargá al menos una categoría desde la página de Categorías.")
+    st.warning("No hay categorías cargadas. Primero cargá al menos una categoría desde Configuración.")
 if not proveedores:
-    st.warning("No hay proveedores cargados. Primero cargá al menos un proveedor desde la página de Proveedores.")
+    st.warning("No hay proveedores cargados. Primero cargá al menos un proveedor desde Configuración.")
 
 if categorias and proveedores:
+    # --- ESCANER CÓDIGO DE BARRAS (fuera del form para evitar submit prematuro) ---
+    st.text_input("Código de Barras (escanear)", key="codigo_barras_scanner", placeholder="Escaneá el código de barras aquí")
+    codigo_barras = st.session_state.get("codigo_barras_scanner", "")
+
+    # --- FORMULARIO NUEVO PRODUCTO ---
     with st.form("nuevo_producto"):
         col1, col2 = st.columns(2)
         with col1:
@@ -25,7 +30,7 @@ if categorias and proveedores:
             codigo_interno = st.text_input("Código Interno")
             tipo_unidad = st.selectbox("Tipo de unidad", ["Entero", "Fraccionable"])
         with col2:
-            codigo_barras = st.text_input("Código de Barras")
+            st.text_input("Código de Barras", value=codigo_barras, disabled=True)
             categoria = st.selectbox("Categoría", list(cat_dict.keys()))
             proveedor = st.selectbox("Proveedor", list(prov_dict.keys()))
         
@@ -42,9 +47,46 @@ if categorias and proveedores:
         submitted = st.form_submit_button("Guardar Producto")
         if submitted and nombre:
             db.add_producto(codigo_interno, codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta)
+            st.session_state.codigo_barras_scanner = ""
             st.success("Producto agregado correctamente")
+            st.rerun()
 
+st.divider()
+
+# --- LISTADO CON EDICIÓN ---
 st.subheader("Listado de Productos")
 productos = db.get_productos()
+
 for p in productos:
-    st.write(f"[{p[1]}] {p[3]} - {p[13]} (Stock: {p[8]})")
+    # p: id, cod_int, cod_bar, nombre, desc, cat_id, prov_id, tipo_uni, stock, stock_min, prec_costo, prec_venta, activo, cat_nom, prov_nom
+    pid = p[0]
+    with st.expander(f"[{p[1]}] {p[3]} - {p[13] or 'Sin cat'} - Stock: {p[8]} - ${p[11]:.2f}"):
+        col1, col2 = st.columns(2)
+        with col1:
+            new_nombre = st.text_input("Nombre", value=p[3], key=f"nom_{pid}")
+            new_cod_int = st.text_input("Código Interno", value=p[1] or "", key=f"ci_{pid}")
+            new_cod_bar = st.text_input("Código Barras", value=p[2] or "", key=f"cb_{pid}")
+            new_tipo = st.selectbox("Tipo Unidad", ["Entero", "Fraccionable"], index=["Entero", "Fraccionable"].index(p[7]), key=f"tu_{pid}")
+            new_cat = st.selectbox("Categoría", list(cat_dict.keys()), index=list(cat_dict.values()).index(p[5]) if p[5] in cat_dict.values() else 0, key=f"cat_{pid}")
+        with col2:
+            new_desc = st.text_area("Descripción", value=p[4] or "", key=f"desc_{pid}")
+            new_prov = st.selectbox("Proveedor", list(prov_dict.keys()), index=list(prov_dict.values()).index(p[6]) if p[6] in prov_dict.values() else 0, key=f"prov_{pid}")
+            new_stock_min = st.number_input("Stock Mínimo", value=float(p[9]), min_value=0.0, key=f"sm_{pid}")
+            new_prec_costo = st.number_input("Precio Costo", value=float(p[10]), min_value=0.0, key=f"pc_{pid}")
+            new_prec_venta = st.number_input("Precio Venta", value=float(p[11]), min_value=0.0, key=f"pv_{pid}")
+        
+        if st.button("💾 Guardar cambios", key=f"save_{pid}"):
+            ok = db.update_producto(pid, new_cod_int, new_cod_bar, new_nombre, new_desc, cat_dict[new_cat], prov_dict[new_prov], new_tipo, new_stock_min, new_prec_costo, new_prec_venta)
+            if ok:
+                st.success("Actualizado")
+                st.rerun()
+            else:
+                st.error("Error al actualizar (¿código duplicado?)")
+        
+        if st.button("🗑️ Desactivar", key=f"del_{pid}", type="secondary"):
+            conn = db.get_connection()
+            conn.execute("UPDATE productos SET activo=0 WHERE id=?", (pid,))
+            conn.commit()
+            conn.close()
+            st.success("Producto desactivado")
+            st.rerun()

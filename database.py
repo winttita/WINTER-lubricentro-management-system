@@ -152,6 +152,84 @@ def init_db():
         )
     """)
     
+    # 11. Usuarios
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            nombre TEXT NOT NULL,
+            rol TEXT NOT NULL DEFAULT 'operador',
+            activo INTEGER DEFAULT 1,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # 12. Ajustes Stock
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ajustes_stock (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            producto_id INTEGER NOT NULL,
+            stock_anterior REAL NOT NULL,
+            stock_nuevo REAL NOT NULL,
+            diferencia REAL NOT NULL,
+            motivo TEXT NOT NULL,
+            usuario_id INTEGER NOT NULL,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (producto_id) REFERENCES productos(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+    """)
+    
+    # 13. Ventas
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ventas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NULL,
+            tipo_comprobante TEXT NOT NULL,
+            punto_venta TEXT NOT NULL DEFAULT '0001',
+            numero_comprobante INTEGER NOT NULL,
+            subtotal REAL NOT NULL,
+            iva REAL NOT NULL DEFAULT 0,
+            total REAL NOT NULL,
+            metodo_pago TEXT NOT NULL,
+            usuario_id INTEGER NOT NULL,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            UNIQUE(punto_venta, tipo_comprobante, numero_comprobante)
+        )
+    """)
+    
+    # 14. Venta Items
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS venta_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            venta_id INTEGER NOT NULL,
+            producto_id INTEGER NOT NULL,
+            cantidad REAL NOT NULL,
+            precio_unitario REAL NOT NULL,
+            subtotal REAL NOT NULL,
+            FOREIGN KEY (venta_id) REFERENCES ventas(id),
+            FOREIGN KEY (producto_id) REFERENCES productos(id)
+        )
+    """)
+    
+    # 15. Cuenta Corriente
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cuenta_corriente (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            venta_id INTEGER NOT NULL,
+            monto REAL NOT NULL,
+            saldo_anterior REAL NOT NULL,
+            saldo_nuevo REAL NOT NULL,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+            FOREIGN KEY (venta_id) REFERENCES ventas(id)
+        )
+    """)
+    
     conn.commit()
     conn.close()
 
@@ -443,6 +521,8 @@ def add_categoria(nombre):
         conn.close()
     return True
 
+
+
 # --- Funciones de Proveedores ---
 def get_proveedores():
     conn = get_connection()
@@ -564,6 +644,177 @@ def get_reporte_inventario():
     finally:
         conn.close()
 
+
+
+def update_categoria(id, nombre):
+    """Actualiza el nombre de una categoría existente."""
+    if not nombre or not nombre.strip():
+        return False
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE categorias 
+            SET nombre = ?
+            WHERE id = ?
+        """, (nombre.strip(), id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        # Nombre ya existe
+        return False
+    finally:
+        conn.close()
+
+
+def update_proveedor(id, nombre, contacto, telefono, condiciones_pago):
+    """Actualiza los datos de un proveedor existente."""
+    if not nombre or not nombre.strip():
+        return False
+    if condiciones_pago not in (
+        'Contado', 
+        'Cuenta Corriente (7 días)', 
+        'Cuenta Corriente (15 días)', 
+        'Cuenta Corriente (30 días)', 
+        'Otro'
+    ):
+        return False
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE proveedores 
+            SET nombre = ?, contacto = ?, telefono = ?, condiciones_pago = ?
+            WHERE id = ?
+        """, (nombre.strip(), contacto, telefono, condiciones_pago, id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError as e:
+        # Handle unique constraint violation on nombre
+        if 'UNIQUE constraint failed' in str(e):
+            return False  # Nombre de proveedor ya existe
+        raise
+    finally:
+        conn.close()
+
+
+def update_producto(id, codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
+    """Actualiza los datos de un producto existente."""
+    # Validaciones básicas
+    if not nombre or not nombre.strip():
+        return False
+    if tipo_unidad not in ('Entero', 'Fraccionable'):
+        return False
+    try:
+        stock_minimo = float(stock_minimo)
+        precio_costo = float(precio_costo)
+        precio_venta = float(precio_venta)
+        if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
+            return False
+    except ValueError:
+        return False
+    
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE productos 
+            SET codigo_interno = ?, codigo_barras = ?, nombre = ?, descripcion = ?, 
+                categoria_id = ?, proveedor_id = ?, tipo_unidad = ?, 
+                stock_minimo = ?, precio_costo = ?, precio_venta = ?
+            WHERE id = ?
+        """, (
+            codigo_interno.strip() if codigo_interno else None,
+            codigo_barras.strip() if codigo_barras else None,
+            nombre.strip(),
+            descripcion,
+            categoria_id,
+            proveedor_id,
+            tipo_unidad,
+            max(0.0, stock_minimo),
+            max(0.0, precio_costo),
+            max(0.0, precio_venta),
+            id
+        ))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError as e:
+        # Handle unique constraint violations
+        if 'UNIQUE constraint failed' in str(e):
+            return False  # Código interno o de barras duplicado
+        raise
+    finally:
+        conn.close()
+
+
+def update_cliente(id, nombre, telefono, email):
+    """Actualiza los datos de un cliente existente."""
+    if not nombre or not nombre.strip():
+        return False
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE clientes 
+            SET nombre = ?, telefono = ?, email = ?
+            WHERE id = ?
+        """, (nombre.strip(), telefono, email, id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+
+def update_vehiculo(id, cliente_id, patente, marca, modelo, anio):
+    """Actualiza los datos de un vehículo existente."""
+    if not patente or not patente.strip():
+        return False
+    try:
+        anio_int = int(anio) if anio else None
+        if anio_int and (anio_int < 1900 or anio_int > 2100):
+            return False
+    except ValueError:
+        return False
+    
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE vehiculos 
+            SET cliente_id = ?, patente = ?, marca = ?, modelo = ?, anio = ?
+            WHERE id = ?
+        """, (cliente_id, patente.strip(), marca, modelo, anio_int, id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        # Patente duplicada
+        return False
+    finally:
+        conn.close()
+
+
+def update_servicio(id, nombre, precio):
+    """Actualiza los datos de un servicio existente."""
+    if not nombre or not nombre.strip():
+        return False
+    try:
+        precio_float = float(precio)
+        if precio_float < 0:
+            return False
+    except ValueError:
+        return False
+    
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            UPDATE servicios 
+            SET nombre = ?, precio = ?
+            WHERE id = ?
+        """, (nombre.strip(), precio_float, id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        # Nombre duplicado
+        return False
+    finally:
+        conn.close()
 def get_reporte_ingresos_egresos(fecha_desde=None, fecha_hasta=None):
     """Reporte de ingresos vs egresos.
     Ingresos = precio_venta * cantidad FROM movimientos_stock de tipo venta
@@ -599,5 +850,320 @@ def get_reporte_ingresos_egresos(fecha_desde=None, fecha_hasta=None):
             params_i.append(fecha_hasta)
         ingresos = conn.execute(ingresos_query, params_i).fetchall()
         return list(ingresos), list(egresos)
+    finally:
+        conn.close()
+
+
+# --- Funciones de Ventas ---
+def get_ultimo_numero_comprobante(tipo_comprobante, punto_venta='0001'):
+    """Obtiene el último número de comprobante para un tipo y punto de venta."""
+    conn = get_connection()
+    try:
+        row = conn.execute("""
+            SELECT MAX(numero_comprobante) FROM ventas 
+            WHERE tipo_comprobante = ? AND punto_venta = ?
+        """, (tipo_comprobante, punto_venta)).fetchone()
+        return row[0] if row and row[0] else 0
+    finally:
+        conn.close()
+
+
+def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
+    """
+    Crea una venta completa con items, actualiza stock y registra movimiento.
+    items: lista de dicts {producto_id, cantidad, precio_unitario}
+    Retorna (venta_id, numero_comprobante) o (None, None) si falla.
+    """
+    if not items:
+        return None, None
+    
+    # Validar stock para todos los items antes de empezar
+    conn = get_connection()
+    try:
+        for item in items:
+            row = conn.execute("SELECT stock_actual, nombre FROM productos WHERE id = ? AND activo = 1", 
+                             (item['producto_id'],)).fetchone()
+            if not row:
+                return None, None
+            if float(row[0]) < float(item['cantidad']):
+                return None, None
+    finally:
+        conn.close()
+    
+    # Calcular totales
+    subtotal = sum(float(item['cantidad']) * float(item['precio_unitario']) for item in items)
+    iva = subtotal * 0.21 if tipo_comprobante == 'factura_a' else 0
+    total = subtotal + iva
+    
+    # Obtener siguiente número de comprobante
+    punto_venta = '0001'
+    numero_comprobante = get_ultimo_numero_comprobante(tipo_comprobante, punto_venta) + 1
+    
+    conn = get_connection()
+    try:
+        # Insertar venta
+        cursor = conn.execute("""
+            INSERT INTO ventas (cliente_id, tipo_comprobante, punto_venta, numero_comprobante,
+                              subtotal, iva, total, metodo_pago, usuario_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (cliente_id, tipo_comprobante, punto_venta, numero_comprobante,
+              subtotal, iva, total, metodo_pago, usuario_id))
+        venta_id = cursor.lastrowid
+        
+        # Insertar items y actualizar stock
+        for item in items:
+            cantidad = float(item['cantidad'])
+            precio_unitario = float(item['precio_unitario'])
+            subtotal_item = cantidad * precio_unitario
+            
+            conn.execute("""
+                INSERT INTO venta_items (venta_id, producto_id, cantidad, precio_unitario, subtotal)
+                VALUES (?, ?, ?, ?, ?)
+            """, (venta_id, item['producto_id'], cantidad, precio_unitario, subtotal_item))
+            
+            # Registrar movimiento de venta (descuenta stock)
+            add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}')
+        
+        # Si es cuenta corriente, registrar deuda
+        if metodo_pago == 'cuenta_corriente' and cliente_id:
+            # Obtener saldo anterior
+            row = conn.execute("""
+                SELECT COALESCE(SUM(monto), 0) FROM cuenta_corriente WHERE cliente_id = ?
+            """, (cliente_id,)).fetchone()
+            saldo_anterior = float(row[0]) if row else 0.0
+            saldo_nuevo = saldo_anterior + total
+            
+            conn.execute("""
+                INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo)
+                VALUES (?, ?, ?, ?, ?)
+            """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo))
+        
+        conn.commit()
+        return venta_id, numero_comprobante
+    except Exception as e:
+        conn.rollback()
+        return None, None
+    finally:
+        conn.close()
+
+
+def get_ventas(limit=50, fecha_desde=None, fecha_hasta=None, cliente_id=None, tipo_comprobante=None):
+    """Obtiene lista de ventas con filtros opcionales."""
+    conn = get_connection()
+    try:
+        query = """SELECT v.id, v.cliente_id, v.tipo_comprobante, v.punto_venta, v.numero_comprobante,
+                          v.subtotal, v.iva, v.total, v.metodo_pago, v.usuario_id, v.creado_en,
+                          c.nombre as cliente_nombre, u.nombre as usuario_nombre
+                   FROM ventas v
+                   LEFT JOIN clientes c ON v.cliente_id = c.id
+                   LEFT JOIN usuarios u ON v.usuario_id = u.id
+                   WHERE 1=1"""
+        params = []
+        
+        if fecha_desde:
+            query += " AND date(v.creado_en) >= date(?)"
+            params.append(fecha_desde)
+        if fecha_hasta:
+            query += " AND date(v.creado_en) <= date(?)"
+            params.append(fecha_hasta)
+        if cliente_id:
+            query += " AND v.cliente_id = ?"
+            params.append(cliente_id)
+        if tipo_comprobante:
+            query += " AND v.tipo_comprobante = ?"
+            params.append(tipo_comprobante)
+        
+        query += " ORDER BY v.creado_en DESC LIMIT ?"
+        params.append(limit)
+        
+        ventas = conn.execute(query, params).fetchall()
+        return ventas
+    finally:
+        conn.close()
+
+
+def get_venta_detalle(venta_id):
+    """Obtiene el detalle de una venta."""
+    conn = get_connection()
+    try:
+        items = conn.execute("""
+            SELECT vi.id, vi.producto_id, vi.cantidad, vi.precio_unitario, vi.subtotal,
+                   p.nombre as producto_nombre, p.codigo_barras
+            FROM venta_items vi
+            JOIN productos p ON vi.producto_id = p.id
+            WHERE vi.venta_id = ?
+        """, (venta_id,)).fetchall()
+        return items
+    finally:
+        conn.close()
+
+
+def get_venta_completa(venta_id):
+    """Obtiene venta completa con cabecera y items."""
+    conn = get_connection()
+    try:
+        venta = conn.execute("""
+            SELECT v.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono,
+                   c.email as cliente_email, u.nombre as usuario_nombre
+            FROM ventas v
+            LEFT JOIN clientes c ON v.cliente_id = c.id
+            LEFT JOIN usuarios u ON v.usuario_id = u.id
+            WHERE v.id = ?
+        """, (venta_id,)).fetchone()
+        
+        if not venta:
+            return None
+        
+        items = get_venta_detalle(venta_id)
+        return {'venta': venta, 'items': items}
+    finally:
+        conn.close()
+
+
+# --- Funciones de Ajustes Stock ---
+def crear_ajuste_stock(producto_id, stock_nuevo, motivo, usuario_id):
+    """Crea un ajuste de stock con auditoría."""
+    if not motivo or not motivo.strip():
+        return False
+    
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (producto_id,)).fetchone()
+        if not row:
+            return False
+        
+        stock_anterior = float(row[0])
+        stock_nuevo = float(stock_nuevo)
+        diferencia = stock_nuevo - stock_anterior
+        
+        if stock_nuevo < 0:
+            return False
+        
+        # Registrar ajuste
+        conn.execute("""
+            INSERT INTO ajustes_stock (producto_id, stock_anterior, stock_nuevo, diferencia, motivo, usuario_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (producto_id, stock_anterior, stock_nuevo, diferencia, motivo.strip(), usuario_id))
+        
+        # Actualizar stock del producto
+        conn.execute("UPDATE productos SET stock_actual = ? WHERE id = ?", (stock_nuevo, producto_id))
+        
+        # Registrar movimiento de tipo ajuste
+        add_movimiento(producto_id, 'ajuste', diferencia, f'Ajuste: {motivo.strip()}')
+        
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_ajustes_stock(limit=50, fecha_desde=None, fecha_hasta=None, producto_id=None):
+    """Obtiene historial de ajustes de stock."""
+    conn = get_connection()
+    try:
+        query = """SELECT a.id, a.producto_id, a.stock_anterior, a.stock_nuevo, a.diferencia,
+                          a.motivo, a.usuario_id, a.creado_en,
+                          p.nombre as producto_nombre, u.nombre as usuario_nombre
+                   FROM ajustes_stock a
+                   JOIN productos p ON a.producto_id = p.id
+                   JOIN usuarios u ON a.usuario_id = u.id
+                   WHERE 1=1"""
+        params = []
+        
+        if fecha_desde:
+            query += " AND date(a.creado_en) >= date(?)"
+            params.append(fecha_desde)
+        if fecha_hasta:
+            query += " AND date(a.creado_en) <= date(?)"
+            params.append(fecha_hasta)
+        if producto_id:
+            query += " AND a.producto_id = ?"
+            params.append(producto_id)
+        
+        query += " ORDER BY a.creado_en DESC LIMIT ?"
+        params.append(limit)
+        
+        ajustes = conn.execute(query, params).fetchall()
+        return ajustes
+    finally:
+        conn.close()
+
+
+# --- Funciones Cuenta Corriente ---
+def get_cuenta_corriente_cliente(cliente_id):
+    """Obtiene el saldo actual de cuenta corriente de un cliente."""
+    conn = get_connection()
+    try:
+        row = conn.execute("""
+            SELECT COALESCE(SUM(monto), 0) FROM cuenta_corriente WHERE cliente_id = ?
+        """, (cliente_id,)).fetchone()
+        return float(row[0]) if row else 0.0
+    finally:
+        conn.close()
+
+
+def get_movimientos_cuenta_corriente(cliente_id, limit=50):
+    """Obtiene movimientos de cuenta corriente de un cliente."""
+    conn = get_connection()
+    try:
+        movimientos = conn.execute("""
+            SELECT cc.id, cc.venta_id, cc.monto, cc.saldo_anterior, cc.saldo_nuevo, cc.creado_en,
+                   v.tipo_comprobante, v.punto_venta, v.numero_comprobante
+            FROM cuenta_corriente cc
+            JOIN ventas v ON cc.venta_id = v.id
+            WHERE cc.cliente_id = ?
+            ORDER BY cc.creado_en DESC
+            LIMIT ?
+        """, (cliente_id, limit)).fetchall()
+        return movimientos
+    finally:
+        conn.close()
+
+
+def get_clientes_con_deuda():
+    """Obtiene clientes que tienen deuda en cuenta corriente."""
+    conn = get_connection()
+    try:
+        clientes = conn.execute("""
+            SELECT c.id, c.nombre, c.telefono, c.email,
+                   COALESCE(SUM(cc.monto), 0) as deuda_total
+            FROM clientes c
+            JOIN cuenta_corriente cc ON c.id = cc.cliente_id
+            GROUP BY c.id, c.nombre, c.telefono, c.email
+            HAVING deuda_total > 0
+            ORDER BY deuda_total DESC
+        """).fetchall()
+        return clientes
+    finally:
+        conn.close()
+
+
+# --- Funciones de Reportes extendidas ---
+def get_reporte_ventas_detallado(fecha_desde=None, fecha_hasta=None):
+    """Reporte de ventas con detalle de items."""
+    conn = get_connection()
+    try:
+        query = """SELECT v.id, v.creado_en, v.tipo_comprobante, v.punto_venta, v.numero_comprobante,
+                          v.subtotal, v.iva, v.total, v.metodo_pago,
+                          c.nombre as cliente_nombre,
+                          vi.producto_id, p.nombre as producto_nombre, vi.cantidad, vi.precio_unitario, vi.subtotal as item_subtotal
+                   FROM ventas v
+                   LEFT JOIN clientes c ON v.cliente_id = c.id
+                   JOIN venta_items vi ON v.id = vi.venta_id
+                   JOIN productos p ON vi.producto_id = p.id
+                   WHERE 1=1"""
+        params = []
+        if fecha_desde:
+            query += " AND date(v.creado_en) >= date(?)"
+            params.append(fecha_desde)
+        if fecha_hasta:
+            query += " AND date(v.creado_en) <= date(?)"
+            params.append(fecha_hasta)
+        query += " ORDER BY v.creado_en DESC"
+        
+        return conn.execute(query, params).fetchall()
     finally:
         conn.close()

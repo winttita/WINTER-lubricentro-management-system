@@ -5,6 +5,28 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.2.3] - 2026-07-18
+
+### Agregado
+- **Nuevas tablas de base de datos**: usuarios, ajustes_stock, ventas, venta_items, cuenta_corriente
+- **Sistema de usuarios**: Roles (admin, supervisor, operador) con autenticación básica
+- **Ajustes de stock con auditoría**: Registro de cambios de stock con motivo, usuario y diferencia
+- **Punto de Venta (POS)**: Carrito de compras, búsqueda por código de barras/nombre, selección de cliente
+- **Gestión de ventas**: Comprobantes (Factura A/B, Nota de Crédito, Ticket), métodos de pago, IVA automático
+- **Cuenta Corriente**: Registro de deudas de clientes, historial de movimientos, reporte de deudores
+- **Edición de entidades**: Funciones `update_categoria`, `update_proveedor`, `update_producto`, `update_cliente`, `update_vehiculo`, `update_servicio`
+- **Nuevas páginas Streamlit**: Configuración unificada (Categorías + Proveedores), Ajustes de Stock, Ventas/POS, Reportes extendidos
+
+### Corregido
+- Reporte de ingresos/egresos: ahora cierra correctamente la conexión a base de datos
+- Validaciones de stock en creación de ventas (evita venta sin stock)
+- Manejo de errores en constraints únicos (código de barras, nombres duplicados)
+
+### Cambiado
+- Reorganización de páginas: Categorías y Proveedores unificadas en Configuración (0_Configuracion.py)
+- Páginas removidas: 1_Categorias.py, 2_Proveedores.py, 5_Clientes.py, 7_Servicios.py, 8_OrdenesServicio.py
+- Páginas renombradas: 5_Ajustes_Stock.py, 7_Ventas.py
+
 ## [0.2.2] - 2026-07-17
 
 ### Agregado

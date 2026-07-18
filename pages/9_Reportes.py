@@ -22,18 +22,30 @@ elif periodo == "Este mes":
 else:
     fecha_desde, fecha_hasta = None, None
 
-tab_ventas, tab_inventario, tab_ingr_egr = st.tabs(["Ventas", "Inventario", "Ingresos vs Egresos"])
+fd = fecha_desde.strftime("%Y-%m-%d") if fecha_desde else None
+fh = fecha_hasta.strftime("%Y-%m-%d") if fecha_hasta else None
+
+tab_ventas, tab_inventario, tab_ingr_egr, tab_cc = st.tabs(["Ventas", "Inventario", "Ingresos vs Egresos", "Cta. Corriente"])
 
 with tab_ventas:
     st.subheader(f"Reporte de Ventas - {periodo}")
-    ventas = db.get_reporte_ventas(fecha_desde=fecha_desde, fecha_hasta=fecha_hasta)
+    # Usar la nueva función que incluye ventas + ordenes
+    ventas = db.get_reporte_ventas_detallado(fecha_desde=fd, fecha_hasta=fh)
     if ventas:
-        df = pd.DataFrame(ventas, columns=["Fecha", "Tipo", "Concepto", "Cantidad", "Monto"])
-        df["Monto"] = df["Monto"].astype(float)
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Transacciones", len(df))
-        c2.metric("Items vendidos", df["Cantidad"].sum())
-        c3.metric("Total vendido", f"${df['Monto'].sum():,.2f}")
+        df = pd.DataFrame(ventas, columns=[
+            "Venta ID", "Fecha", "Tipo Comp.", "Punto Vta", "Número",
+            "Subtotal", "IVA", "Total", "Método Pago", "Cliente",
+            "Prod. ID", "Producto", "Cant.", "Precio Unit.", "Subtotal Item"
+        ])
+        for col in ["Subtotal", "IVA", "Total", "Precio Unit.", "Subtotal Item"]:
+            if col in df.columns:
+                df[col] = df[col].astype(float)
+        
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Comprobantes", df["Venta ID"].nunique())
+        c2.metric("Items vendidos", df["Cant."].sum())
+        c3.metric("Total con IVA", f"${df['Total'].sum():,.2f}")
+        c4.metric("Subtotal", f"${df['Subtotal'].sum():,.2f}")
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
         st.info("No hay ventas en el periodo seleccionado.")
@@ -68,7 +80,7 @@ with tab_inventario:
 with tab_ingr_egr:
     st.subheader(f"Ingresos vs Egresos - {periodo}")
     ingresos, egresos = db.get_reporte_ingresos_egresos(
-        fecha_desde=fecha_desde, fecha_hasta=fecha_hasta
+        fecha_desde=fd, fecha_hasta=fh
     )
     total_ingresos = sum(i[1] or 0 for i in ingresos)
     total_egresos = sum(e[2] or 0 for e in egresos)
@@ -80,7 +92,7 @@ with tab_ingr_egr:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### Ingresos (Ordenes de servicio)")
+        st.markdown("#### Ingresos (Órdenes de servicio)")
         if ingresos:
             df_i = pd.DataFrame(
                 [{"Fecha": i[2], "Cliente": i[0], "Monto": i[1]} for i in ingresos]
@@ -97,3 +109,25 @@ with tab_ingr_egr:
             st.dataframe(df_e, use_container_width=True, hide_index=True)
         else:
             st.info("Sin egresos en el periodo.")
+
+with tab_cc:
+    st.subheader("Clientes con Cuenta Corriente")
+    clientes_deuda = db.get_clientes_con_deuda()
+    if clientes_deuda:
+        df_cc = pd.DataFrame(clientes_deuda, columns=["ID", "Nombre", "Teléfono", "Email", "Deuda Total"])
+        df_cc["Deuda Total"] = df_cc["Deuda Total"].astype(float)
+        st.dataframe(df_cc, use_container_width=True, hide_index=True)
+        
+        st.divider()
+        st.markdown("### Detalle de movimientos")
+        cliente_sel = st.selectbox("Ver movimientos de:", ["Seleccionar..."] + [c[1] for c in clientes_deuda])
+        if cliente_sel != "Seleccionar...":
+            cli_id = next(c[0] for c in clientes_deuda if c[1] == cliente_sel)
+            movs = db.get_movimientos_cuenta_corriente(cli_id)
+            if movs:
+                df_m = pd.DataFrame(movs, columns=["ID", "Venta ID", "Monto", "Saldo Ant.", "Saldo Nvo.", "Fecha", "Tipo Comp.", "Punto Vta", "Número"])
+                st.dataframe(df_m, use_container_width=True, hide_index=True)
+            else:
+                st.info("Sin movimientos")
+    else:
+        st.info("No hay clientes con deuda.")
