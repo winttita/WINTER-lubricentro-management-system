@@ -250,8 +250,8 @@ jobs:
           $BODY += "### Descarga manual`n"
           $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
           
-          $BODY | Out-File -FilePath release_notes.md -Encoding utf8
-          "body_path=release_notes.md" >> $env:GITHUB_OUTPUT
+$BODY | Out-File -FilePath release_notes.md -Encoding utf8
+           "body_path=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Create GitHub Release
         id: create_release
