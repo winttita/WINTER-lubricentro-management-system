@@ -5,6 +5,24 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.2.4] - 2026-07-20
+
+### Agregado
+- Stock inicial al crear producto: nuevo campo opcional en formulario de productos (`pages/3_Productos.py`)
+- Módulo de compras a proveedores: tabla `compras` y `detalle_compras`, funciones `crear_compra`, `get_compras`, `get_detalle_compra`, `anular_compra` (`database.py`)
+- Página de Compras (`pages/8_Compras.py`) con formulario de carga e historial con anulación
+- Convenciones del proyecto (`CONVENTIONS.md`) con reglas de tono, emojis, versionado, commits y CI/CD
+- Referencia a CONVENTIONS.md desde AGENTS.md para carga automática en cada sesión
+- Seed de usuario admin por defecto en `init_db` para evitar violación de FK en ajustes de stock
+
+### Corregido
+- Error "cannot be modified after the widget with key codigo_barras_scanner is instantiated" en `pages/3_Productos.py`: se reemplazó asignación directa por patrón de bandera
+- Error "Error al aplicar el ajuste" en `database.py:crear_ajuste_stock`: no se registraba el movimiento de stock y fallaba por FK violation (falta de usuario admin en la tabla usuarios)
+
+### Cambiado
+- `database.py:add_producto` ahora acepta `stock_inicial` opcional (default 0) y registra movimiento de compra inicial si > 0
+- Actualización automática mejorada: al descargar una actualización, la app se cierra sola y se reabre automáticamente actualizada sin intervención manual
+
 ## [0.2.3] - 2026-07-18
 
 ### Agregado

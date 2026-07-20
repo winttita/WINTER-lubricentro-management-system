@@ -1,4 +1,7 @@
 import streamlit as st
+import os
+import threading
+import time
 import database as db
 from updater import APP_VERSION, check_for_update
 
@@ -26,8 +29,10 @@ with st.sidebar:
                     if asset:
                         path = download_asset(asset)
                         apply_update(path)
-                        st.success("Actualización lista. Reiniciando...")
-                        st.rerun()
+                        st.success("Actualización descargada. La aplicación se cerrará y reabrirá automáticamente.")
+                        st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
+                        threading.Thread(target=lambda: (time.sleep(4), os._exit(0)), daemon=True).start()
+                        st.stop()
                     else:
                         st.error("No se encontró el asset de actualización")
         else:

@@ -19,7 +19,7 @@ def temp_db(monkeypatch):
 
 
 # --- init_db ---
-def test_init_db_crea_diez_tablas(temp_db):
+def test_init_db_crea_tablas(temp_db):
     conn = database.get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -30,7 +30,8 @@ def test_init_db_crea_diez_tablas(temp_db):
     esperadas = {
         "categorias", "proveedores", "productos", "catalogo_proveedor",
         "clientes", "vehiculos", "servicios", "movimientos_stock",
-        "ordenes_servicio", "orden_detalle",
+        "ordenes_servicio", "orden_detalle", "usuarios", "ajustes_stock",
+        "ventas", "venta_items", "cuenta_corriente", "compras", "detalle_compras",
     }
     assert esperadas.issubset(tablas), f"Faltan tablas: {esperadas - tablas}"
 
@@ -440,6 +441,167 @@ def test_add_movimiento_fecha_personalizada(temp_db):
     # La fecha debería ser la que proporcionamos (aunque el formato en la BD pueda variar)
     # Solo verificamos que se creó un movimiento
     assert movimientos[0][2] == "compra"
+
+
+# --- Pruebas de add_producto con stock inicial ---
+
+def test_add_producto_con_stock_inicial(temp_db):
+    """Debe crear producto con stock inicial y registrar movimiento."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "", "", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+
+    database.add_producto("C100", "7790100", "Test Stock", "", cat_id, prov_id,
+                          "Entero", 5, 100, 200, stock_inicial=25)
+
+    productos = database.get_productos()
+    p = productos[0]
+    assert p[8] == 25.0, f"Stock esperado 25, obtenido {p[8]}"
+
+    conn = database.get_connection()
+    movs = conn.execute("SELECT tipo, cantidad, motivo FROM movimientos_stock").fetchall()
+    conn.close()
+    assert len(movs) == 1
+    assert movs[0][0] == "compra"
+    assert movs[0][1] == 25.0
+
+
+def test_add_producto_sin_stock_inicial(temp_db):
+    """Debe crear producto con stock 0 por defecto y sin movimiento."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "", "", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+
+    database.add_producto("C101", "7790101", "Test Sin Stock", "", cat_id, prov_id,
+                          "Entero", 5, 100, 200)
+
+    p = database.get_productos()[0]
+    assert p[8] == 0.0
+
+    conn = database.get_connection()
+    movs = conn.execute("SELECT tipo, cantidad FROM movimientos_stock").fetchall()
+    conn.close()
+    assert len(movs) == 0
+
+
+# --- Pruebas de crear_ajuste_stock ---
+
+def test_crear_ajuste_stock_con_movimiento(temp_db):
+    """Debe crear ajuste y registrar movimiento en la misma transacción."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "", "", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+    database.add_producto("C200", "7790200", "Ajustable", "", cat_id, prov_id,
+                          "Entero", 5, 100, 200, stock_inicial=50)
+
+    p = database.get_productos()[0]
+    ok = database.crear_ajuste_stock(p[0], 30, "reducción por merma", 1)
+    assert ok is True
+
+    conn = database.get_connection()
+    p_actualizado = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (p[0],)).fetchone()
+    conn.close()
+    assert p_actualizado[0] == 30.0
+
+    conn = database.get_connection()
+    movs = conn.execute(
+        "SELECT tipo, cantidad, motivo FROM movimientos_stock WHERE producto_id = ? AND tipo='ajuste'",
+        (p[0],)
+    ).fetchall()
+    conn.close()
+    assert len(movs) == 1
+    assert movs[0][1] == -20.0  # 30 - 50 = -20
+
+
+# --- Pruebas de Compras a Proveedores ---
+
+def test_crear_y_get_compras(temp_db):
+    """Debe crear una compra, actualizar stock y registrar movimientos."""
+    database.add_categoria("Filtros")
+    database.add_proveedor("Mann Filter", "", "", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+    database.add_producto("C300", "7790300", "Filtro Aceite", "", cat_id, prov_id,
+                          "Entero", 10, 500, 800, stock_inicial=20)
+    database.add_producto("C301", "7790301", "Filtro Aire", "", cat_id, prov_id,
+                          "Entero", 10, 300, 500, stock_inicial=10)
+
+    productos = database.get_productos()
+    filtro_aceite = [p for p in productos if p[1] == "C300"][0]
+    filtro_aire = [p for p in productos if p[1] == "C301"][0]
+
+    items = [
+        {'producto_id': filtro_aceite[0], 'cantidad': 10, 'precio_unitario': 450},
+        {'producto_id': filtro_aire[0], 'cantidad': 5, 'precio_unitario': 280},
+    ]
+
+    compra_id = database.crear_compra(prov_id, items, "Compra mensual")
+    assert compra_id is not None
+
+    # Verificar stock actualizado
+    conn = database.get_connection()
+    stock_aceite = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (filtro_aceite[0],)).fetchone()[0]
+    stock_aire = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (filtro_aire[0],)).fetchone()[0]
+    assert stock_aceite == 30.0  # 20 + 10
+    assert stock_aire == 15.0    # 10 + 5
+
+    # Verificar movimientos de compra
+    movs = conn.execute(
+        "SELECT tipo, cantidad FROM movimientos_stock WHERE tipo='compra' AND motivo LIKE ?",
+        (f'%#{compra_id}',)
+    ).fetchall()
+    assert len(movs) == 2
+
+    # Verificar get_compras
+    conn.close()
+    compras = database.get_compras()
+    assert len(compras) == 1
+    assert compras[0][2] == "Mann Filter"
+    assert abs(compras[0][4] - (10*450 + 5*280)) < 0.01
+
+    # Verificar get_detalle_compra
+    detalle = database.get_detalle_compra(compra_id)
+    assert len(detalle) == 2
+
+
+def test_anular_compra(temp_db):
+    """Debe anular compra y revertir stock."""
+    database.add_categoria("Filtros")
+    database.add_proveedor("Mann Filter", "", "", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+    database.add_producto("C400", "7790400", "Filtro Test", "", cat_id, prov_id,
+                          "Entero", 5, 100, 200, stock_inicial=10)
+
+    p = database.get_productos()[0]
+    items = [{'producto_id': p[0], 'cantidad': 20, 'precio_unitario': 90}]
+    compra_id = database.crear_compra(prov_id, items, "Compra test")
+    assert compra_id is not None
+
+    # Verificar stock post-compra
+    conn = database.get_connection()
+    stock = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (p[0],)).fetchone()[0]
+    assert stock == 30.0  # 10 + 20
+
+    # Anular compra
+    ok = database.anular_compra(compra_id)
+    assert ok is True
+
+    # Verificar stock revertido
+    stock = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (p[0],)).fetchone()[0]
+    assert stock == 10.0  # 30 - 20
+
+    # Verificar que no se pueda anular dos veces
+    ok = database.anular_compra(compra_id)
+    assert ok is False
+
+    # Verificar estado de la compra
+    estado = conn.execute("SELECT estado FROM compras WHERE id = ?", (compra_id,)).fetchone()[0]
+    assert estado == "anulada"
+    conn.close()
 
 
 if __name__ == "__main__":

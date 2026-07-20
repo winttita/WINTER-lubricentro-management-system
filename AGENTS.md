@@ -39,3 +39,7 @@ graphify gods
 - `updater.py` - Auto-update mechanism (low cohesion, consider splitting)
 - `tests/test_database.py` - Comprehensive test suite
 - `graphify.js` - OpenCode plugin for graphify
+
+## Project Conventions
+
+Before publishing any release, commit, or project-facing text, read `CONVENTIONS.md` and follow its rules. It covers tone/style, emoji prohibition, versioning, changelog/releases format, conventional commits, CI/CD auto-fix, Windows build process, repo hygiene, and how to update the conventions themselves.

@@ -7,3 +7,8 @@ dist/
 build_launcher/
 .updates/
 _logs/
+# Backups y archivos temporales que no deben commitearse
+*.backup
+*.backup2
+*.with_my_updates
+stash.patch

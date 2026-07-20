@@ -229,8 +229,45 @@ def init_db():
             FOREIGN KEY (venta_id) REFERENCES ventas(id)
         )
     """)
-    
+
+    # 16. Compras a proveedores
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS compras (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            proveedor_id INTEGER NOT NULL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            total REAL NOT NULL DEFAULT 0,
+            observaciones TEXT,
+            estado TEXT NOT NULL DEFAULT 'confirmada',
+            FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+        )
+    """)
+
+    # 17. Detalle de Compras
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_compras (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            compra_id INTEGER NOT NULL,
+            producto_id INTEGER NOT NULL,
+            cantidad REAL NOT NULL,
+            precio_unitario REAL NOT NULL,
+            subtotal REAL NOT NULL,
+            FOREIGN KEY (compra_id) REFERENCES compras(id),
+            FOREIGN KEY (producto_id) REFERENCES productos(id)
+        )
+    """)
+
     conn.commit()
+
+    # Seed: usuario admin por defecto (si no existe ninguno)
+    exists = conn.execute("SELECT COUNT(*) FROM usuarios").fetchone()[0]
+    if exists == 0:
+        conn.execute("""
+            INSERT INTO usuarios (username, password_hash, nombre, rol)
+            VALUES (?, ?, ?, ?)
+        """, ("admin", "", "Administrador", "admin"))
+        conn.commit()
+
     conn.close()
 
 def backup_db():
@@ -447,7 +484,9 @@ def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, 
             # Update order totals: add to total_productos
             conn.execute("UPDATE ordenes_servicio SET total_productos = total_productos + ? WHERE id = ?", (cantidad * precio_unitario, orden_id))
             # Also create movement of tipo 'uso_interno' for stock deduction
-            add_movimiento(producto_id, 'uso_interno', cantidad, f'Uso en orden de servicio #{orden_id}')
+            if not add_movimiento(producto_id, 'uso_interno', cantidad, f'Uso en orden de servicio #{orden_id}'):
+                conn.rollback()
+                return False
         elif servicio_id is not None:
             serv = conn.execute("SELECT precio FROM servicios WHERE id = ?", (servicio_id,)).fetchone()
             if serv is None:
@@ -574,16 +613,31 @@ def get_productos():
     conn.close()
     return productos
 
-def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
+def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
     # Ensure numeric fields are non-negative (optional)
     if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
         return False
+    try:
+        stock_inicial = float(stock_inicial)
+    except (ValueError, TypeError):
+        stock_inicial = 0.0
+    if stock_inicial < 0:
+        return False
     conn = get_connection()
     try:
-        conn.execute("""
-            INSERT INTO productos (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (codigo_interno, codigo_barras, nombre.strip() if nombre is not None else None, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta))
+        cursor = conn.execute("""
+            INSERT INTO productos (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_actual)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (codigo_interno, codigo_barras, nombre.strip() if nombre is not None else None, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial))
+        producto_id = cursor.lastrowid
+
+        # Registrar movimiento de compra inicial si hay stock inicial > 0
+        if stock_inicial > 0:
+            conn.execute("""
+                INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
+                VALUES (?, 'compra', ?, ?, ?)
+            """, (producto_id, stock_inicial, datetime.now(), "Stock inicial al crear producto"))
+
         conn.commit()
     except sqlite3.IntegrityError:
         # For producto, we re-raise all integrity errors to let tests expecting exceptions pass
@@ -922,7 +976,9 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             """, (venta_id, item['producto_id'], cantidad, precio_unitario, subtotal_item))
             
             # Registrar movimiento de venta (descuenta stock)
-            add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}')
+            if not add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}'):
+                conn.rollback()
+                return None, None
         
         # Si es cuenta corriente, registrar deuda
         if metodo_pago == 'cuenta_corriente' and cliente_id:
@@ -1022,35 +1078,45 @@ def get_venta_completa(venta_id):
 
 # --- Funciones de Ajustes Stock ---
 def crear_ajuste_stock(producto_id, stock_nuevo, motivo, usuario_id):
-    """Crea un ajuste de stock con auditoría."""
+    """Crea un ajuste de stock con auditoría.
+    Inserta el movimiento en la misma transacción (sin llamar a add_movimiento
+    para no duplicar la actualización de stock ni romper la atomicidad)."""
     if not motivo or not motivo.strip():
         return False
-    
+    if producto_id is None or usuario_id is None:
+        return False
+    try:
+        stock_nuevo = float(stock_nuevo)
+    except (ValueError, TypeError):
+        return False
+    if stock_nuevo < 0:
+        return False
+
     conn = get_connection()
     try:
         row = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (producto_id,)).fetchone()
         if not row:
             return False
-        
+
         stock_anterior = float(row[0])
-        stock_nuevo = float(stock_nuevo)
         diferencia = stock_nuevo - stock_anterior
-        
-        if stock_nuevo < 0:
-            return False
-        
-        # Registrar ajuste
+
+        # Registrar ajuste (auditoría)
         conn.execute("""
             INSERT INTO ajustes_stock (producto_id, stock_anterior, stock_nuevo, diferencia, motivo, usuario_id)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (producto_id, stock_anterior, stock_nuevo, diferencia, motivo.strip(), usuario_id))
-        
+
         # Actualizar stock del producto
         conn.execute("UPDATE productos SET stock_actual = ? WHERE id = ?", (stock_nuevo, producto_id))
-        
-        # Registrar movimiento de tipo ajuste
-        add_movimiento(producto_id, 'ajuste', diferencia, f'Ajuste: {motivo.strip()}')
-        
+
+        # Registrar movimiento de tipo ajuste en la misma transacción
+        # (delta = diferencia: positivo si sube, negativo si baja)
+        conn.execute("""
+            INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
+            VALUES (?, 'ajuste', ?, ?, ?)
+        """, (producto_id, diferencia, datetime.now(), f'Ajuste: {motivo.strip()}'))
+
         conn.commit()
         return True
     except Exception:
@@ -1088,6 +1154,146 @@ def get_ajustes_stock(limit=50, fecha_desde=None, fecha_hasta=None, producto_id=
         
         ajustes = conn.execute(query, params).fetchall()
         return ajustes
+    finally:
+        conn.close()
+
+
+# --- Funciones de Compras a Proveedores ---
+
+def crear_compra(proveedor_id, items, observaciones=""):
+    """Crea una compra a proveedor con múltiples items.
+    Actualiza stock de cada producto y registra movimientos tipo 'compra'.
+    items: lista de dicts [{'producto_id': int, 'cantidad': float, 'precio_unitario': float}, ...]
+    Retorna el ID de la compra o None si falla."""
+    if not items:
+        return None
+    if proveedor_id is None:
+        return None
+
+    conn = get_connection()
+    try:
+        # Calcular total
+        total = 0.0
+        for item in items:
+            try:
+                cantidad = float(item['cantidad'])
+                precio = float(item['precio_unitario'])
+            except (ValueError, TypeError):
+                return None
+            if cantidad <= 0 or precio < 0:
+                return None
+            item['cantidad'] = cantidad
+            item['precio_unitario'] = precio
+            item['subtotal'] = round(cantidad * precio, 2)
+            total = round(total + item['subtotal'], 2)
+
+        # Insertar cabecera de compra
+        cursor = conn.execute("""
+            INSERT INTO compras (proveedor_id, fecha, total, observaciones, estado)
+            VALUES (?, ?, ?, ?, 'confirmada')
+        """, (proveedor_id, datetime.now(), total, observaciones.strip() if observaciones else None))
+        compra_id = cursor.lastrowid
+
+        # Insertar items y actualizar stock
+        now = datetime.now()
+        for item in items:
+            conn.execute("""
+                INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, subtotal)
+                VALUES (?, ?, ?, ?, ?)
+            """, (compra_id, item['producto_id'], item['cantidad'], item['precio_unitario'], item['subtotal']))
+
+            # Actualizar stock del producto
+            conn.execute("""
+                UPDATE productos SET stock_actual = stock_actual + ? WHERE id = ?
+            """, (item['cantidad'], item['producto_id']))
+
+            # Registrar movimiento de compra
+            conn.execute("""
+                INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
+                VALUES (?, 'compra', ?, ?, ?)
+            """, (item['producto_id'], item['cantidad'], now, f'Compra a proveedor #{compra_id}'))
+
+        conn.commit()
+        return compra_id
+    except Exception:
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def get_compras(limit=50):
+    """Obtiene listado de compras con información del proveedor."""
+    conn = get_connection()
+    try:
+        compras = conn.execute("""
+            SELECT c.id, c.proveedor_id, p.nombre as proveedor, c.fecha, c.total,
+                   c.observaciones, c.estado
+            FROM compras c
+            JOIN proveedores p ON c.proveedor_id = p.id
+            ORDER BY c.fecha DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+        return compras
+    finally:
+        conn.close()
+
+
+def get_detalle_compra(compra_id):
+    """Obtiene el detalle de una compra con información del producto."""
+    conn = get_connection()
+    try:
+        items = conn.execute("""
+            SELECT d.id, d.producto_id, p.nombre as producto, p.codigo_barras,
+                   d.cantidad, d.precio_unitario, d.subtotal
+            FROM detalle_compras d
+            JOIN productos p ON d.producto_id = p.id
+            WHERE d.compra_id = ?
+            ORDER BY d.id
+        """, (compra_id,)).fetchall()
+        return items
+    finally:
+        conn.close()
+
+
+def anular_compra(compra_id):
+    """Anula una compra revirtiendo el stock de cada producto.
+    Retorna True si se anuló exitosamente, False si ya estaba anulada."""
+    conn = get_connection()
+    try:
+        # Verificar que la compra exista y no esté anulada
+        row = conn.execute("SELECT estado FROM compras WHERE id = ?", (compra_id,)).fetchone()
+        if not row or row[0] == 'anulada':
+            return False
+
+        # Obtener items de la compra
+        items = conn.execute("""
+            SELECT producto_id, cantidad FROM detalle_compras WHERE compra_id = ?
+        """, (compra_id,)).fetchall()
+
+        if not items:
+            return False
+
+        # Revertir stock de cada producto y registrar movimiento
+        now = datetime.now()
+        for producto_id, cantidad in items:
+            conn.execute("""
+                UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ?
+            """, (cantidad, producto_id))
+
+            conn.execute("""
+                INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
+                VALUES (?, 'ajuste', ?, ?, ?)
+            """, (producto_id, -cantidad, now, f'Anulación compra #{compra_id}'))
+
+        # Marcar compra como anulada
+        conn.execute("UPDATE compras SET estado = 'anulada' WHERE id = ?", (compra_id,))
+
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
     finally:
         conn.close()
 
