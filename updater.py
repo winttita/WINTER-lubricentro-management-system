@@ -256,7 +256,7 @@ if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
 if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
 
 REM Descomprimir el zip (sobrescribe todo: app/, runtime/, etc.)
-powershell -NoProfile -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
+powershell -NoProfile -WindowStyle Hidden -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
 
 REM Verificar que el nuevo launcher existe
 if not exist "%ROOT%\{launcher_name}" (

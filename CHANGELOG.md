@@ -18,10 +18,12 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ### Corregido
 - Error "cannot be modified after the widget with key codigo_barras_scanner is instantiated" en `pages/3_Productos.py`: se reemplazó asignación directa por patrón de bandera
 - Error "Error al aplicar el ajuste" en `database.py:crear_ajuste_stock`: no se registraba el movimiento de stock y fallaba por FK violation (falta de usuario admin en la tabla usuarios)
+- Eliminación de emojis prohibidos en las descripciones de GitHub Releases (workflow `.github/workflows/release.yml`) para cumplir con CONVENTIONS.md
 
 ### Cambiado
 - `database.py:add_producto` ahora acepta `stock_inicial` opcional (default 0) y registra movimiento de compra inicial si > 0
 - Actualización automática mejorada: al descargar una actualización, la app se cierra sola y se reabre automáticamente actualizada sin intervención manual
+- Actualización de actualizaciones: se oculta la ventana de PowerShell durante la descompresión de archivos ZIP para mejorar la experiencia visual
 
 ## [0.2.3] - 2026-07-18
 

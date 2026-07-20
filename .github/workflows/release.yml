@@ -233,21 +233,21 @@ jobs:
             }
           }
           
-          # Build body using string concatenation to avoid here-doc issues
-          $BODY = "## 📦 Lubricentro Winter v$VERSION`n`n"
-          $BODY += "### 🎯 Cambios desde $PREV_TAG`n`n"
-          $BODY += "$COMMITS`n`n"
-          if ($CHANGELOG_CONTENT) {
-            $BODY += "### 📝 Changelog`n`n"
-            $BODY += "$CHANGELOG_CONTENT`n`n"
-          }
-          $BODY += "### 📋 Detalles técnicos`n"
-          $BODY += "- Compilado con PyInstaller + Python embebido 3.12.7`n"
-          $BODY += "- Paquete ZIP autónomo para Windows (sin dependencias externas)`n"
-          $BODY += "- Verificación automática de actualizaciones integrada`n`n"
-          $BODY += "### 🔄 Cómo actualizar`n"
-          $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
-          $BODY += "### 📥 Descarga manual`n"
+# Build body using string concatenation to avoid here-doc issues
+           $BODY = "## Lubricentro Winter v$VERSION`n`n"
+           $BODY += "### Cambios desde $PREV_TAG`n`n"
+           $BODY += "$COMMITS`n`n"
+           if ($CHANGELOG_CONTENT) {
+             $BODY += "### Changelog`n`n"
+             $BODY += "$CHANGELOG_CONTENT`n`n"
+           }
+           $BODY += "### Detalles técnicos`n"
+           $BODY += "- Compilado con PyInstaller + Python embebido 3.12.7`n"
+           $BODY += "- Paquete ZIP autónomo para Windows (sin dependencias externas)`n"
+           $BODY += "- Verificación automática de actualizaciones integrada`n`n"
+           $BODY += "### Cómo actualizar`n"
+           $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
+          $BODY += "### Descarga manual`n"
           $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
           
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
@@ -285,7 +285,7 @@ jobs:
             const repo = context.repo;
             const error_steps = context.job.steps.filter(s => s.conclusion === 'failure').map(s => s.name);
             
-            const body = `## ❌ Workflow Failed: ${workflow}
+            const body = `## Workflow Failed: ${workflow}
             **Run**: #${run}
             **Repo**: ${repo.owner}/${repo.repo}
             **Tag**: ${context.ref}
