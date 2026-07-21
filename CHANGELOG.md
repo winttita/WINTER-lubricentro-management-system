@@ -5,6 +5,17 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.2.6] - 2026-07-21
+
+### Corregido
+- Aparicion de ventana de terminal con el comando `find "%PID%"` bloqueante durante la aplicacion de actualizaciones en `build/launcher.py:_write_update_batch`: el comando `find` de `cmd` esperaba entrada de STDIN de forma interactiva, deteniendo el proceso hasta que el usuario presionaba `Ctrl+C`. Se reemplazo por `findstr /C:"%PID%"` con redireccion `< nul` no interactiva.
+- Falta del flag `CREATE_NO_WINDOW` en `build/launcher.py:check_and_launch_update` y `build/launcher.py:main` al lanzar `cmd /c update.bat`: el subproceso abria una consola visible. Ahora se combina con `DETACHED_PROCESS` y `CREATE_NEW_PROCESS_GROUP`.
+- Llamada a PowerShell visible durante la descompresion del ZIP: se agrego `-WindowStyle Hidden` al comando `Expand-Archive` en `build/launcher.py:_write_update_batch`.
+- Bloqueo `pause` en la rama de error del `update.bat`: impedia continuar el flujo automatico si la descompresion fallaba. Se elimino para mantener el flujo desatendido.
+
+### Cambiado
+- Flujo de actualizacion totalmente automatico en `build/launcher.py`: descarga, descompresion, reemplazo del `.exe` y relanzamiento ahora ocurren sin intervencion del usuario, en segundo plano y sin ventanas de terminal visibles.
+
 ## [0.2.5] - 2026-07-21
 
 ### Agregado

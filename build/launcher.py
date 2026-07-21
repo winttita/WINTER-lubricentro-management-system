@@ -82,41 +82,43 @@ set ZIP_PATH={zip_escaped}
 set PID={pid}
 set LAUNCHER={launcher_name}
 
-echo [UPDATE] Esperando a que termine el launcher anterior (PID %PID%)...
+REM Esperar a que termine el launcher anterior (PID %PID%).
+REM findstr con /C y < nul: no interactivo, no espera stdin.
 :WAIT_LOOP
-tasklist /FI "PID eq %PID%" 2>nul | find "%PID%" >nul
+tasklist /FI "PID eq %PID%" /NH 2>nul < nul | findstr /C:"%PID%" >nul 2>&1
 if errorlevel 1 (
-    echo [UPDATE] Proceso %PID% finalizado.
+    goto DONE_WAIT
 ) else (
     timeout /t 1 /nobreak >nul
     goto WAIT_LOOP
 )
+:DONE_WAIT
 
-echo [UPDATE] Aplicando actualización desde %ZIP_PATH%...
+echo [UPDATE] Aplicando actualizacion desde %ZIP_PATH%...
 
 REM Backup del launcher actual por si acaso
 if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
 if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
 
 REM Descomprimir el zip (sobrescribe todo: app/, runtime/, etc.)
-powershell -NoProfile -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
+powershell -NoProfile -WindowStyle Hidden -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
 
 REM Verificar que el nuevo launcher existe
 if not exist "%ROOT%\{launcher_name}" (
-    echo [ERROR] No se encontró {launcher_name} tras descomprimir. Restaurando backup...
     if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
-    pause
     exit /b 1
 )
 
 echo [UPDATE] Limpieza...
 if exist "%ZIP_PATH%" del "%ZIP_PATH%"
 if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
-if exist "%ROOT%\update.bat" del "%ROOT%\update.bat"
 if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
 
-echo [UPDATE] Iniciando nueva versión...
+echo [UPDATE] Iniciando nueva version...
 start "" "%ROOT%\{launcher_name}"
+
+REM Autoborrado del .bat (no se puede del mientras corre)
+(goto) 2>nul & del "%~f0"
 
 exit /b 0
 """
@@ -158,12 +160,13 @@ def check_and_launch_update() -> bool:
     bat_path = _write_update_batch(zip_path, pid)
     log(f"Escrito {bat_path} para PID {pid}")
 
-    # Lanzar detached: start /b no espera; usamos start "" /b
+    # Lanzar detached y sin ventana visible
+    CREATE_NO_WINDOW = 0x08000000
     try:
         subprocess.Popen(
             ["cmd", "/c", bat_path],
             cwd=ROOT,
-            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -259,10 +262,11 @@ def main() -> int:
             bat_path = _write_update_batch(zip_path, pid)
             log("Actualización pendiente tras cierre de Streamlit. Lanzando update.bat...")
             try:
+                CREATE_NO_WINDOW = 0x08000000
                 subprocess.Popen(
                     ["cmd", "/c", bat_path],
                     cwd=ROOT,
-                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
