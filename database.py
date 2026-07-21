@@ -310,10 +310,17 @@ def get_movimientos(limit=10):
     conn.close()
     return movimientos
 
-def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None):
+def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
     """
     Registra un movimiento de stock y actualiza el stock_actual del producto.
     Returns True si se realizó exitosamente, False si hay stock insuficiente u otro error.
+
+    Si se pasa ``conn`` (una conexion sqlite3 abierta), se usa esa conexion
+    en lugar de abrir una nueva. Esto es necesario cuando el caller ya tiene
+    una transaccion abierta (por ejemplo crear_venta / crear_compra), porque
+    SQLite bloquea una segunda conexion intentando escribir mientras la
+    primera tiene una transaccion sin commitear ("database is locked").
+    El caller es responsable del commit/rollback/close de su propia conexion.
     """
     # Validaciones básicas
     if producto_id is None or tipo is None or cantidad is None:
@@ -325,7 +332,9 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None):
     except (ValueError, TypeError):
         return False
 
-    conn = get_connection()
+    own_conn = conn is None
+    if own_conn:
+        conn = get_connection()
     try:
         # Obtener stock actual del producto
         cursor = conn.execute("SELECT stock_actual FROM productos WHERE id = ?", (producto_id,))
@@ -359,14 +368,16 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None):
         # Actualizar stock del producto
         conn.execute("UPDATE productos SET stock_actual = ? WHERE id = ?", (nuevo_stock, producto_id))
 
-        conn.commit()
+        if own_conn:
+            conn.commit()
         return True
     except Exception as e:
-        # En caso de cualquier error, hacemos rollback
+        # En caso de cualquier error, hacemos rollback (solo de nuestra propia conexion)
         conn.rollback()
         return False
     finally:
-        conn.close()
+        if own_conn:
+            conn.close()
 
 # --- Funciones de Clientes ---
 def get_clientes():
@@ -484,7 +495,7 @@ def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, 
             # Update order totals: add to total_productos
             conn.execute("UPDATE ordenes_servicio SET total_productos = total_productos + ? WHERE id = ?", (cantidad * precio_unitario, orden_id))
             # Also create movement of tipo 'uso_interno' for stock deduction
-            if not add_movimiento(producto_id, 'uso_interno', cantidad, f'Uso en orden de servicio #{orden_id}'):
+            if not add_movimiento(producto_id, 'uso_interno', cantidad, f'Uso en orden de servicio #{orden_id}', conn=conn):
                 conn.rollback()
                 return False
         elif servicio_id is not None:
@@ -926,35 +937,45 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
     """
     Crea una venta completa con items, actualiza stock y registra movimiento.
     items: lista de dicts {producto_id, cantidad, precio_unitario}
-    Retorna (venta_id, numero_comprobante) o (None, None) si falla.
+    Retorna (venta_id, numero_comprobante, error_msg) donde error_msg es None si exito.
     """
     if not items:
-        return None, None
+        return None, None, "No hay items en la venta"
+    if not isinstance(items, list):
+        return None, None, "Items debe ser una lista"
     
-    # Validar stock para todos los items antes de empezar
     conn = get_connection()
     try:
+        # Validar stock para todos los items antes de empezar (misma conexion)
         for item in items:
+            if not isinstance(item, dict):
+                return None, None, "Cada item debe ser un diccionario"
+            if 'producto_id' not in item or 'cantidad' not in item or 'precio_unitario' not in item:
+                return None, None, "Cada item debe tener producto_id, cantidad y precio_unitario"
+            
             row = conn.execute("SELECT stock_actual, nombre FROM productos WHERE id = ? AND activo = 1", 
                              (item['producto_id'],)).fetchone()
             if not row:
-                return None, None
-            if float(row[0]) < float(item['cantidad']):
-                return None, None
-    finally:
-        conn.close()
-    
-    # Calcular totales
-    subtotal = sum(float(item['cantidad']) * float(item['precio_unitario']) for item in items)
-    iva = subtotal * 0.21 if tipo_comprobante == 'factura_a' else 0
-    total = subtotal + iva
-    
-    # Obtener siguiente número de comprobante
-    punto_venta = '0001'
-    numero_comprobante = get_ultimo_numero_comprobante(tipo_comprobante, punto_venta) + 1
-    
-    conn = get_connection()
-    try:
+                return None, None, f"Producto inactivo o inexistente (id={item['producto_id']})"
+            stock_actual = float(row[0])
+            nombre = row[1]
+            cantidad = float(item['cantidad'])
+            if stock_actual < cantidad:
+                return None, None, f"Stock insuficiente de \"{nombre}\": solicitado {cantidad}, disponible {stock_actual}"
+        
+        # Calcular totales
+        total = sum(float(item['cantidad']) * float(item['precio_unitario']) for item in items)
+        if tipo_comprobante == 'factura_a':
+            subtotal = round(total / 1.21, 2)
+            iva = round(total - subtotal, 2)
+        else:
+            subtotal = round(total, 2)
+            iva = 0.0
+        
+        # Obtener siguiente número de comprobante
+        punto_venta = '0001'
+        numero_comprobante = get_ultimo_numero_comprobante(tipo_comprobante, punto_venta) + 1
+        
         # Insertar venta
         cursor = conn.execute("""
             INSERT INTO ventas (cliente_id, tipo_comprobante, punto_venta, numero_comprobante,
@@ -968,17 +989,17 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
         for item in items:
             cantidad = float(item['cantidad'])
             precio_unitario = float(item['precio_unitario'])
-            subtotal_item = cantidad * precio_unitario
+            subtotal_item = round(cantidad * precio_unitario, 2)
             
             conn.execute("""
                 INSERT INTO venta_items (venta_id, producto_id, cantidad, precio_unitario, subtotal)
                 VALUES (?, ?, ?, ?, ?)
             """, (venta_id, item['producto_id'], cantidad, precio_unitario, subtotal_item))
             
-            # Registrar movimiento de venta (descuenta stock)
-            if not add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}'):
+            # Registrar movimiento de venta (descuenta stock) usando la misma conexion
+            if not add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}', conn=conn):
                 conn.rollback()
-                return None, None
+                return None, None, f"Error al registrar movimiento de venta para producto {item['producto_id']}"
         
         # Si es cuenta corriente, registrar deuda
         if metodo_pago == 'cuenta_corriente' and cliente_id:
@@ -995,10 +1016,10 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo))
         
         conn.commit()
-        return venta_id, numero_comprobante
+        return venta_id, numero_comprobante, None
     except Exception as e:
         conn.rollback()
-        return None, None
+        return None, None, f"Error al procesar la venta: {str(e)}"
     finally:
         conn.close()
 

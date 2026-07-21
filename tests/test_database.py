@@ -606,3 +606,132 @@ def test_anular_compra(temp_db):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# --- Tests nuevos para crear_venta v0.2.5 (firma extendida y correcciones) ---
+
+def _crear_dependencias():
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "123", "Contado")
+    cat_id = database.get_categorias()[0][0]
+    prov_id = database.get_proveedores()[0][0]
+    return cat_id, prov_id
+
+
+def test_crear_venta_stock_insuficiente_retorna_mensaje_especifico(temp_db):
+    """Stock insuficiente debe retornar mensaje especifico, no (None, None)."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    # Setup: crear producto con stock 5
+    add_producto("P1", "CB001", "Producto Test", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 5)
+    items = [{"producto_id": 1, "cantidad": 10, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+    assert "Stock insuficiente" in error
+    assert "disponible 5" in error
+    assert "solicitado 10" in error
+
+
+def test_crear_venta_factura_a_calculo_iva_incluido(temp_db):
+    """Factura A: precio_venta ya incluye IVA. Total = subtotal_neto + iva = precio_final."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("P2", "CB002", "Producto A", "", cat_id, prov_id, "Entero", 0, 10.0, 121.0, 10)
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 121.0}]
+    venta_id, numero, error = crear_venta(None, "factura_a", items, "efectivo", 1)
+    print(f"DEBUG: venta_id={venta_id}, numero={numero}, error={error}")
+    assert venta_id is not None
+    assert error is None
+    # Verificar en BD
+    import database as db
+    conn = db.get_connection()
+    row = conn.execute("SELECT subtotal, iva, total FROM ventas WHERE id = ?", (venta_id,)).fetchone()
+    conn.close()
+    assert row[2] == 121.0  # total = precio final
+    assert row[1] == 21.0   # iva = 121 - (121/1.21)
+    assert row[0] == 100.0  # subtotal = 121/1.21
+
+
+def test_crear_venta_ticket_sin_iva(temp_db):
+    """Ticket: sin IVA, subtotal = total = precio_venta."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("P3", "CB003", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
+    items = [{"producto_id": 1, "cantidad": 2, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
+    assert venta_id is not None
+    assert error is None
+    import database as db
+    conn = db.get_connection()
+    row = conn.execute("SELECT subtotal, iva, total FROM ventas WHERE id = ?", (venta_id,)).fetchone()
+    conn.close()
+    assert row[2] == 200.0  # total
+    assert row[1] == 0.0    # iva
+    assert row[0] == 200.0  # subtotal
+
+
+def test_crear_venta_producto_inactivo_retorna_error(temp_db):
+    """Producto inactivo debe retornar error especifico."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("P4", "CB004", "Producto Inactivo", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
+    # Desactivar producto
+    import database as db
+    conn = db.get_connection()
+    conn.execute("UPDATE productos SET activo = 0 WHERE id = 1")
+    conn.commit()
+    conn.close()
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+    assert "inactivo o inexistente" in error
+
+
+def test_crear_venta_items_vacios_retorna_error(temp_db):
+    """Items vacios debe retornar error especifico."""
+    from database import crear_venta
+    venta_id, numero, error = crear_venta(None, "ticket", [], "efectivo", 1)
+    assert venta_id is None
+    assert error == "No hay items en la venta"
+
+
+def test_crear_venta_factura_b_sin_iva(temp_db):
+    """Factura B: sin IVA desglosado."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("P5", "CB005", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 150.0, 10)
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 150.0}]
+    venta_id, numero, error = crear_venta(None, "factura_b", items, "efectivo", 1)
+    assert venta_id is not None
+    assert error is None
+    import database as db
+    conn = db.get_connection()
+    row = conn.execute("SELECT subtotal, iva, total FROM ventas WHERE id = ?", (venta_id,)).fetchone()
+    conn.close()
+    assert row[2] == 150.0
+    assert row[1] == 0.0
+    assert row[0] == 150.0
+
+
+def test_crear_venta_factura_c_sin_iva(temp_db):
+    """Factura C: sin IVA desglosado."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("P6", "CB006", "Producto C", "", cat_id, prov_id, "Entero", 0, 10.0, 200.0, 10)
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 200.0}]
+    venta_id, numero, error = crear_venta(None, "factura_c", items, "efectivo", 1)
+    assert venta_id is not None
+    assert error is None
+    import database as db
+    conn = db.get_connection()
+    row = conn.execute("SELECT subtotal, iva, total FROM ventas WHERE id = ?", (venta_id,)).fetchone()
+    conn.close()
+    assert row[2] == 200.0
+    assert row[1] == 0.0
+    assert row[0] == 200.0
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

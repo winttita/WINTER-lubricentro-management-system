@@ -1,0 +1,62 @@
+name: Bug report
+description: Reportar un error o comportamiento inesperado
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar un error. Completa los siguientes campos
+        para facilitar el diagnostico.
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripcion
+      description: Descripcion clara y concisa del problema.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduccion
+    attributes:
+      label: Pasos para reproducir
+      description: pasos minimos para reproducir el error.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamiento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento actual
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version de la aplicacion
+      placeholder: "ej: 0.2.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistema operativo
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs o capturas
+      description: Pega aqui cualquier log relevante o capturas de pantalla.

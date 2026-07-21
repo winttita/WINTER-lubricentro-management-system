@@ -5,6 +5,28 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.2.5] - 2026-07-21
+
+### Agregado
+- Validacion explicita de items y stock en `database.py:crear_venta`: retorna `(venta_id, numero, error_msg)` con mensaje especifico para cada caso (items vacios, producto inactivo, stock insuficiente, error de movimiento)
+- Calculo de IVA incluido para `factura_a` en `database.py:crear_venta`: `subtotal = total / 1.21`, `iva = total - subtotal` (antes el IVA se sumaba al precio, duplicando el impuesto)
+- Parametro `conn` opcional en `database.py:add_movimiento` para reutilizar la conexion del caller y evitar bloqueos SQLite cuando la operacion se realiza dentro de una transaccion abierta
+- IU dinamica en la pagina de Compras (`pages/8_Compras.py`): se reemplaza el formulario estatico de 3 productos por una lista en `session_state` con agregar/quitar filas
+- Busqueda lazy, vista previa y carrito mejorado en `pages/7_Ventas.py`: feedback de stock insuficiente en el carrito y totales coherentes con el tipo de comprobante (`calcular_totales`)
+- Suite de tests ampliada para `crear_venta`: cubre stock insuficiente, factura A con IVA incluido, ticket/factura B/factura C sin IVA, producto inactivo e items vacios (`tests/test_database.py`)
+- Dependabot para dependencias pip y GitHub Actions (`.github/dependabot.yml`)
+- Plantillas de issues para reporte de bugs y solicitud de funciones (`.github/ISSUE_TEMPLATE/`)
+- Workflow de CodeQL para analisis estatico de Python (`.github/workflows/codeql.yml`)
+
+### Corregido
+- Error `database is locked` en `database.py:crear_venta` y `database.py:crear_orden_servicio`: `add_movimiento` abria una segunda conexion mientras la primera mantenia una transaccion sin commitear; ahora usa la misma conexion del caller
+- Calculo incorrecto de IVA en `database.py:crear_venta` para `factura_a`: el precio de venta ya incluye el IVA, por lo que la version anterior lo sumaba de mas sobre el total
+- Llamada a `crear_venta` en `pages/7_Ventas.py` que desconocia la nueva firma de 3 valores y mostraba mensaje generico sin informacion del error
+
+### Cambiado
+- `database.py:crear_venta` ahora retorna tupla de 3 valores `(venta_id, numero_comprobante, error_msg)`, antes `(venta_id, numero_comprobante)`. Cambio que rompe compatibilidad: callers previos que esperan 2 valores deben actualizarse
+- Eliminacion de emojis prohibidos en textos visibles de `pages/7_Ventas.py` y `pages/8_Compras.py` para cumplir CONVENTIONS.md
+
 ## [0.2.4] - 2026-07-20
 
 ### Agregado
