@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   build-windows:
@@ -40,12 +41,18 @@ jobs:
       - name: Build launcher.exe
         shell: pwsh
         run: |
+          # Clean any stale PyInstaller artifacts from the build/ source dir
+          Remove-Item -Recurse -Force build\LubricentroWinter -ErrorAction SilentlyContinue
+          Remove-Item -Force build\LubricentroWinter.spec -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force pyi-build -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force pyi-spec -ErrorAction SilentlyContinue
+
           python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
             --icon=build/icon.ico `
             --uac-admin `
             --distpath dist `
-            --workpath build `
-            --specpath build `
+            --workpath pyi-build `
+            --specpath pyi-spec `
             build/launcher.py
           if ($LASTEXITCODE -ne 0) {
             throw "PyInstaller failed with exit code $LASTEXITCODE"
@@ -328,11 +335,16 @@ jobs:
             Check the logs: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${run}
             `;
             
-            // Create issue for tracking
-            await github.rest.issues.create({
-              owner: repo.owner,
-              repo: repo.repo,
-              title: `[CI] ${workflow} failed for ${context.ref}`,
-              body: body,
-              labels: ['ci-failure', 'automated']
-            });
+            // Create issue for tracking (non-fatal if it fails)
+            try {
+              await github.rest.issues.create({
+                owner: repo.owner,
+                repo: repo.repo,
+                title: `[CI] ${workflow} failed for ${context.ref}`,
+                body: body,
+                labels: ['ci-failure', 'automated']
+              });
+              core.info('Issue created successfully');
+            } catch (err) {
+              core.warning(`Could not create issue (non-fatal): ${err.message}`);
+            }
