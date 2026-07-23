@@ -47,16 +47,17 @@ jobs:
           Remove-Item -Recurse -Force pyi-build -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force pyi-spec -ErrorAction SilentlyContinue
 
-          # NOTE: --uac-admin is omitted in CI (GitHub Actions runners don't
-          # elevate). The UAC manifest can be optionally added post-build with
-          # mt.exe (not done here) or applied in local builds via build_windows.bat.
+          # NOTE: --uac-admin and --icon omitted in CI to match the working
+          # v0.2.6 build. icon.ico may be malformed; local build_windows.bat
+          # can re-add them when needed.
           python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
-            --icon=build/icon.ico `
             --distpath dist `
             --workpath pyi-build `
             --specpath pyi-spec `
-            build/launcher.py
+            build/launcher.py 2>&1 | Tee-Object -FilePath pyinstaller.log
           if ($LASTEXITCODE -ne 0) {
+            Write-Host "=== PyInstaller log ==="
+            Get-Content pyinstaller.log -ErrorAction SilentlyContinue
             throw "PyInstaller failed with exit code $LASTEXITCODE"
           }
           Write-Host "launcher.exe built successfully"
