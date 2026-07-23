@@ -47,9 +47,11 @@ jobs:
           Remove-Item -Recurse -Force pyi-build -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force pyi-spec -ErrorAction SilentlyContinue
 
+          # NOTE: --uac-admin is omitted in CI (GitHub Actions runners don't
+          # elevate). The UAC manifest can be optionally added post-build with
+          # mt.exe (not done here) or applied in local builds via build_windows.bat.
           python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
             --icon=build/icon.ico `
-            --uac-admin `
             --distpath dist `
             --workpath pyi-build `
             --specpath pyi-spec `
