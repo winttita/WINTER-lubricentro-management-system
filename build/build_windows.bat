@@ -15,6 +15,11 @@ REM   - Python 3.12+ instalado (con pip) SOLO para compilar el launcher.exe
 REM   - PyInstaller:  pip install pyinstaller
 REM   - 7zip NO hace falta, usamos Compress-Archive de PowerShell
 REM
+REM Firma digital (opcional):
+REM   - Certificado de firma de código (Code Signing) .pfx con password
+REM   - Variables de entorno: SIGN_CERT_PATH, SIGN_CERT_PASSWORD
+REM   - signtool.exe en PATH (incluido en Windows SDK / Visual Studio)
+REM
 REM Uso:
 REM   build\build_windows.bat [version]
 REM   (si no se pasa version, se lee de updater.py:APP_VERSION o se usa la fecha)
@@ -52,7 +57,7 @@ REM --- 1. Compilar launcher.exe con PyInstaller (ventana oculta) -----------
 echo [1/8] Compilando launcher.exe con PyInstaller...
 cd /d %ROOT%
 python -m pip install --quiet pyinstaller
-python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter ^
+python -m PyInstaller --onefile --windowed --uac-admin --noconfirm --name LubricentroWinter ^
     --distpath "%STAGE%" --workpath "%DIST%\build_launcher" ^
     --specpath "%DIST%\build_launcher" ^
     build\launcher.py
@@ -61,8 +66,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM --- 2. Descargar y preparar Python embebido ----------------------------
-echo [2/8] Preparando Python embebido...
+REM --- 2. Firma digital del launcher.exe (opcional) ------------------------
+if defined SIGN_CERT_PATH if defined SIGN_CERT_PASSWORD (
+    echo [2/8] Firmando launcher.exe digitalmente...
+    signtool sign /f "%SIGN_CERT_PATH%" /p "%SIGN_CERT_PASSWORD%" ^
+        /fd sha256 /tr http://timestamp.digicert.com /td sha256 ^
+        "%STAGE%\LubricentroWinter.exe"
+    if errorlevel 1 (
+        echo ADVERTENCIA: Fallo la firma digital. Continuando sin firmar...
+    )
+) else (
+    echo [2/8] Sin certificado de firma configurado (SIGN_CERT_PATH/SIGN_CERT_PASSWORD). Saltando firma digital.
+)
+
+REM --- 3. Descargar y preparar Python embebido ----------------------------
+echo [3/8] Preparando Python embebido...
 set PYVER=3.12.7
 set PYARCH=amd64
 set PYURL=https://www.python.org/ftp/python/%PYVER%/python-%PYVER%-embed-%PYARCH%.zip
@@ -91,12 +109,12 @@ if not exist get-pip.py (
 python.exe get-pip.py --no-warn-script-location
 popd
 
-REM Instalar dependencias de la app en el runtime embebido
-echo [3/8] Instalando dependencias en el runtime embebido...
+REM --- 4. Instalar dependencias de la app en el runtime embebido -----------
+echo [4/8] Instalando dependencias en el runtime embebido...
 "%PYDIR%\python.exe" -m pip install --no-warn-script-location -r "%ROOT%\requirements.txt"
 
-REM --- 4. Copiar codigo fuente ---------------------------------------------
-echo [4/8] Copiando codigo fuente...
+REM --- 5. Copiar codigo fuente ---------------------------------------------
+echo [5/8] Copiando codigo fuente...
 mkdir "%STAGE%\app" 2>nul
 copy /Y "%ROOT%\app.py"       "%STAGE%\app\app.py"       >nul
 copy /Y "%ROOT%\database.py" "%STAGE%\app\database.py"  >nul
@@ -104,9 +122,28 @@ xcopy /E /I /Q "%ROOT%\pages" "%STAGE%\app\pages\"      >nul
 copy /Y "%ROOT%\updater.py"      "%STAGE%\updater.py"      >nul
 copy /Y "%ROOT%\requirements.txt" "%STAGE%\requirements.txt" >nul
 
-REM --- 5. Empaquetar ZIP ---------------------------------------------------
-echo [5/8] Empaquetando %ZIP% ...
+REM --- 6. Copiar archivos de estilo/tickets -------------------------------
+echo [6/8] Copiando assets adicionales...
+copy /Y "%ROOT%\style.py"       "%STAGE%\style.py"       >nul
+copy /Y "%ROOT%\tickets.py"     "%STAGE%\tickets.py"     >nul
+copy /Y "%ROOT%\build\icon.ico"  "%STAGE%\icon.ico"       >nul 2>nul
+
+REM --- 7. Empaquetar ZIP ---------------------------------------------------
+echo [7/8] Empaquetando %ZIP% ...
 powershell -NoProfile -Command "Compress-Archive -Path '%STAGE%\*' -DestinationPath '%ZIP%' -Force"
+
+REM --- 8. Firma digital del ZIP (opcional) ---------------------------------
+if defined SIGN_CERT_PATH if defined SIGN_CERT_PASSWORD (
+    echo [8/8] Firmando ZIP digitalmente...
+    signtool sign /f "%SIGN_CERT_PATH%" /p "%SIGN_CERT_PASSWORD%" ^
+        /fd sha256 /tr http://timestamp.digicert.com /td sha256 ^
+        "%ZIP%"
+    if errorlevel 1 (
+        echo ADVERTENCIA: Fallo la firma del ZIP. Continuando...
+    )
+) else (
+    echo [8/8] Sin certificado de firma configurado. Saltando firma del ZIP.
+)
 
 echo.
 echo BUILD OK

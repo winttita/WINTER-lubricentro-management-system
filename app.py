@@ -4,6 +4,7 @@ import threading
 import time
 import database as db
 from updater import APP_VERSION, check_for_update
+from style import inject_global_css
 
 st.set_page_config(
     page_title="Lubricentro Winter",
@@ -11,12 +12,80 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🔧 Lubricentro Winter")
-st.markdown("Sistema de gestión de stock y punto de venta")
+inject_global_css()
 
 db.init_db()
 
+
+# --- Helpers de sesión ---
+def init_session():
+    """Inicializa flags de sesión si no existen."""
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+    if 'user_id' not in st.session_state:
+        st.session_state.user_id = None
+    if 'user_nombre' not in st.session_state:
+        st.session_state.user_nombre = None
+    if 'user_rol' not in st.session_state:
+        st.session_state.user_rol = None
+
+
+def cerrar_sesion():
+    """Limpia el estado de sesión."""
+    st.session_state.logged_in = False
+    st.session_state.user_id = None
+    st.session_state.user_nombre = None
+    st.session_state.user_rol = None
+
+
+init_session()
+
+
+# --- Pantalla de Login ---
+if not st.session_state.logged_in:
+    st.markdown("## 🔧 Lubricentro Winter")
+    st.markdown("### Iniciar sesión")
+    st.divider()
+
+    col_login, col_spacer = st.columns([2, 3])
+    with col_login:
+        with st.form("login_form"):
+            username = st.text_input("Usuario", placeholder="admin")
+            password = st.text_input("Contraseña", type="password")
+            submitted = st.form_submit_button("Ingresar", type="primary", use_container_width=True)
+
+            if submitted:
+                if not username or not password:
+                    st.error("Ingresá usuario y contraseña.")
+                else:
+                    user = db.verificar_login(username.strip(), password)
+                    if user is None:
+                        st.error("Credenciales incorrectas o usuario inactivo.")
+                    else:
+                        st.session_state.logged_in = True
+                        st.session_state.user_id = user["user_id"]
+                        st.session_state.user_nombre = user["nombre"]
+                        st.session_state.user_rol = user["rol"]
+                        st.rerun()
+
+    st.caption("Usuario por defecto: **admin** | Contraseña: **winter1234**")
+    st.stop()
+
+
+# --- App principal (solo si estás logueado) ---
+st.title("🔧 Lubricentro Winter")
+st.markdown(f"Bienvenido, **{st.session_state.user_nombre}**")
+st.markdown("Sistema de gestión de stock y punto de venta")
+
+# --- Sidebar: usuario + logout + actualizaciones ---
 with st.sidebar:
+    st.markdown(f"👤 **{st.session_state.user_nombre}**")
+    st.caption(f"Rol: {st.session_state.user_rol}")
+    if st.button("Cerrar sesión", use_container_width=True):
+        cerrar_sesion()
+        st.rerun()
+
+    st.divider()
     st.caption(f"Versión {APP_VERSION}")
     try:
         update_info = check_for_update()
@@ -92,13 +161,12 @@ st.subheader("Navegación")
 st.markdown("""
 Usá el menú lateral izquierdo para acceder a las distintas secciones del sistema:
 
-- **Categorías**: Gestión de categorías de productos
-- **Proveedores**: Gestión de proveedores y condiciones de pago
+- **Gestión**: Clientes, vehículos, categorías, proveedores y servicios
 - **Productos**: Alta y gestión de productos
-- **Movimientos**: Registro de entradas y salidas de stock
-- **Clientes**: Gestión de clientes
-- **Vehículos**: Gestión de vehículos
-- **Servicios**: Gestión de servicios
+- **Stock**: Inventario actual, movimientos y ajustes de stock
+- **Ventas**: Punto de venta
+- **Compras**: Compras a proveedores
+- **Cuenta Corriente**: Saldos y pagos de clientes
 - **Órdenes de Servicio**: Creación de órdenes de trabajo (servicios y consumo de productos)
 - **Reportes**: Reportes de ventas, inventario y balance ingresos vs egresos
 """)

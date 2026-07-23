@@ -2,8 +2,14 @@ import streamlit as st
 import database as db
 import pandas as pd
 from datetime import datetime, timedelta
+from style import inject_global_css
 
 st.set_page_config(page_title="Reportes", layout="wide")
+inject_global_css()
+
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.stop()
 
 st.title("Reportes")
 
@@ -114,7 +120,7 @@ with tab_cc:
     st.subheader("Clientes con Cuenta Corriente")
     clientes_deuda = db.get_clientes_con_deuda()
     if clientes_deuda:
-        df_cc = pd.DataFrame(clientes_deuda, columns=["ID", "Nombre", "Teléfono", "Email", "Deuda Total"])
+        df_cc = pd.DataFrame(clientes_deuda, columns=["ID", "Nombre", "Teléfono", "Email", "Deuda Total", "Antigüedad (días)", "Último movimiento"])
         df_cc["Deuda Total"] = df_cc["Deuda Total"].astype(float)
         st.dataframe(df_cc, use_container_width=True, hide_index=True)
         
@@ -125,7 +131,7 @@ with tab_cc:
             cli_id = next(c[0] for c in clientes_deuda if c[1] == cliente_sel)
             movs = db.get_movimientos_cuenta_corriente(cli_id)
             if movs:
-                df_m = pd.DataFrame(movs, columns=["ID", "Venta ID", "Monto", "Saldo Ant.", "Saldo Nvo.", "Fecha", "Tipo Comp.", "Punto Vta", "Número"])
+                df_m = pd.DataFrame(movs, columns=["ID", "Venta ID", "Monto", "Saldo Ant.", "Saldo Nvo.", "Fecha", "Tipo Comp.", "Punto Vta", "Número", "Tipo Mov.", "Método Pago", "Observación"])
                 st.dataframe(df_m, use_container_width=True, hide_index=True)
             else:
                 st.info("Sin movimientos")

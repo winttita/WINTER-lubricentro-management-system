@@ -2,6 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 import shutil
+import hashlib
 
 # Adapter for datetime -> ISO 8601 string to avoid deprecation warning in Python 3.12+
 sqlite3.register_adapter(datetime, lambda val: val.isoformat())
@@ -9,10 +10,21 @@ sqlite3.register_adapter(datetime, lambda val: val.isoformat())
 DB_NAME = "lubricentro.db"
 BACKUP_DIR = "backups"
 
+# Tasa de IVA configurable (Argentina: 21%).
+IVA_TASA = 0.21
+
+# Tipos de comprobante válidos para ventas.
+TIPOS_COMPROBANTE_VALIDOS = {'factura_a', 'factura_b', 'factura_c', 'ticket'}
+
+# Métodos de pago válidos.
+METODOS_PAGO_VALIDOS = {'efectivo', 'tarjeta', 'transferencia', 'cuenta_corriente'}
+
 def get_connection():
     conn = sqlite3.connect(DB_NAME)
     # Enable foreign key constraints
     conn.execute("PRAGMA foreign_keys = ON")
+    # Configurar busy_timeout para evitar "database is locked" bajo concurrencia
+    conn.execute("PRAGMA busy_timeout = 10000")
     return conn
 
 def init_db():
@@ -220,13 +232,19 @@ def init_db():
         CREATE TABLE IF NOT EXISTS cuenta_corriente (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cliente_id INTEGER NOT NULL,
-            venta_id INTEGER NOT NULL,
+            venta_id INTEGER,
             monto REAL NOT NULL,
             saldo_anterior REAL NOT NULL,
             saldo_nuevo REAL NOT NULL,
+            tipo_movimiento TEXT NOT NULL DEFAULT 'venta',
+            metodo_pago TEXT,
+            observacion TEXT,
+            usuario_id INTEGER,
+            ventas_imputadas TEXT,
             creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (cliente_id) REFERENCES clientes(id),
-            FOREIGN KEY (venta_id) REFERENCES ventas(id)
+            FOREIGN KEY (venta_id) REFERENCES ventas(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
     """)
 
@@ -260,12 +278,39 @@ def init_db():
     conn.commit()
 
     # Seed: usuario admin por defecto (si no existe ninguno)
+    # Contraseña predefinida: admin / winter1234 (hash SHA-256).
     exists = conn.execute("SELECT COUNT(*) FROM usuarios").fetchone()[0]
     if exists == 0:
+        hashed = hash_password("winter1234")
         conn.execute("""
             INSERT INTO usuarios (username, password_hash, nombre, rol)
             VALUES (?, ?, ?, ?)
-        """, ("admin", "", "Administrador", "admin"))
+        """, ("admin", hashed, "Administrador", "admin"))
+        conn.commit()
+
+    # Migración: agregar columna iva a compras si no existe (para BDs existentes)
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(compras)").fetchall()]
+    if 'iva' not in cols:
+        conn.execute("ALTER TABLE compras ADD COLUMN iva REAL NOT NULL DEFAULT 0")
+        conn.commit()
+
+    # Migración: cuenta_corriente - agregar tipo_movimiento, metodo_pago
+    cols_cc = [r[1] for r in conn.execute("PRAGMA table_info(cuenta_corriente)").fetchall()]
+    if 'tipo_movimiento' not in cols_cc:
+        conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN tipo_movimiento TEXT NOT NULL DEFAULT 'venta'")
+        conn.commit()
+    if 'metodo_pago' not in cols_cc:
+        conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN metodo_pago TEXT")
+        conn.commit()
+    if 'observacion' not in cols_cc:
+        conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN observacion TEXT")
+        conn.commit()
+    if 'usuario_id' not in cols_cc:
+        conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)")
+        conn.commit()
+    if 'ventas_imputadas' not in cols_cc:
+        # CSV de venta_ids a las que aplica un pago (ej: "1,3,5")
+        conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN ventas_imputadas TEXT")
         conn.commit()
 
     conn.close()
@@ -296,6 +341,77 @@ def cleanup_old_backups(max_backups=10):
             os.remove(path)
         except OSError:
             pass
+
+
+# --- Autenticación ---
+
+def hash_password(password: str) -> str:
+    """Genera un hash SHA-256 de la contraseña."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def verificar_login(username: str, password: str):
+    """
+    Verifica credenciales de usuario.
+    
+    Devuelve un dict con user_id, nombre, rol si el login es exitoso.
+    Devuelve None si el usuario no existe, la contraseña es incorrecta,
+    o el usuario está inactivo.
+    """
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT id, username, password_hash, nombre, rol, activo FROM usuarios WHERE username = ?",
+        (username,)
+    ).fetchone()
+    conn.close()
+
+    if row is None:
+        return None
+
+    user_id, uname, stored_hash, nombre, rol, activo = row
+
+    if not activo:
+        return None
+
+    if stored_hash == "FORCE_CHANGE":
+        # Contraseña no configurada: ninguna clave verifica
+        return None
+
+    hashed_input = hash_password(password)
+    if hashed_input != stored_hash:
+        return None
+
+    return {
+        "user_id": user_id,
+        "username": uname,
+        "nombre": nombre,
+        "rol": rol,
+    }
+
+
+def cambiar_password(user_id: int, new_password: str) -> bool:
+    """
+    Actualiza la contraseña de un usuario.
+    
+    Devuelve True si se actualizó correctamente, False si el usuario no existe.
+    """
+    if not new_password:
+        return False
+    hashed = hash_password(new_password)
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "UPDATE usuarios SET password_hash = ? WHERE id = ?",
+            (hashed, user_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    except sqlite3.Error:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
 
 # --- Funciones de Movimientos de Stock ---
 def get_movimientos(limit=10):
@@ -761,6 +877,45 @@ def update_proveedor(id, nombre, contacto, telefono, condiciones_pago):
         conn.close()
 
 
+def aumentar_precios_proveedor(proveedor_id, porcentaje):
+    """Aumenta el precio_venta de todos los productos de un proveedor en un porcentaje dado.
+    
+    Args:
+        proveedor_id: ID del proveedor cuyos productos se actualizarán
+        porcentaje: Porcentaje de aumento (ej: 10.0 = +10%)
+    
+    Returns:
+        True si se aplicó correctamente, False si el proveedor no existe
+        o el porcentaje es inválido.
+    """
+    try:
+        porcentaje = float(porcentaje)
+    except (ValueError, TypeError):
+        return False
+    if porcentaje < 0:
+        return False
+
+    conn = get_connection()
+    try:
+        # Verificar que el proveedor existe
+        row = conn.execute("SELECT id FROM proveedores WHERE id = ?", (proveedor_id,)).fetchone()
+        if not row:
+            return False
+
+        factor = 1 + (porcentaje / 100.0)
+        conn.execute(
+            "UPDATE productos SET precio_venta = ROUND(precio_venta * ?, 2) WHERE proveedor_id = ? AND activo = 1",
+            (factor, proveedor_id)
+        )
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
 def update_producto(id, codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
     """Actualiza los datos de un producto existente."""
     # Validaciones básicas
@@ -882,38 +1037,62 @@ def update_servicio(id, nombre, precio):
         conn.close()
 def get_reporte_ingresos_egresos(fecha_desde=None, fecha_hasta=None):
     """Reporte de ingresos vs egresos.
-    Ingresos = precio_venta * cantidad FROM movimientos_stock de tipo venta
-    + total_final FROM ordenes_servicio  (los movimientos venta pueden duplicarse? ver nora).
-    Egresos = precio_costo * cantidad FROM movimientos_stock donde tipo = compra."""
+    Ingresos = total FROM ventas (incluye IVA) + total_final FROM ordenes_servicio.
+    Egresos = subtotal FROM detalle_compras (excluye stock inicial)."""
     conn = get_connection()
     try:
-        egresos_query = """SELECT p.nombre as concepto, m.cantidad, (m.cantidad * p.precio_costo) as monto, m.fecha
-                           FROM movimientos_stock m
-                           JOIN productos p ON m.producto_id = p.id
-                           WHERE m.tipo = 'compra'"""
+        # Egresos: desde detalle_compras (precio real de compra), no movimientos_stock
+        egresos_query = """SELECT p.nombre as concepto, d.cantidad,
+                               (d.cantidad * d.precio_unitario) as monto, c.fecha
+                          FROM detalle_compras d
+                          JOIN productos p ON d.producto_id = p.id
+                          JOIN compras c ON d.compra_id = c.id
+                          WHERE c.estado = 'confirmada'"""
         params_e = []
         if fecha_desde:
-            egresos_query += " AND date(m.fecha) >= date(?)"
+            egresos_query += " AND date(c.fecha) >= date(?)"
             params_e.append(fecha_desde)
         if fecha_hasta:
-            egresos_query += " AND date(m.fecha) <= date(?)"
+            egresos_query += " AND date(c.fecha) <= date(?)"
             params_e.append(fecha_hasta)
         egresos = conn.execute(egresos_query, params_e).fetchall()
 
-        ingresos_query = """SELECT c.nombre as concepto, o.total_final as monto, o.fecha
-                            FROM ordenes_servicio o
-                            LEFT JOIN clientes c ON o.cliente_id = c.id"""
-        params_i = []
+        # Ingresos: desde ventas (tabla de ventas) y ordenes_servicio
+        ingresos_venta_query = """SELECT c.nombre as concepto, v.total as monto, v.creado_en
+                                  FROM ventas v
+                                  LEFT JOIN clientes c ON v.cliente_id = c.id"""
+        params_iv = []
+        where_added = False
         if fecha_desde:
-            ingresos_query += " WHERE date(o.fecha) >= date(?)"
-            params_i.append(fecha_desde)
-            if fecha_hasta:
-                ingresos_query += " AND date(o.fecha) <= date(?)"
-                params_i.append(fecha_hasta)
-        elif fecha_hasta:
-            ingresos_query += " WHERE date(o.fecha) <= date(?)"
-            params_i.append(fecha_hasta)
-        ingresos = conn.execute(ingresos_query, params_i).fetchall()
+            ingresos_venta_query += " WHERE date(v.creado_en) >= date(?)"
+            params_iv.append(fecha_desde)
+            where_added = True
+        if fecha_hasta:
+            if where_added:
+                ingresos_venta_query += " AND date(v.creado_en) <= date(?)"
+            else:
+                ingresos_venta_query += " WHERE date(v.creado_en) <= date(?)"
+            params_iv.append(fecha_hasta)
+        ingresos_venta = conn.execute(ingresos_venta_query, params_iv).fetchall()
+
+        ingresos_orden_query = """SELECT c.nombre as concepto, o.total_final as monto, o.fecha
+                                  FROM ordenes_servicio o
+                                  LEFT JOIN clientes c ON o.cliente_id = c.id"""
+        params_io = []
+        where_added = False
+        if fecha_desde:
+            ingresos_orden_query += " WHERE date(o.fecha) >= date(?)"
+            params_io.append(fecha_desde)
+            where_added = True
+        if fecha_hasta:
+            if where_added:
+                ingresos_orden_query += " AND date(o.fecha) <= date(?)"
+            else:
+                ingresos_orden_query += " WHERE date(o.fecha) <= date(?)"
+            params_io.append(fecha_hasta)
+        ingresos_orden = conn.execute(ingresos_orden_query, params_io).fetchall()
+
+        ingresos = list(ingresos_venta) + list(ingresos_orden)
         return list(ingresos), list(egresos)
     finally:
         conn.close()
@@ -943,38 +1122,64 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
         return None, None, "No hay items en la venta"
     if not isinstance(items, list):
         return None, None, "Items debe ser una lista"
-    
+
+    # Validar tipo_comprobante y metodo_pago
+    if tipo_comprobante not in TIPOS_COMPROBANTE_VALIDOS:
+        return None, None, f"Tipo de comprobante inválido: {tipo_comprobante}. Válidos: {', '.join(sorted(TIPOS_COMPROBANTE_VALIDOS))}"
+    if metodo_pago not in METODOS_PAGO_VALIDOS:
+        return None, None, f"Método de pago inválido: {metodo_pago}. Válidos: {', '.join(sorted(METODOS_PAGO_VALIDOS))}"
+    # Cuenta corriente requiere cliente
+    if metodo_pago == 'cuenta_corriente' and not cliente_id:
+        return None, None, "Para cuenta corriente es obligatorio seleccionar un cliente"
+
     conn = get_connection()
     try:
-        # Validar stock para todos los items antes de empezar (misma conexion)
+        # Adquirir lock de escritura temprano para evitar TOCTOU en stock y comprobante
+        conn.execute("BEGIN IMMEDIATE")
+
+        # Validar stock y validar cantidad/precio positivos para todos los items
         for item in items:
             if not isinstance(item, dict):
                 return None, None, "Cada item debe ser un diccionario"
             if 'producto_id' not in item or 'cantidad' not in item or 'precio_unitario' not in item:
                 return None, None, "Cada item debe tener producto_id, cantidad y precio_unitario"
-            
-            row = conn.execute("SELECT stock_actual, nombre FROM productos WHERE id = ? AND activo = 1", 
+
+            try:
+                cantidad = float(item['cantidad'])
+                precio_unit = float(item['precio_unitario'])
+            except (ValueError, TypeError):
+                return None, None, f"Cantidad o precio inválido para producto id={item.get('producto_id')}"
+
+            if cantidad <= 0:
+                return None, None, f"Cantidad inválida ({cantidad}) para producto id={item['producto_id']}: debe ser mayor a 0"
+            if precio_unit < 0:
+                return None, None, f"Precio inválido ({precio_unit}) para producto id={item['producto_id']}: no puede ser negativo"
+
+            row = conn.execute("SELECT stock_actual, nombre FROM productos WHERE id = ? AND activo = 1",
                              (item['producto_id'],)).fetchone()
             if not row:
                 return None, None, f"Producto inactivo o inexistente (id={item['producto_id']})"
             stock_actual = float(row[0])
             nombre = row[1]
-            cantidad = float(item['cantidad'])
             if stock_actual < cantidad:
                 return None, None, f"Stock insuficiente de \"{nombre}\": solicitado {cantidad}, disponible {stock_actual}"
-        
+
         # Calcular totales
         total = sum(float(item['cantidad']) * float(item['precio_unitario']) for item in items)
         if tipo_comprobante == 'factura_a':
-            subtotal = round(total / 1.21, 2)
+            subtotal = round(total / (1 + IVA_TASA), 2)
             iva = round(total - subtotal, 2)
         else:
             subtotal = round(total, 2)
             iva = 0.0
-        
-        # Obtener siguiente número de comprobante
+
+        # Obtener siguiente número de comprobante (misma transacción, evita carrera)
         punto_venta = '0001'
-        numero_comprobante = get_ultimo_numero_comprobante(tipo_comprobante, punto_venta) + 1
+        row = conn.execute("""
+            SELECT COALESCE(MAX(numero_comprobante), 0) + 1 FROM ventas
+            WHERE tipo_comprobante = ? AND punto_venta = ?
+        """, (tipo_comprobante, punto_venta)).fetchone()
+        numero_comprobante = row[0]
         
         # Insertar venta
         cursor = conn.execute("""
@@ -1011,9 +1216,9 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             saldo_nuevo = saldo_anterior + total
             
             conn.execute("""
-                INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo)
-                VALUES (?, ?, ?, ?, ?)
-            """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo))
+                INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo, tipo_movimiento, metodo_pago)
+                VALUES (?, ?, ?, ?, ?, 'venta', ?)
+            """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo, metodo_pago))
         
         conn.commit()
         return venta_id, numero_comprobante, None
@@ -1193,8 +1398,8 @@ def crear_compra(proveedor_id, items, observaciones=""):
 
     conn = get_connection()
     try:
-        # Calcular total
-        total = 0.0
+        # Calcular total e IVA
+        total_neto = 0.0
         for item in items:
             try:
                 cantidad = float(item['cantidad'])
@@ -1206,16 +1411,20 @@ def crear_compra(proveedor_id, items, observaciones=""):
             item['cantidad'] = cantidad
             item['precio_unitario'] = precio
             item['subtotal'] = round(cantidad * precio, 2)
-            total = round(total + item['subtotal'], 2)
+            total_neto = round(total_neto + item['subtotal'], 2)
 
-        # Insertar cabecera de compra
+        # IVA de la compra (crédito fiscal): 21% sobre el neto
+        iva_compra = round(total_neto * IVA_TASA, 2)
+        total_con_iva = round(total_neto + iva_compra, 2)
+
+        # Insertar cabecera de compra (con IVA)
         cursor = conn.execute("""
-            INSERT INTO compras (proveedor_id, fecha, total, observaciones, estado)
-            VALUES (?, ?, ?, ?, 'confirmada')
-        """, (proveedor_id, datetime.now(), total, observaciones.strip() if observaciones else None))
+            INSERT INTO compras (proveedor_id, fecha, total, iva, observaciones, estado)
+            VALUES (?, ?, ?, ?, ?, 'confirmada')
+        """, (proveedor_id, datetime.now(), total_con_iva, iva_compra, observaciones.strip() if observaciones else None))
         compra_id = cursor.lastrowid
 
-        # Insertar items y actualizar stock
+        # Insertar items, actualizar stock y precio_costo
         now = datetime.now()
         for item in items:
             conn.execute("""
@@ -1227,6 +1436,11 @@ def crear_compra(proveedor_id, items, observaciones=""):
             conn.execute("""
                 UPDATE productos SET stock_actual = stock_actual + ? WHERE id = ?
             """, (item['cantidad'], item['producto_id']))
+
+            # Actualizar precio_costo con el precio de compra actual
+            conn.execute("""
+                UPDATE productos SET precio_costo = ? WHERE id = ?
+            """, (item['precio_unitario'], item['producto_id']))
 
             # Registrar movimiento de compra
             conn.execute("""
@@ -1296,7 +1510,21 @@ def anular_compra(compra_id):
             return False
 
         # Revertir stock de cada producto y registrar movimiento
+        # Validar que el stock resultante no sea negativo
         now = datetime.now()
+        for producto_id, cantidad in items:
+            row = conn.execute(
+                "SELECT stock_actual FROM productos WHERE id = ?", (producto_id,)
+            ).fetchone()
+            if not row:
+                conn.rollback()
+                return False
+            stock_actual = float(row[0])
+            if stock_actual - cantidad < 0:
+                conn.rollback()
+                return False
+
+        # Revertir stock y registrar como devolucion (no ajuste)
         for producto_id, cantidad in items:
             conn.execute("""
                 UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ?
@@ -1304,7 +1532,7 @@ def anular_compra(compra_id):
 
             conn.execute("""
                 INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
-                VALUES (?, 'ajuste', ?, ?, ?)
+                VALUES (?, 'devolucion', ?, ?, ?)
             """, (producto_id, -cantidad, now, f'Anulación compra #{compra_id}'))
 
         # Marcar compra como anulada
@@ -1333,14 +1561,15 @@ def get_cuenta_corriente_cliente(cliente_id):
 
 
 def get_movimientos_cuenta_corriente(cliente_id, limit=50):
-    """Obtiene movimientos de cuenta corriente de un cliente."""
+    """Obtiene movimientos de cuenta corriente de un cliente (ventas y pagos)."""
     conn = get_connection()
     try:
         movimientos = conn.execute("""
             SELECT cc.id, cc.venta_id, cc.monto, cc.saldo_anterior, cc.saldo_nuevo, cc.creado_en,
-                   v.tipo_comprobante, v.punto_venta, v.numero_comprobante
+                   v.tipo_comprobante, v.punto_venta, v.numero_comprobante,
+                   cc.tipo_movimiento, cc.metodo_pago, cc.observacion
             FROM cuenta_corriente cc
-            JOIN ventas v ON cc.venta_id = v.id
+            LEFT JOIN ventas v ON cc.venta_id = v.id
             WHERE cc.cliente_id = ?
             ORDER BY cc.creado_en DESC
             LIMIT ?
@@ -1351,12 +1580,18 @@ def get_movimientos_cuenta_corriente(cliente_id, limit=50):
 
 
 def get_clientes_con_deuda():
-    """Obtiene clientes que tienen deuda en cuenta corriente."""
+    """Obtiene clientes que tienen deuda en cuenta corriente.
+    
+    Devuelve tuplas: (id, nombre, telefono, email, deuda_total, antiguedad_dias, ultimo_movimiento)
+    donde antiguedad_dias es el número de días desde el último movimiento (venta o pago).
+    """
     conn = get_connection()
     try:
         clientes = conn.execute("""
             SELECT c.id, c.nombre, c.telefono, c.email,
-                   COALESCE(SUM(cc.monto), 0) as deuda_total
+                   COALESCE(SUM(cc.monto), 0) as deuda_total,
+                   CAST(julianday('now') - julianday(MAX(cc.creado_en)) AS INTEGER) as antiguedad_dias,
+                   MAX(cc.creado_en) as ultimo_movimiento
             FROM clientes c
             JOIN cuenta_corriente cc ON c.id = cc.cliente_id
             GROUP BY c.id, c.nombre, c.telefono, c.email
@@ -1364,6 +1599,151 @@ def get_clientes_con_deuda():
             ORDER BY deuda_total DESC
         """).fetchall()
         return clientes
+    finally:
+        conn.close()
+
+
+def registrar_pago_cc(cliente_id, monto, metodo_pago, observacion, usuario_id):
+    """Registra un pago (abono) de cuenta corriente.
+    
+    Inserta un movimiento con monto negativo y recalcula el saldo.
+    Permite pagos parciales.
+    
+    Args:
+        cliente_id: ID del cliente que paga
+        monto: Monto a pagar (debe ser positivo)
+        metodo_pago: 'efectivo', 'tarjeta', 'transferencia'
+        observacion: Notas del pago
+        usuario_id: ID del usuario que registra el pago
+    
+    Returns:
+        True si se registró correctamente, False en caso de error.
+    """
+    if cliente_id is None or usuario_id is None:
+        return False
+    try:
+        monto = float(monto)
+    except (ValueError, TypeError):
+        return False
+    if monto <= 0:
+        return False
+
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT id FROM clientes WHERE id = ?", (cliente_id,)).fetchone()
+        if not row:
+            return False
+
+        row = conn.execute("""
+            SELECT COALESCE(SUM(monto), 0) FROM cuenta_corriente WHERE cliente_id = ?
+        """, (cliente_id,)).fetchone()
+        saldo_anterior = float(row[0]) if row else 0.0
+        saldo_nuevo = saldo_anterior - monto
+
+        conn.execute("""
+            INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo,
+                                          tipo_movimiento, metodo_pago, observacion, usuario_id)
+            VALUES (?, NULL, ?, ?, ?, 'pago', ?, ?, ?)
+        """, (cliente_id, -monto, saldo_anterior, saldo_nuevo, metodo_pago, observacion, usuario_id))
+
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_ventas_pendientes_cc(cliente_id):
+    """Obtiene las ventas a cuenta corriente con el saldo pendiente de cada una.
+    
+    Para cada venta a crédito, calcula cuánto se ha pagado específicamente sobre esa venta
+    (via la columna `ventas_imputadas` en los pagos) y devuelve el pendiente.
+    
+    Returns:
+        Lista de tuplas: (venta_id, tipo_comprobante, punto_venta, numero, total, ya_pagado, pendiente)
+    """
+    conn = get_connection()
+    try:
+        ventas = conn.execute("""
+            SELECT v.id, v.tipo_comprobante, v.punto_venta, v.numero_comprobante, v.total
+            FROM ventas v
+            WHERE v.cliente_id = ? AND v.metodo_pago = 'cuenta_corriente'
+            ORDER BY v.creado_en ASC
+        """, (cliente_id,)).fetchall()
+
+        resultado = []
+        for v in ventas:
+            venta_id, tipo, pv, num, total = v
+            ya_pagado = 0.0
+            # Sumar todos los pagos que tengan esta venta en su ventas_imputadas
+            pagos = conn.execute("""
+                SELECT monto, ventas_imputadas FROM cuenta_corriente
+                WHERE cliente_id = ? AND tipo_movimiento = 'pago'
+            """, (cliente_id,)).fetchall()
+            for p_monto, p_imp in pagos:
+                if p_imp:
+                    # ventas_imputadas es un CSV: "1,3,5"
+                    ids_imp = [int(x.strip()) for x in p_imp.split(',') if x.strip().isdigit()]
+                    if venta_id in ids_imp:
+                        ya_pagado += abs(p_monto)
+            pendiente = max(0.0, float(total) - ya_pagado)
+            resultado.append((venta_id, tipo, pv, num, float(total), ya_pagado, pendiente))
+        # Filtrar solo las que tienen pendiente > 0
+        return [r for r in resultado if r[6] > 0.001]
+    finally:
+        conn.close()
+
+
+def registrar_pago_cc_con_ventas(cliente_id, monto, metodo_pago, observacion, usuario_id, venta_ids=None):
+    """Registra un pago de cuenta corriente imputándolo a ventas específicas.
+    
+    Args:
+        cliente_id: ID del cliente
+        monto: Monto a pagar (positivo)
+        metodo_pago: 'efectivo', 'tarjeta', 'transferencia'
+        observacion: Notas
+        usuario_id: ID del usuario
+        venta_ids: Lista de venta_ids a imputar el pago (opcional)
+    
+    Returns:
+        True si se registró, False si hay error.
+    """
+    if cliente_id is None or usuario_id is None:
+        return False
+    try:
+        monto = float(monto)
+    except (ValueError, TypeError):
+        return False
+    if monto <= 0:
+        return False
+
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT id FROM clientes WHERE id = ?", (cliente_id,)).fetchone()
+        if not row:
+            return False
+
+        row = conn.execute("""
+            SELECT COALESCE(SUM(monto), 0) FROM cuenta_corriente WHERE cliente_id = ?
+        """, (cliente_id,)).fetchone()
+        saldo_anterior = float(row[0]) if row else 0.0
+        saldo_nuevo = saldo_anterior - monto
+
+        ventas_imp_str = ','.join(str(x) for x in venta_ids) if venta_ids else None
+
+        conn.execute("""
+            INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo,
+                                          tipo_movimiento, metodo_pago, observacion, usuario_id, ventas_imputadas)
+            VALUES (?, NULL, ?, ?, ?, 'pago', ?, ?, ?, ?)
+        """, (cliente_id, -monto, saldo_anterior, saldo_nuevo, metodo_pago, observacion, usuario_id, ventas_imp_str))
+
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
     finally:
         conn.close()
 

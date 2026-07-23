@@ -1,7 +1,14 @@
 import streamlit as st
 import database as db
+from style import inject_global_css
 
 st.set_page_config(page_title="Compras", layout="wide")
+inject_global_css()
+
+if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.stop()
+
 st.title("Compras a Proveedores")
 
 proveedores = db.get_proveedores()

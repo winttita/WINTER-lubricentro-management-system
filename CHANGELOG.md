@@ -5,6 +5,55 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.3.0] - 2026-07-23
+
+### Agregado
+- Sistema de autenticación con login (usuario `admin` / contraseña `winter1234`), sesiones y logout en sidebar
+- Página **Gestión** (renombrada de Configuración): unifica Clientes, Vehículos, Categorías, Proveedores y Servicios
+- Página **Stock**: Stock Actual (con búsqueda y alertas), Movimientos (filtros y resumen), Ajustes (con permisos admin/supervisor)
+- Página **Cuenta Corriente**: lista deudores con antigüedad, detalle de movimientos, registro de pagos parciales/totales con selección de tickets a imputar
+- Página **Órdenes de Servicio**: creación con cliente + vehículo filtrado, tabla dinámica de servicios y productos (descuenta stock), totales y confirmación
+- Impresión automática de ticket/factura A/B/C al confirmar venta (usa `tickets.py` + `win32print`/`lp`)
+- Botón 🗑️ (emoji) en lugar de "Quitar" en la tabla de ventas
+- Precio no editable en ventas (se autocompleta del producto, solo modificable desde Productos o Compras)
+- Aumento porcentual de precios por proveedor en Gestión (nuevo botón "Aplicar aumento" en cada proveedor)
+- Ocultación del mensaje "Press Enter to submit form" en todos los formularios mediante CSS global (`style.py`)
+- Validación de cliente duplicado en creación: muestra "Cliente Existente"
+- Campo email opcional en creación de clientes (no lanza error si está vacío)
+
+### Cambiado
+- Renombrada sección "Configuración" → "Gestión" en sidebar y navegación
+- Movida sección "Vehículos" desde página propia a dentro de Gestión
+- Eliminadas páginas independientes: `4_Movimientos_Stock.py` y `5_Ajustes_Stock.py` (unificadas en `1_Stock.py`)
+- `crear_venta` en `database.py` ahora inserta `tipo_movimiento='venta'` en `cuenta_corriente`
+- `get_clientes_con_deuda` y `get_movimientos_cuenta_corriente` incluyen columnas de antigüedad, tipo y método de pago
+- Reportes (tab "Cta. Corriente") actualizados para reflejar nuevas columnas
+- Sidebar actualizado con nuevas secciones: Cuenta Corriente, Órdenes de Servicio, Gestión
+
+### Corregido
+- Error `ValueError: 5 columns passed, passed data had 7 columns` en Reportes → Cta. Corriente (DataFrame ahora tiene 7 y 12 columnas según corresponda)
+- Precios en ventas ya no son editables (evita desviación del precio de lista)
+- `get_ventas_pendientes_cc` calcula correctamente el pendiente por venta usando `ventas_imputadas`
+
+### Seguridad
+- Migración BD: tabla `cuenta_corriente` agrega columnas `tipo_movimiento`, `metodo_pago`, `observacion`, `usuario_id`, `ventas_imputadas`
+- Login obligatorio en todas las páginas (guards en `app.py` y cada `pages/*.py`)
+- Contraseña por defecto `winter1234` hasheada con SHA-256 (no texto plano)
+
+### Infraestructura
+- Build scripts (`build/build_windows.bat`, `.github/workflows/release.yml`) preparados para firma digital condicional con `signtool` (requiere certificado)
+- Nuevo `style.py` para inyección CSS global
+- Tests: 82 tests pasan (9 nuevos: autenticación, cuenta corriente pagos, aumento proveedor)
+
+
+## [0.2.7] - 2026-07-21
+
+### Agregado
+- Icono personalizado para el ejecutable Windows (`build/icon.ico`): bidon minimalista de lubricante con gota dorada, multiresolucion (16x16, 32x32, 48x48, 64x64, 128x128, 256x256, 512x512) para mejorar la identificacion visual de la aplicacion en el escritorio y el explorador de archivos.
+
+### Corregido
+- Ninguno en esta release.
+
 ## [0.2.6] - 2026-07-21
 
 ### Corregido

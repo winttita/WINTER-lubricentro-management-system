@@ -1,0 +1,304 @@
+name: Build Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set version env
+        run: echo "RELEASE_VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build launcher.exe
+        shell: pwsh
+        run: |
+          python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
+            --distpath dist `
+            --workpath build `
+            --specpath build `
+            build/launcher.py
+          if ($LASTEXITCODE -ne 0) {
+            throw "PyInstaller failed with exit code $LASTEXITCODE"
+          }
+          Write-Host "launcher.exe built successfully"
+          Write-Host "File size: $(Get-Item dist/LubricentroWinter.exe | Select-Object -ExpandProperty Length) bytes"
+
+      - name: Download embedded Python
+        shell: pwsh
+        run: |
+          $PYVER = "3.12.7"
+          $PYARCH = "amd64"
+          $PYURL = "https://www.python.org/ftp/python/$PYVER/python-$PYVER-embed-$PYARCH.zip"
+          $PYZIP = "dist/python-embed.zip"
+          
+          Write-Host "Downloading Python $PYVER embeddable package from $PYURL"
+          try {
+            Invoke-WebRequest -Uri $PYURL -OutFile $PYZIP -ErrorAction Stop
+          } catch {
+            Write-Error "Failed to download Python embeddable package: $_"
+            exit 1
+          }
+          
+          Write-Host "Extracting archive..."
+          try {
+            Expand-Archive -Force -Path $PYZIP -DestinationPath dist/runtime
+          } catch {
+            Write-Error "Failed to extract archive: $_"
+            exit 1
+          }
+          
+          # Enable pip in embedded python
+          Get-ChildItem dist/runtime/python*._pth | Rename-Item -NewName { $_.Name + ".disabled" }
+          if (!(Test-Path dist/runtime/get-pip.py)) {
+            Write-Host "Downloading get-pip.py..."
+            try {
+              Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile dist/runtime/get-pip.py -ErrorAction Stop
+            } catch {
+              Write-Error "Failed to download get-pip.py: $_"
+              exit 1
+            }
+          }
+          
+          Write-Host "Installing pip in embedded Python..."
+          & dist/runtime/python.exe dist/runtime/get-pip.py --no-warn-script-location
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install pip in embedded Python"
+          }
+
+      - name: Install dependencies in embedded Python
+        shell: pwsh
+        run: |
+          dist/runtime/python.exe -m pip install --no-warn-script-location -r requirements.txt
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install dependencies in embedded Python"
+          }
+
+      - name: Prepare release package
+        id: package
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ env.VERSION }}
+        run: |
+          $VERSION = $env:RELEASE_VERSION
+          $STAGE = "dist/LubricentroWinter_v$VERSION"
+          $ZIP = "dist/LubricentroWinter_v$VERSION.zip"
+          
+          Write-Host "Preparing release package for version $VERSION"
+          Write-Host "Stage directory: $STAGE"
+          Write-Host "ZIP file: $ZIP"
+          
+          # Cleanup previous artifacts
+          if (Test-Path $STAGE) {
+            Write-Host "Removing existing stage directory..."
+            Remove-Item -Recurse -Force $STAGE -ErrorAction Stop
+          }
+          if (Test-Path $ZIP) {
+            Write-Host "Removing existing ZIP file..."
+            Remove-Item -Force $ZIP -ErrorAction Stop
+          }
+          
+          Write-Host "Creating stage directory..."
+          New-Item -ItemType Directory -Path $STAGE | Out-Null
+          
+          # Copy launcher.exe
+          Write-Host "Copying launcher.exe..."
+          if (-not (Test-Path "dist/LubricentroWinter.exe")) {
+            Write-Error "launcher.exe not found at dist/LubricentroWinter.exe"
+            exit 1
+          }
+          Copy-Item dist/LubricentroWinter.exe $STAGE/ -ErrorAction Stop
+          
+          # Copy runtime (embedded Python + deps)
+          Write-Host "Copying runtime..."
+          if (-not (Test-Path "dist/runtime")) {
+            Write-Error "runtime directory not found at dist/runtime"
+            exit 1
+          }
+          Copy-Item dist/runtime $STAGE/ -Recurse -ErrorAction Stop
+          
+          # Copy app source
+          Write-Host "Copying application files..."
+          New-Item -ItemType Directory -Path "$STAGE/app" | Out-Null
+          Copy-Item app.py $STAGE/app/ -ErrorAction Stop
+          Copy-Item database.py $STAGE/app/ -ErrorAction Stop
+          Copy-Item pages $STAGE/app/pages -Recurse -ErrorAction Stop
+          Copy-Item updater.py $STAGE/ -ErrorAction Stop
+          Copy-Item requirements.txt $STAGE/ -ErrorAction Stop
+          
+          # Create ZIP
+          Write-Host "Creating ZIP archive..."
+          Compress-Archive -Path "$STAGE\*" -DestinationPath $ZIP -Force -ErrorAction Stop
+          
+          if (-not (Test-Path $ZIP)) {
+            Write-Error "ZIP file was not created successfully at $ZIP"
+            exit 1
+          }
+          
+          $ZIP_SIZE = (Get-Item $ZIP).Length
+          Write-Host "ZIP created successfully: $ZIP_SIZE bytes"
+          
+          # Set step outputs using GITHUB_OUTPUT (PowerShell compatible)
+          "STAGE=$STAGE" >> $env:GITHUB_OUTPUT
+          "ZIP=$ZIP" >> $env:GITHUB_OUTPUT
+          "ZIP_SIZE=$ZIP_SIZE" >> $env:GITHUB_OUTPUT
+          
+          Write-Host "Step outputs set: STAGE=$STAGE, ZIP=$ZIP, ZIP_SIZE=$ZIP_SIZE"
+
+      - name: Verify ZIP contents
+        id: verify_zip
+        shell: pwsh
+        run: |
+          $ZIP = "${{ steps.package.outputs.ZIP }}"
+          Write-Host "ZIP path from step output: $ZIP"
+          
+          if ([string]::IsNullOrEmpty($ZIP)) {
+            Write-Error "ZIP path is empty - step output not set"
+            exit 1
+          }
+          
+          if (-not (Test-Path $ZIP)) {
+            Write-Error "ZIP file not found at: $ZIP"
+            # Debug: list dist directory
+            Write-Host "Contents of dist/:"
+            Get-ChildItem dist/ -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
+            exit 1
+          }
+          
+          Write-Host "Verifying ZIP contents: $ZIP"
+          $TMP = "dist/tmp_verify"
+          if (Test-Path $TMP) { Remove-Item -Recurse -Force $TMP }
+          Expand-Archive -Path $ZIP -DestinationPath $TMP -ErrorAction Stop
+          Get-ChildItem $TMP -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
+          Remove-Item -Recurse -Force $TMP
+          Write-Host "ZIP verification complete"
+
+      - name: Generate release notes
+        id: release_notes
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ env.VERSION }}
+        run: |
+          # Get previous tag
+          $PREV_TAG = git tag --sort=-version:refname | Select-Object -Skip 1 -First 1
+          if (-not $PREV_TAG) { $PREV_TAG = "inicio" }
+          
+          Write-Host "Previous tag: $PREV_TAG"
+          
+          # Get commits since last tag
+          $COMMITS = git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges
+          if (-not $COMMITS) { $COMMITS = "- Sin commits nuevos desde $PREV_TAG" }
+          
+          $VERSION = $env:RELEASE_VERSION
+          
+          # Try to extract from CHANGELOG.md
+          $CHANGELOG_CONTENT = ""
+          if (Test-Path "CHANGELOG.md") {
+            $IN_SECTION = $false
+            $CHANGELOG_LINES = @()
+            Get-Content CHANGELOG.md | ForEach-Object {
+              if ($_ -match "^##\s+\[$VERSION\]") { $IN_SECTION = $true; return }
+              if ($IN_SECTION -and $_ -match "^##\s+\[") { $IN_SECTION = $false; return }
+              if ($IN_SECTION) { $CHANGELOG_LINES += $_ }
+            }
+            if ($CHANGELOG_LINES.Count -gt 0) {
+              $CHANGELOG_CONTENT = $CHANGELOG_LINES -join "`n"
+            }
+          }
+          
+# Build body using string concatenation to avoid here-doc issues
+           $BODY = "## Lubricentro Winter v$VERSION`n`n"
+           $BODY += "### Cambios desde $PREV_TAG`n`n"
+           $BODY += "$COMMITS`n`n"
+           if ($CHANGELOG_CONTENT) {
+             $BODY += "### Changelog`n`n"
+             $BODY += "$CHANGELOG_CONTENT`n`n"
+           }
+           $BODY += "### Detalles técnicos`n"
+           $BODY += "- Compilado con PyInstaller + Python embebido 3.12.7`n"
+           $BODY += "- Paquete ZIP autónomo para Windows (sin dependencias externas)`n"
+           $BODY += "- Verificación automática de actualizaciones integrada`n`n"
+           $BODY += "### Cómo actualizar`n"
+           $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
+          $BODY += "### Descarga manual`n"
+          $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
+          
+$BODY | Out-File -FilePath release_notes.md -Encoding utf8
+           "body_path=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref }}
+          name: Lubricentro Winter - v${{ env.VERSION }}
+          body_path: ${{ steps.release_notes.outputs.body_path }}
+          files: ${{ steps.package.outputs.ZIP }}
+          generate_release_notes: false
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify release asset
+        if: always()
+        run: |
+          echo "Release created. Checking assets..."
+          echo "Tag: ${{ github.ref }}"
+          echo "ZIP path: ${{ steps.package.outputs.ZIP }}"
+          echo "ZIP size: ${{ steps.package.outputs.ZIP_SIZE }} bytes"
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.runId;
+            const workflow = context.workflow;
+            const repo = context.repo;
+            const error_steps = context.job.steps.filter(s => s.conclusion === 'failure').map(s => s.name);
+            
+            const body = `## Workflow Failed: ${workflow}
+            **Run**: #${run}
+            **Repo**: ${repo.owner}/${repo.repo}
+            **Tag**: ${context.ref}
+            **Failed steps**: ${error_steps.join(', ')}
+            
+            Check the logs: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${run}
+            `;
+            
+            // Create issue for tracking
+            await github.rest.issues.create({
+              owner: repo.owner,
+              repo: repo.repo,
+              title: `[CI] ${workflow} failed for ${context.ref}`,
+              body: body,
+              labels: ['ci-failure', 'automated']
+            });

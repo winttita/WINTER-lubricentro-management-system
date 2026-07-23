@@ -560,7 +560,16 @@ def test_crear_y_get_compras(temp_db):
     compras = database.get_compras()
     assert len(compras) == 1
     assert compras[0][2] == "Mann Filter"
-    assert abs(compras[0][4] - (10*450 + 5*280)) < 0.01
+    # total ahora incluye IVA (21%): neto * 1.21
+    neto = 10*450 + 5*280
+    total_con_iva = round(neto * 1.21, 2)
+    assert abs(compras[0][4] - total_con_iva) < 0.01, f"Total debería ser {total_con_iva}, es {compras[0][4]}"
+    # Verificar que IVA se registró
+    conn = database.get_connection()
+    row = conn.execute("SELECT total, iva FROM compras WHERE id = ?", (compra_id,)).fetchone()
+    conn.close()
+    assert row[1] > 0, "IVA debe ser > 0"
+    assert abs(row[1] - round(neto * 0.21, 2)) < 0.01
 
     # Verificar get_detalle_compra
     detalle = database.get_detalle_compra(compra_id)
@@ -731,6 +740,438 @@ def test_crear_venta_factura_c_sin_iva(temp_db):
     assert row[2] == 200.0
     assert row[1] == 0.0
     assert row[0] == 200.0
+
+
+# --- Tests de seguridad y validación (auditoría) ---
+
+
+def test_init_db_admin_no_password_vacio(temp_db):
+    """El usuario admin por defecto no debe tener password_hash vacío."""
+    conn = database.get_connection()
+    row = conn.execute(
+        "SELECT password_hash FROM usuarios WHERE username = 'admin'"
+    ).fetchone()
+    conn.close()
+    assert row is not None, "Debe existir un usuario admin por defecto"
+    assert row[0] != "", "El password_hash del admin no debe estar vacío"
+    assert row[0] is not None, "El password_hash del admin no debe ser None"
+
+
+def test_crear_venta_rechaza_cantidad_negativa(temp_db):
+    """crear_venta debe rechazar cantidades negativas o cero."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": -5, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "factura_c", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+    assert "cantidad" in error.lower() or "inválido" in error.lower() or "invalid" in error.lower()
+
+
+def test_crear_venta_rechaza_precio_negativo(temp_db):
+    """crear_venta debe rechazar precios negativos."""
+    from database import crear_venta
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": -50.0}]
+    venta_id, numero, error = crear_venta(None, "factura_c", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+
+
+def test_crear_venta_rechaza_tipo_comprobante_invalido(temp_db):
+    """crear_venta debe rechazar tipos de comprobante no válidos."""
+    from database import crear_venta
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "Factura_A", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+
+
+def test_crear_venta_cuenta_corriente_sin_cliente_rechaza(temp_db):
+    """Venta con cuenta corriente pero sin cliente_id debe rechazarse."""
+    from database import crear_venta
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 100.0}]
+    venta_id, numero, error = crear_venta(None, "factura_c", items, "cuenta_corriente", 1)
+    assert venta_id is None
+    assert error is not None
+    assert "cliente" in error.lower()
+
+
+def test_crear_compra_actualiza_precio_costo(temp_db):
+    """crear_compra debe actualizar productos.precio_costo con el precio de compra."""
+    from database import crear_compra, get_productos
+    cat_id, prov_id = _crear_producto_con_stock()
+    # Precio_costo inicial = 10.0 (de _crear_producto_con_stock)
+    items = [{"producto_id": 1, "cantidad": 5, "precio_unitario": 1200.0}]
+    compra_id = crear_compra(prov_id, items)
+    assert compra_id is not None
+    prods = get_productos()
+    prod = next((p for p in prods if p[0] == 1), None)
+    assert prod is not None
+    # precio_costo está en índice 10 (p.*: id, codigo_interno, codigo_barras, nombre, descripcion, 
+    # categoria_id, proveedor_id, tipo_unidad, stock_actual, stock_minimo, precio_costo, precio_venta, ...)
+    assert prod[10] == 1200.0, f"precio_costo debería ser 1200.0, es {prod[10]}"
+
+
+def test_crear_compra_registra_iva(temp_db):
+    """crear_compra debe registrar IVA de la compra."""
+    from database import crear_compra
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": 5, "precio_unitario": 1210.0}]
+    compra_id = crear_compra(prov_id, items)
+    conn = database.get_connection()
+    row = conn.execute("SELECT total, iva FROM compras WHERE id = ?", (compra_id,)).fetchone()
+    conn.close()
+    assert row is not None
+    # total debería incluir IVA: 5*1210 = 6050, con IVA 21% = 6050*1.21 = 7320.5
+    # O alternativamente, total = subtotal + iva
+    assert row[1] > 0, "La compra debe registrar IVA > 0"
+
+
+def test_get_reporte_ingresos_egresos_no_cuenta_stock_inicial(temp_db):
+    """El reporte de egresos no debe contar 'Stock inicial' como egreso real."""
+    from database import get_reporte_ingresos_egresos
+    cat_id, prov_id = _crear_producto_con_stock()
+    # _crear_producto_con_stock inserta un movimiento 'compra' con motivo 'Stock inicial'
+    ingresos, egresos = get_reporte_ingresos_egresos()
+    # No debe haber egresos porque el stock inicial no es una compra real
+    total_egresos = sum(e[2] for e in egresos) if egresos else 0
+    assert total_egresos == 0, f"Egresos deberían ser 0, son {total_egresos} (stock inicial contado como egreso)"
+
+
+def test_anular_compra_evita_stock_negativo(temp_db):
+    """anular_compra debe rechazar si el stock resultante sería negativo."""
+    from database import crear_compra, anular_compra, add_movimiento
+    cat_id, prov_id = _crear_producto_con_stock()
+    # Compra 10 unidades
+    items = [{"producto_id": 1, "cantidad": 10, "precio_unitario": 1000.0}]
+    compra_id = crear_compra(prov_id, items)
+    assert compra_id is not None
+    # Vender 25 (más de lo que hay: 20 iniciales + 10 comprados = 30, vender 25 deja 5)
+    add_movimiento(1, 'venta', 25, 'Venta test')
+    # Ahora stock = 5. Anular compra de 10 -> stock = 5 - 10 = -5 (debe rechazarse)
+    resultado = anular_compra(compra_id)
+    assert resultado is False, "Anular compra con stock insuficiente debe retornar False"
+
+
+def test_anular_compra_registra_devolucion_no_ajuste(temp_db):
+    """anular_compra debe registrar el movimiento como 'devolucion', no 'ajuste'."""
+    from database import crear_compra, anular_compra
+    cat_id, prov_id = _crear_producto_con_stock()
+    items = [{"producto_id": 1, "cantidad": 5, "precio_unitario": 1000.0}]
+    compra_id = crear_compra(prov_id, items)
+    anular_compra(compra_id)
+    conn = database.get_connection()
+    row = conn.execute(
+        "SELECT tipo FROM movimientos_stock WHERE motivo LIKE ? ORDER BY id DESC LIMIT 1",
+        (f"Anulación compra #{compra_id}%",)
+    ).fetchone()
+    conn.close()
+    assert row is not None, "Debe existir un movimiento de anulación"
+    assert row[0] == 'devolucion', f"Tipo debería ser 'devolucion', es '{row[0]}'"
+
+
+def test_get_connection_tiene_busy_timeout(temp_db):
+    """get_connection debe configurar busy_timeout para evitar 'database is locked'."""
+    conn = database.get_connection()
+    row = conn.execute("PRAGMA busy_timeout").fetchone()
+    conn.close()
+    assert row[0] > 0, f"busy_timeout debería ser > 0, es {row[0]}"
+
+
+# --- Autenticación (Login) ---
+
+def test_hash_password_es_deterministico(temp_db):
+    """hash_password debe devolver el mismo hash para la misma entrada."""
+    h1 = database.hash_password("winter1234")
+    h2 = database.hash_password("winter1234")
+    assert h1 == h2
+    assert h1 != "winter1234"  # no debe ser texto plano
+    assert len(h1) == 64  # SHA-256 hex
+
+
+def test_hash_password_diferente_para_distintas_entradas(temp_db):
+    """hash_password deve devolver hashes distintos para passwords distintas."""
+    h1 = database.hash_password("winter1234")
+    h2 = database.hash_password("otra_clave")
+    assert h1 != h2
+
+
+def test_init_db_crea_usuario_admin_por_defecto(temp_db):
+    """init_db debe crear el usuario 'admin' si no existe ninguno."""
+    conn = database.get_connection()
+    row = conn.execute("SELECT username, password_hash, rol FROM usuarios WHERE username = 'admin'").fetchone()
+    conn.close()
+    assert row is not None, "Debe existir el usuario admin por defecto"
+    assert row[0] == "admin"
+    assert row[1] != "FORCE_CHANGE", "El password_hash debe ser un hash real, no FORCE_CHANGE"
+    assert row[2] == "admin"
+
+
+def test_verificar_login_admin_correcto(temp_db):
+    """verificar_login debe devolver info del usuario admin cuando las credenciales son correctas."""
+    result = database.verificar_login("admin", "winter1234")
+    assert result is not None, "Login admin/winter1234 debe ser exitoso"
+    assert result["user_id"] == 1
+    assert result["nombre"] == "Administrador"
+    assert result["rol"] == "admin"
+
+
+def test_verificar_login_password_incorrecta(temp_db):
+    """verificar_login deve devolver None cuando la contraseña es incorrecta."""
+    result = database.verificar_login("admin", "clave_errada")
+    assert result is None, "Login con clave incorrecta debe fallar"
+
+
+def test_verificar_login_usuario_inexistente(temp_db):
+    """verificar_login deve devolver None cuando el usuario no existe."""
+    result = database.verificar_login("no_existe", "winter1234")
+    assert result is None, "Login con usuario inexistente debe fallar"
+
+
+def test_verificar_login_usuario_inactivo(temp_db):
+    """verificar_login deve devolver None cuando el usuario está inactivo."""
+    conn = database.get_connection()
+    conn.execute("UPDATE usuarios SET activo = 0 WHERE username = 'admin'")
+    conn.commit()
+    conn.close()
+    result = database.verificar_login("admin", "winter1234")
+    assert result is None, "Login de usuario inactivo debe fallar"
+
+
+def test_cambiar_password_actualiza_hash(temp_db):
+    """cambiar_password debe actualizar el password_hash en la BD."""
+    user = database.verificar_login("admin", "winter1234")
+    assert database.cambiar_password(user["user_id"], "nueva_clave_456") is True
+    # Login con clave vieja debe fallar
+    assert database.verificar_login("admin", "winter1234") is None
+    # Login con clave nueva debe funcionar
+    result = database.verificar_login("admin", "nueva_clave_456")
+    assert result is not None
+    assert result["nombre"] == "Administrador"
+
+
+def test_cambiar_password_usuario_inexistente(temp_db):
+    """cambiar_password debe devolver False si el usuario no existe."""
+    assert database.cambiar_password(9999, "nueva_clave") is False
+
+
+# --- Cuenta Corriente: Pagos y Antigüedad ---
+
+def test_registrar_pago_cc_reduce_deuda(temp_db):
+    """registrar_pago_cc debe insertar un movimiento negativo y reducir el saldo."""
+    from database import add_cliente, crear_venta, registrar_pago_cc, get_cuenta_corriente_cliente
+    add_cliente("Juan Pérez", "1234", "juan@mail.com")
+    # Generar deuda: venta a cuenta corriente
+    database.add_categoria("Aceites")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("COD1", None, "Aceite 5W30", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 200}]
+    venta_id, _, _ = crear_venta(1, 'ticket', items, 'cuenta_corriente', 1)
+    assert venta_id is not None
+    # Deuda inicial 400
+    assert get_cuenta_corriente_cliente(1) == 400.0
+    # Pago parcial de 150
+    ok = registrar_pago_cc(1, 150.0, 'efectivo', 'Pago parcial', 1)
+    assert ok is True
+    # Deuda debe haber bajado a 250
+    assert get_cuenta_corriente_cliente(1) == 250.0
+
+
+def test_registrar_pago_cc_pago_total_saldando(temp_db):
+    """registrar_pago_cc con monto = deuda total debe dejar saldo en 0."""
+    from database import add_cliente, crear_venta, registrar_pago_cc, get_cuenta_corriente_cliente
+    add_cliente("Ana", "111", "ana@mail.com")
+    database.add_categoria("Filtros")
+    database.add_proveedor("Prov2", None, None, "Contado")
+    database.add_producto("F1", None, "Filtro", "", 1, 1, "Entero", 2, 50, 100, stock_inicial=20)
+    items = [{'producto_id': 1, 'cantidad': 3, 'precio_unitario': 100}]
+    crear_venta(1, 'ticket', items, 'cuenta_corriente', 1)
+    # Deuda 300, pago total 300
+    registrar_pago_cc(1, 300.0, 'transferencia', 'Pago total', 1)
+    assert get_cuenta_corriente_cliente(1) == 0.0
+
+
+def test_registrar_pago_cc_monto_negativo_devuelve_false(temp_db):
+    """registrar_pago_cc no debe aceptar montos negativos."""
+    from database import add_cliente, registrar_pago_cc
+    add_cliente("Cliente", None, None)
+    ok = registrar_pago_cc(1, -100.0, 'efectivo', 'Test', 1)
+    assert ok is False
+
+
+def test_registrar_pago_cc_cliente_inexistente_devuelve_false(temp_db):
+    """registrar_pago_cc debe devolver False si el cliente no existe."""
+    ok = database.registrar_pago_cc(9999, 100.0, 'efectivo', 'Test', 1)
+    assert ok is False
+
+
+def test_registrar_pago_cc_registra_tipo_movimiento_pago(temp_db):
+    """El movimiento de pago debe tener tipo_movimiento='pago'."""
+    from database import add_cliente, crear_venta, registrar_pago_cc, get_connection
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    registrar_pago_cc(1, 20.0, 'efectivo', 'Pago', 1)
+    conn = get_connection()
+    row = conn.execute("SELECT tipo_movimiento FROM cuenta_corriente WHERE cliente_id=1 ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+    assert row is not None
+    assert row[0] == 'pago'
+
+
+def test_crear_venta_cuenta_corriente_registra_tipo_venta(temp_db):
+    """crear_venta a cuenta corriente debe registrar tipo_movimiento='venta'."""
+    from database import add_cliente, crear_venta, get_connection
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    conn = get_connection()
+    row = conn.execute("SELECT tipo_movimiento FROM cuenta_corriente WHERE cliente_id=1 ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+    assert row is not None
+    assert row[0] == 'venta'
+
+
+def test_get_clientes_con_deuda_incluye_antiguedad(temp_db):
+    """get_clientes_con_deuda debe incluir antigüedad en días."""
+    from database import add_cliente, crear_venta
+    add_cliente("Cliente Antiguo", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    deudores = database.get_clientes_con_deuda()
+    assert len(deudores) == 1
+    # Debe tener al menos 5 columnas extras: id, nombre, telefono, email, deuda, antiguedad_dias
+    assert len(deudores[0]) >= 6, f"Debe incluir antigüedad, got {len(deudores[0])} cols"
+
+
+def test_get_movimientos_cuenta_corriente_incluye_tipo_y_metodo(temp_db):
+    """get_movimientos_cuenta_corriente debe incluir tipo_movimiento y metodo_pago."""
+    from database import add_cliente, crear_venta, registrar_pago_cc
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=10)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    registrar_pago_cc(1, 10.0, 'transferencia', 'Pago parcial', 1)
+    movs = database.get_movimientos_cuenta_corriente(1)
+    assert len(movs) == 2  # 1 venta + 1 pago
+    # Columna 9 = tipo_movimiento (ver SELECT en get_movimientos_cuenta_corriente)
+    tipos = [m[9] for m in movs]
+    assert 'venta' in tipos
+    assert 'pago' in tipos
+
+
+# --- Aumento % por proveedor ---
+
+def test_aumentar_precios_proveedor(temp_db):
+    """aumentar_precios_proveedor debe actualizar precio_venta de productos del proveedor."""
+    from database import add_proveedor, add_categoria, add_producto, get_productos, aumentar_precios_proveedor
+    assert add_categoria("Cat") is True
+    assert add_proveedor("ProvX", None, None, "Contado") is True
+    # productos del proveedor
+    assert add_producto("P1", None, "Producto UNO", "", 1, 1, "Entero", 1, 100.0, 200.0, stock_inicial=5)
+    assert add_producto("P2", None, "Producto DOS", "", 1, 1, "Entero", 1, 50.0, 100.0, stock_inicial=5)
+    # producto de OTRO proveedor (no debe cambiar)
+    assert add_proveedor("ProvY", None, None, "Contado") is True
+    assert add_producto("P3", None, "Producto TRES", "", 1, 2, "Entero", 1, 80.0, 160.0, stock_inicial=5)
+
+    # Aumentar 10% al proveedor 1
+    ok = aumentar_precios_proveedor(1, 10.0)
+    assert ok is True
+
+    prods = get_productos()
+    precios = {p[1]: p[11] for p in prods}  # p[11] = precio_venta
+    assert precios["P1"] == 220.0, f"P1 deberia ser 220.0, es {precios['P1']}"
+    assert precios["P2"] == 110.0, f"P2 deberia ser 110.0, es {precios['P2']}"
+    assert precios["P3"] == 160.0, f"P3 NO deberia cambiar, es {precios['P3']}"
+
+
+def test_aumentar_precios_proveedor_proveedor_inexistente(temp_db):
+    """aumentar_precios_proveedor debe devolver False si el proveedor no existe."""
+    ok = database.aumentar_precios_proveedor(9999, 10.0)
+    assert ok is False
+
+
+def test_aumentar_precios_proveedor_porcentaje_negativo(temp_db):
+    """aumentar_precios_proveedor no debe aceptar porcentaje negativo."""
+    from database import add_proveedor, aumentar_precios_proveedor
+    add_proveedor("Prov", None, None, "Contado")
+    ok = aumentar_precios_proveedor(1, -10.0)
+    assert ok is False
+
+
+# --- Cuenta Corriente: Selección de tickets a pagar ---
+
+def test_get_ventas_pendientes_cc(temp_db):
+    """get_ventas_pendientes_cc debe devolver ventas a crédito con saldo pendiente."""
+    from database import add_cliente, crear_venta
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 50}], 'cuenta_corriente', 1)
+    pendientes = database.get_ventas_pendientes_cc(1)
+    assert len(pendientes) == 2
+    # Cada item: (venta_id, tipo_comprobante, punto_venta, numero, total, ya_pagado, pendiente)
+    v1 = next(p for p in pendientes if p[0] == 1)
+    assert v1[4] == 40  # total
+    assert v1[5] == 0.0  # ya_pagado
+    assert v1[6] == 40.0  # pendiente
+
+
+def test_get_ventas_pendientes_cc_tras_pago_parcial(temp_db):
+    """get_ventas_pendientes_cc debe reflejar pagos parciales aplicados a una venta."""
+    from database import add_cliente, crear_venta, registrar_pago_cc_con_ventas
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=30)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    # Pago parcial de 15 aplicado a venta #1
+    registrar_pago_cc_con_ventas(1, 15.0, 'efectivo', 'Pago parcial', 1, [1])
+    pendientes = database.get_ventas_pendientes_cc(1)
+    v1 = pendientes[0]
+    assert v1[4] == 40  # total
+    assert v1[5] == 15.0  # ya_pagado
+    assert v1[6] == 25.0  # pendiente
+
+
+def test_registrar_pago_cc_con_ventas_imputa_pago(temp_db):
+    """registrar_pago_cc_con_ventas debe imputar el pago a las ventas indicadas."""
+    from database import add_cliente, crear_venta, registrar_pago_cc_con_ventas, get_connection
+    add_cliente("Cliente", None, None)
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", None, None, "Contado")
+    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
+    crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
+    # Pago total de 40 aplicado a venta #1
+    ok = registrar_pago_cc_con_ventas(1, 40.0, 'efectivo', 'Pago total', 1, [1])
+    assert ok is True
+    # Verificar que el pago tiene asociada la venta #1
+    conn = get_connection()
+    row = conn.execute("SELECT ventas_imputadas, monto FROM cuenta_corriente WHERE tipo_movimiento='pago' ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+    assert row is not None
+    assert '1' in (row[0] or '')
+    assert row[1] == -40.0
+
+
+def test_registrar_pago_cc_con_ventas_monto_negativo_devuelve_false(temp_db):
+    """registrar_pago_cc_con_ventas no debe aceptar monto negativo."""
+    from database import add_cliente, registrar_pago_cc_con_ventas
+    add_cliente("Cliente", None, None)
+    ok = registrar_pago_cc_con_ventas(1, -10.0, 'efectivo', 'Test', 1, [1])
+    assert ok is False
 
 
 if __name__ == "__main__":

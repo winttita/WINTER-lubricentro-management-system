@@ -1,0 +1,172 @@
+{
+  ".opencode/opencode.json": {
+    "mtime": 1784320303.9918146,
+    "ast_hash": "e5f74d14a81702b55bdf53b33ec991d7",
+    "semantic_hash": ""
+  },
+  ".opencode/plugins/graphify.js": {
+    "mtime": 1784295214.1930985,
+    "ast_hash": "3ea725724bc8ebe483c9f13d6aa1124f",
+    "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
+  },
+  "app.py": {
+    "mtime": 1784561999.0703287,
+    "ast_hash": "37385227b51404e658df5a6b617d3ff2",
+    "semantic_hash": ""
+  },
+  "database.py": {
+    "mtime": 1784637197.3891685,
+    "ast_hash": "2583b59eccdff0ab69255c0560339206",
+    "semantic_hash": ""
+  },
+  "pages/3_Productos.py": {
+    "mtime": 1784560716.7525773,
+    "ast_hash": "5e2f6a488f9eda339c6a38de699721f7",
+    "semantic_hash": ""
+  },
+  "pages/4_Movimientos_Stock.py": {
+    "mtime": 1784416187.5085943,
+    "ast_hash": "66eaafcffadc2c07c1e67fbd53ee821d",
+    "semantic_hash": ""
+  },
+  "pages/6_Vehiculos.py": {
+    "mtime": 1784416465.0490472,
+    "ast_hash": "bd1aebb1f81377b47f077f532d7892c4",
+    "semantic_hash": ""
+  },
+  "pages/9_Reportes.py": {
+    "mtime": 1784416494.4370964,
+    "ast_hash": "9d1cdec3a79e916225aff10896605216",
+    "semantic_hash": ""
+  },
+  "tests/test_database.py": {
+    "mtime": 1784637630.3447917,
+    "ast_hash": "17b0385618c17256d271004e61ea3b47",
+    "semantic_hash": ""
+  },
+  "updater.py": {
+    "mtime": 1784641075.7716386,
+    "ast_hash": "746108d20f53de4ecc81df4a530192f8",
+    "semantic_hash": ""
+  },
+  ".opencode/agents/testing.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "709b6127185a22207af576709284531a",
+    "semantic_hash": ""
+  },
+  ".opencode/skill/document-code/SKILL.md": {
+    "mtime": 1784295665.9242225,
+    "ast_hash": "67a99b192dab73e0120c562d7d366df0",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1784552831.0196948,
+    "ast_hash": "a7914a29c6f1546dca71e882f1835a08",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "0ee0f8a0dfda573b96393fdc7ffaa272",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1784299439.717911,
+    "ast_hash": "003e8ef67a249e5cdf234fc61add273a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1784581535.4796157,
+    "ast_hash": "00df8656cd1fde94289c2fe678a8f5dd",
+    "semantic_hash": ""
+  },
+  "CHANGELOG.md": {
+    "mtime": 1784641066.0432408,
+    "ast_hash": "0b5381e6e5b84b2825cb5b9c363ce540",
+    "semantic_hash": ""
+  },
+  "optimized-prompt.md": {
+    "mtime": 1784326111.1171656,
+    "ast_hash": "20add5b7100e3a3e1929d912ae7987e6",
+    "semantic_hash": ""
+  },
+  "pages/0_Configuracion.py": {
+    "mtime": 1784416406.4409497,
+    "ast_hash": "9126e43e4e4c9434d6ff696ea9c56b81",
+    "semantic_hash": ""
+  },
+  "pages/5_Ajustes_Stock.py": {
+    "mtime": 1784416165.196559,
+    "ast_hash": "65ff974034a85b15890da9009d97f584",
+    "semantic_hash": ""
+  },
+  "pages/7_Ventas.py": {
+    "mtime": 1784640840.5620425,
+    "ast_hash": "59efaf39031c86c5546eee0aa8e81260",
+    "semantic_hash": ""
+  },
+  "tickets.py": {
+    "mtime": 1784416008.740317,
+    "ast_hash": "e4703b4ee6717a5b8e86e4f8098a545a",
+    "semantic_hash": ""
+  },
+  "prompt_optimizado.md": {
+    "mtime": 1784415124.4873948,
+    "ast_hash": "f0d24a4f8e20773da0fa55e061462856",
+    "semantic_hash": ""
+  },
+  "pages/8_Compras.py": {
+    "mtime": 1784640911.8889463,
+    "ast_hash": "818d8d8c54ddab33e7b2684d66f438d4",
+    "semantic_hash": ""
+  },
+  "CONVENTIONS.md": {
+    "mtime": 1784552763.2357056,
+    "ast_hash": "8aef841f8cfdf8c9391c50a24642cec1",
+    "semantic_hash": ""
+  },
+  "debug.py": {
+    "mtime": 1784636879.129576,
+    "ast_hash": "00731e1e369d9119c526e4d311ad74c7",
+    "semantic_hash": ""
+  },
+  ".github/ISSUE_TEMPLATE/bug_report.yml": {
+    "mtime": 1784640994.8123298,
+    "ast_hash": "b91d29bd18718187b36abcefeaf0cfe7",
+    "semantic_hash": ""
+  },
+  ".github/ISSUE_TEMPLATE/config.yml": {
+    "mtime": 1784641010.5449724,
+    "ast_hash": "989d467cb68635128e50888189c22243",
+    "semantic_hash": ""
+  },
+  ".github/ISSUE_TEMPLATE/feature_request.yml": {
+    "mtime": 1784641006.548809,
+    "ast_hash": "3798b741421b1f743dbb54338e7aa767",
+    "semantic_hash": ""
+  },
+  ".github/dependabot.yml": {
+    "mtime": 1784640977.4636214,
+    "ast_hash": "4099f74deed3d97964b4aeb4c1209b5a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/codeql.yml": {
+    "mtime": 1784641023.553504,
+    "ast_hash": "6e9956ecd49aad1a1095b76528196149",
+    "semantic_hash": ""
+  },
+  "TODO.md": {
+    "mtime": 1784636742.41781,
+    "ast_hash": "097429ed5cac7dabebb0f1f7d326fd1b",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-07-20-compras-ventas-iva-v0.2.5.md": {
+    "mtime": 1784586168.7924237,
+    "ast_hash": "3047c2a24cd6b72919341c5d8e65c492",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-07-20-ux-compras-ventas-iva-design.md": {
+    "mtime": 1784585623.4401538,
+    "ast_hash": "bb386bdb3bc9834a7cd57ac4dfe34087",
+    "semantic_hash": ""
+  }
+}

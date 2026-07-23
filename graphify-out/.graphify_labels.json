@@ -16,7 +16,7 @@
   "14": "crear_ajuste_stock",
   "15": "get_ajustes_stock",
   "16": "get_clientes_con_deuda",
-  "17": "test_add_movimiento_devolucion",
+  "17": "Diseño: Correcciones UX en Compras, Ventas e IVA para v0.2.5",
   "18": "get_cuenta_corriente_cliente",
   "19": "get_movimientos_cuenta_corriente",
   "20": "get_reporte_ingresos_egresos",
@@ -31,5 +31,12 @@
   "29": "update_vehiculo",
   "30": "update_servicio",
   "31": "optimized-prompt.md",
-  "32": "prompt_optimizado.md"
+  "32": "prompt_optimizado.md",
+  "33": "get_compras",
+  "34": "Documentar Código",
+  "35": "7_Ventas.py",
+  "36": "8_Compras.py",
+  "38": "Sistema de Gestión para LUBRICENTRO WINTER",
+  "39": "Agente de Testing",
+  "40": "backup_db"
 }

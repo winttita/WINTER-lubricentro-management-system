@@ -85,7 +85,7 @@ def generar_factura_a_texto(venta, items, cliente):
     lineas.append("=" * ancho)
     lineas.append(f"Punto de Venta: {venta['punto_venta']}  Comp. Nro: {venta['numero_comprobante']:08d}")
     lineas.append(f"Fecha: {venta['creado_en']}")
-    lineas.append(f"CAE: SIMULADO  Vto CAE: {datetime.now().strftime('%d/%m/%Y')}")
+    lineas.append(f"CAE: NO DISPONIBLE (requiere integración AFIP)")
     lineas.append("-" * ancho)
     
     # Datos del cliente
