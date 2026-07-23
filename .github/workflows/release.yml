@@ -306,13 +306,24 @@ jobs:
             const run = context.runId;
             const workflow = context.workflow;
             const repo = context.repo;
-            const error_steps = context.job.steps.filter(s => s.conclusion === 'failure').map(s => s.name);
+            
+            // context.job.steps is undefined in github-script@v7; fetch from API
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: repo.owner,
+              repo: repo.repo,
+              run_id: run
+            });
+            const failedSteps = jobs.data.jobs
+              .flatMap(j => j.steps || [])
+              .filter(s => s.conclusion === 'failure')
+              .map(s => s.name);
+            const failedList = failedSteps.length > 0 ? failedSteps.join(', ') : 'unknown';
             
             const body = `## Workflow Failed: ${workflow}
             **Run**: #${run}
             **Repo**: ${repo.owner}/${repo.repo}
             **Tag**: ${context.ref}
-            **Failed steps**: ${error_steps.join(', ')}
+            **Failed steps**: ${failedList}
             
             Check the logs: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${run}
             `;
