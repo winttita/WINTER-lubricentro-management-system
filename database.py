@@ -1,14 +1,92 @@
 import sqlite3
 import os
+import sys
+import logging
 from datetime import datetime
 import shutil
 import hashlib
 
-# Adapter for datetime -> ISO 8601 string to avoid deprecation warning in Python 3.12+
+# Adapter for datetime -> ISO 8081 string to avoid deprecation warning in Python 3.12+
 sqlite3.register_adapter(datetime, lambda val: val.isoformat())
 
-DB_NAME = "lubricentro.db"
-BACKUP_DIR = "backups"
+# --- Resolución de rutas de datos de usuario -------------------------------
+#
+# La DB y los backups viven FUERA del directorio de instalación, en una
+# carpeta de datos de usuario por SO. Esto evita que `tar -xf` durante una
+# actualización pise la DB del usuario si el zip trae por error un archivo
+# `lubricentro.db` de ejemplo.
+#
+# Contrato: DB_NAME y BACKUP_DIR son strings (rutas absolutas). Si un test
+# o debug quiere usar otra ruta, hace monkeypatch/assigna DB_NAME directamente;
+# get_connection() y backup_db() los respetan.
+DATA_DIR_NAME = "LubricentroWinter"
+
+
+def _user_data_dir() -> str:
+    """Devuelve el directorio de datos de usuario (absoluto) por SO.
+
+    Windows: %APPDATA%\\LubricentroWinter
+    macOS:   ~/Library/Application Support/LubricentroWinter
+    Linux:   $XDG_DATA_HOME/LubricentroWinter o ~/.local/share/LubricantroWinter
+    """
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA") or os.path.expanduser("~")
+        return os.path.join(base, DATA_DIR_NAME)
+    if sys.platform == "darwin":
+        return os.path.expanduser(f"~/Library/Application Support/{DATA_DIR_NAME}")
+    # Linux / otros
+    xdg = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+    return os.path.join(xdg, DATA_DIR_NAME)
+
+
+def _resolve_data_paths() -> tuple[str, str]:
+    """Calcula DB_NAME y BACKUP_DIR absolutos. Crea el dir si no existe.
+    Devuelve (db_name, backup_dir)."""
+    data_dir = _user_data_dir()
+    try:
+        os.makedirs(data_dir, exist_ok=True)
+    except OSError:
+        # Si no podemos crear el dir de usuario (permisos, readonly, tests),
+        # caemos al cwd. Esto mantiene a tests/debug intactos.
+        data_dir = os.getcwd()
+    db_name = os.path.join(data_dir, "lubricentro.db")
+    backup_dir = os.path.join(data_dir, "backups")
+    return db_name, backup_dir
+
+
+DB_NAME, BACKUP_DIR = _resolve_data_paths()
+
+
+def _migrate_legacy_db_location() -> None:
+    """Mueve lubricantro.db (y backups/) desde el directorio del script/app
+    (legacy) al nuevo dir de datos de usuario. Idempotente: solo mueve si
+    el destino no existe. Llamado desde init_db() al primer arranque.
+    No mueve si DB_NAME fue monkey-patched (tests/debug).
+    """
+    try:
+        resolved_db, resolved_backup = _resolve_data_paths()
+    except Exception:
+        return
+    if DB_NAME != resolved_db:
+        # Alguien (test/debug) sobrescribió DB_NAME — no migrar.
+        return
+    # Directorio legacy: junto al script database.py (que está en ROOT del
+    # paquete) o junto al .exe empaquetado. En ambos casos dirname(__file__).
+    legacy_dir = os.path.dirname(os.path.abspath(__file__))
+    legacy_db = os.path.join(legacy_dir, "lubricentro.db")
+    legacy_backups = os.path.join(legacy_dir, "backups")
+    try:
+        if os.path.exists(legacy_db) and not os.path.exists(resolved_db):
+            shutil.move(legacy_db, resolved_db)
+            logging.warning(
+                "DB migrada de %s a %s", legacy_db, resolved_db
+            )
+        # Mover también backups/ legacy si existe y no hay backups nuevos
+        if os.path.isdir(legacy_backups) and not os.path.isdir(resolved_backup):
+            shutil.move(legacy_backups, resolved_backup)
+    except OSError as e:
+        logging.warning("Migración de DB legacy falló (no crítico): %s", e)
+
 
 # Tasa de IVA configurable (Argentina: 21%).
 IVA_TASA = 0.21
@@ -28,6 +106,7 @@ def get_connection():
     return conn
 
 def init_db():
+    _migrate_legacy_db_location()
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -1229,8 +1308,15 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
         conn.close()
 
 
-def get_ventas(limit=50, fecha_desde=None, fecha_hasta=None, cliente_id=None, tipo_comprobante=None):
-    """Obtiene lista de ventas con filtros opcionales."""
+def get_ventas(limit=50, fecha_desde=None, fecha_hasta=None, cliente_id=None,
+               tipo_comprobante=None, only_consumidor_final=False):
+    """Obtiene lista de ventas con filtros opcionales.
+
+    Args:
+        only_consumidor_final: si True, filtra ventas donde cliente_id IS NULL
+            (ventas a Consumidor Final). Mutuamente excluyente con cliente_id
+            (si ambos se setean, only_consumidor_final tiene prioridad).
+    """
     conn = get_connection()
     try:
         query = """SELECT v.id, v.cliente_id, v.tipo_comprobante, v.punto_venta, v.numero_comprobante,
@@ -1241,23 +1327,25 @@ def get_ventas(limit=50, fecha_desde=None, fecha_hasta=None, cliente_id=None, ti
                    LEFT JOIN usuarios u ON v.usuario_id = u.id
                    WHERE 1=1"""
         params = []
-        
+
         if fecha_desde:
             query += " AND date(v.creado_en) >= date(?)"
             params.append(fecha_desde)
         if fecha_hasta:
             query += " AND date(v.creado_en) <= date(?)"
             params.append(fecha_hasta)
-        if cliente_id:
+        if only_consumidor_final:
+            query += " AND v.cliente_id IS NULL"
+        elif cliente_id:
             query += " AND v.cliente_id = ?"
             params.append(cliente_id)
         if tipo_comprobante:
             query += " AND v.tipo_comprobante = ?"
             params.append(tipo_comprobante)
-        
+
         query += " ORDER BY v.creado_en DESC LIMIT ?"
         params.append(limit)
-        
+
         ventas = conn.execute(query, params).fetchall()
         return ventas
     finally:

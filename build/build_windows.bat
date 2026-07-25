@@ -58,6 +58,7 @@ echo [1/8] Compilando launcher.exe con PyInstaller...
 cd /d %ROOT%
 python -m pip install --quiet pyinstaller
 python -m PyInstaller --onefile --windowed --uac-admin --noconfirm --name LubricentroWinter ^
+    --icon "%ROOT%\build\icon.ico" ^
     --distpath "%STAGE%" --workpath "%DIST%\build_launcher" ^
     --specpath "%DIST%\build_launcher" ^
     build\launcher.py

@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-import threading
+import subprocess
 import time
 import database as db
 from updater import APP_VERSION, check_for_update
@@ -15,6 +15,14 @@ st.set_page_config(
 inject_global_css()
 
 db.init_db()
+
+# Backup automático al arrancar (silencioso: si falla, no bloquea la app).
+# cleanup_old_backups mantiene solo los últimos 10 backups.
+try:
+    db.backup_db()
+    db.cleanup_old_backups()
+except Exception:
+    pass
 
 
 # --- Helpers de sesión ---
@@ -92,18 +100,73 @@ with st.sidebar:
         if update_info:
             st.warning(f"⬆️ Actualización disponible: **v{update_info['latest_version']}**")
             if st.button("Descargar e instalar actualización", use_container_width=True):
-                with st.spinner("Descargando..."):
-                    from updater import download_asset, find_asset, apply_update
-                    asset = find_asset({"assets": update_info["assets"]})
-                    if asset:
-                        path = download_asset(asset)
-                        apply_update(path)
-                        st.success("Actualización descargada. La aplicación se cerrará y reabrirá automáticamente.")
-                        st.markdown('<meta http-equiv="refresh" content="10">', unsafe_allow_html=True)
-                        threading.Thread(target=lambda: (time.sleep(4), os._exit(0)), daemon=True).start()
+                from updater import download_asset, find_asset, apply_update
+                asset = find_asset({"assets": update_info["assets"]})
+                if asset:
+                    total_size = asset.get("size", 0) or 0
+                    progress_bar = st.progress(0.0, text="Iniciando descarga...")
+                    eta_text = st.empty()
+                    start_ts = time.monotonic()
+                    rate_window = []
+
+                    def _cb(done, total):
+                        elapsed = time.monotonic() - start_ts
+                        if total:
+                            frac = done / total
+                            if elapsed > 0.3 and done > 0:
+                                rate = done / elapsed
+                                rate_window.append(rate)
+                                if len(rate_window) > 5:
+                                    rate_window.pop(0)
+                                avg = sum(rate_window) / len(rate_window)
+                                remaining = (total - done) / avg
+                                eta_text.markdown(
+                                    f"**{frac*100:.1f}%** · ~{int(remaining)}s restantes · "
+                                    f"{avg/1024/1024:.1f} MB/s"
+                                )
+                            progress_bar.progress(
+                                min(frac, 1.0),
+                                text=f"{done/1024/1024:.1f} / {total/1024/1024:.1f} MB",
+                            )
+                        else:
+                            progress_bar.progress(
+                                min(done / (100 * 1024 * 1024), 1.0),
+                                text=f"{done/1024/1024:.1f} MB (tamaño desconocido)",
+                            )
+
+                    path = download_asset(asset, progress_callback=_cb)
+                    progress_bar.progress(1.0, text="Descarga completa.")
+                    eta_text.empty()
+                    # Backup de la DB antes de apply_update (silencioso).
+                    try:
+                        db.backup_db()
+                    except Exception:
+                        pass
+                    apply_update(path)
+                    st.success("Actualización lista. La app se cerrará y reiniciará.")
+                    # Lanzar update.bat y salir. El .bat hace taskkill del exe
+                    # + extrae con tar + relanza. Estamos en el proceso app.py
+                    # (hijo del launcher), el taskkill del .bat cierra todo.
+                    root = os.path.dirname(os.path.abspath(__file__))
+                    bat_path = os.path.join(root, "update.bat")
+                    CREATE_NO_WINDOW = 0x08000000
+                    try:
+                        subprocess.Popen(
+                            ["cmd", "/c", bat_path],
+                            cwd=root,
+                            creationflags=subprocess.DETACHED_PROCESS
+                                         | subprocess.CREATE_NEW_PROCESS_GROUP
+                                         | CREATE_NO_WINDOW,
+                            stdin=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                        )
+                    except Exception as e:
+                        st.error(f"No se pudo iniciar la actualización: {e}")
                         st.stop()
-                    else:
-                        st.error("No se encontró el asset de actualización")
+                    os._exit(0)
+                else:
+                    st.error("No se encontró el asset de actualización")
         else:
             st.caption("✅ Última versión")
     except Exception as e:

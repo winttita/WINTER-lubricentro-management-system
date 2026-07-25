@@ -47,10 +47,10 @@ jobs:
           Remove-Item -Recurse -Force pyi-build -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force pyi-spec -ErrorAction SilentlyContinue
 
-          # NOTE: --uac-admin and --icon omitted in CI to match the working
-          # v0.2.6 build. icon.ico may be malformed; local build_windows.bat
-          # can re-add them when needed.
-          python -m PyInstaller --onefile --windowed --noconfirm --name LubricentroWinter `
+          # NOTE: --uac-admin and --icon now INCLUDED in CI to match
+          # build/build_windows.bat. icon.ico is well-formed (fixed in v0.3.0).
+          python -m PyInstaller --onefile --windowed --uac-admin --noconfirm --name LubricentroWinter `
+            --icon build/icon.ico `
             --distpath dist `
             --workpath pyi-build `
             --specpath pyi-spec `
@@ -121,7 +121,10 @@ jobs:
         run: |
           $VERSION = $env:RELEASE_VERSION
           $STAGE = "dist/LubricentroWinter_v$VERSION"
-          $ZIP = "dist/LubricentroWinter_v$VERSION.zip"
+          # El asset final siempre se llama LubricentroWinter.zip (sin version) para
+          # que updater.find_asset lo encuentre por nombre exacto. La version queda en
+          # el tag de la release y el body, no en el filename del asset.
+          $ZIP = "dist/LubricentroWinter.zip"
           
           Write-Host "Preparing release package for version $VERSION"
           Write-Host "Stage directory: $STAGE"
@@ -281,8 +284,7 @@ jobs:
                       $BODY += "### Cómo actualizar`n"
                       $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
                      $BODY += "### Descarga manual`n"
-                     $BODY += "Descarga el archivo `LubricentroWinter_v$VERSION.zip`, extrae y ejecuta `LubricentroWinter.exe`."
-          
+                     $BODY += "Descarga el archivo `LubricentroWinter.zip`, extrae y ejecuta `LubricantroWinter.exe`."          
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
                       "body_path=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 

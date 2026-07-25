@@ -66,14 +66,12 @@ def calcular_totales(items, tipo_comprobante):
 # --- Cabecera de la venta ---
 st.subheader("Nueva Venta")
 
-# Cliente: Consumidor Final por defecto, resto en expander
+# Cliente: Consumidor Final es la primera opción visible
+cliente_opciones = ["Consumidor Final"] + [c[1] for c in clientes]
+cliente_sel = st.selectbox("Cliente", cliente_opciones, key="venta_cli_sel")
 cliente_id = None
-cliente_sel = "Consumidor Final"
-with st.expander("Seleccionar otro cliente", expanded=False):
-    cliente_otro = st.selectbox("Cliente", [c[1] for c in clientes], key="venta_cli_sel")
-    if cliente_otro:
-        cliente_sel = cliente_otro
-        cliente_id = next((c[0] for c in clientes if c[1] == cliente_otro), None)
+if cliente_sel != "Consumidor Final":
+    cliente_id = next((c[0] for c in clientes if c[1] == cliente_sel), None)
 st.caption(f"Cliente seleccionado: **{cliente_sel}**")
 
 col_tc, col_mp = st.columns(2)
@@ -251,16 +249,21 @@ with col_f1:
 with col_f2:
     fecha_hasta = st.date_input("Hasta", value=None, key="hist_fh")
 with col_f3:
-    filtro_cliente = st.selectbox("Cliente", ["Todos"] + [c[1] for c in clientes], key="hist_cli")
+    filtro_opciones = ["Todos", "Consumidor Final"] + [c[1] for c in clientes]
+    filtro_cliente = st.selectbox("Cliente", filtro_opciones, key="hist_cli")
 
 if st.button("Buscar", key="hist_btn"):
     fd = fecha_desde.strftime("%Y-%m-%d") if fecha_desde else None
     fh = fecha_hasta.strftime("%Y-%m-%d") if fecha_hasta else None
     cli_id = None
-    if filtro_cliente != "Todos":
+    only_cf = False
+    if filtro_cliente == "Consumidor Final":
+        only_cf = True
+    elif filtro_cliente != "Todos":
         cli_id = next((c[0] for c in clientes if c[1] == filtro_cliente), None)
 
-    ventas = db.get_ventas(limit=100, fecha_desde=fd, fecha_hasta=fh, cliente_id=cli_id)
+    ventas = db.get_ventas(limit=100, fecha_desde=fd, fecha_hasta=fh,
+                           cliente_id=cli_id, only_consumidor_final=only_cf)
 
     if ventas:
         for v in ventas:

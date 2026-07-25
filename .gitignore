@@ -12,3 +12,5 @@ _logs/
 *.backup2
 *.with_my_updates
 stash.patch
+# Preview del icono generado en dev (solo para validación visual local)
+build/icon_preview.png

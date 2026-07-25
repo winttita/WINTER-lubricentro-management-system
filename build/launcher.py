@@ -2,26 +2,25 @@
 Launcher de Lubricentro Winter.
 
 Este script se compila a un .exe pequeño con PyInstaller:
-    pyinstaller --onefile --windowed --name LubricentroWinter launcher.py
+    pyinstaller --onefile --windowed --uac-admin --name LubricantroWinter launcher.py
 
 El launcher.exe se distribuye junto a una carpeta `runtime/` que contiene
 Python embebido + dependencias. El launcher:
-  1. Detecta actualización pendiente (update_lock)
-  2. Si hay update: escribe update.bat, lo lanza con PID actual y sale
-  3. Si no hay update: verifica runtime, instala deps y arranca Streamlit
+  1. Detecta actualización pendiente (UPDATE_LOCK): si existe update.bat
+     escrito por updater.apply_update (corriendo dentro de la app), lo lanza
+     y sale.
+  2. Si no hay update: verifica runtime, instala deps y arranca Streamlit.
 
-Debe mantenerse MÍNIMO para que el PyInstaller one-file sea pequeño y rápido
-de descargar (las deps pesadas viven en runtime/, no dentro del .exe).
+El launcher YA NO escribe update.bat; esa responsabilidad es 100% de
+updater.apply_update (invocado desde app.py al confirmar el botón de update).
+Esto elimina la duplicación de DOS .bat que se pisaban entre sí.
 """
 from __future__ import annotations
 
 import os
 import sys
-import shutil
 import subprocess
-import zipfile
 import time
-import tempfile
 
 # --- Rutas base ------------------------------------------------------------
 
@@ -37,6 +36,7 @@ REQUIREMENTS = os.path.join(ROOT, "requirements.txt")
 # Layout de updater
 UPDATE_DIR = os.path.join(ROOT, ".updates")
 UPDATE_LOCK = os.path.join(UPDATE_DIR, "pending_update")
+UPDATE_BAT = os.path.join(ROOT, "update.bat")
 LAUNCHER_EXE = sys.executable if getattr(sys, "frozen", False) else __file__
 
 # --- Logging simple --------------------------------------------------------
@@ -54,91 +54,19 @@ def log(msg: str) -> None:
 
 # --- Auto-actualización ----------------------------------------------------
 
-def _write_update_batch(zip_path: str, pid: int) -> str:
-    """
-    Escribe update.bat que:
-      1. Espera a que termine el proceso PID (el launcher actual)
-      2. Reemplaza LubricentroWinter.exe por el nuevo (si vino en el zip)
-      3. Descomprime el zip en ROOT
-      4. Lanza el nuevo .exe
-    Devuelve la ruta al batch escrito.
-    """
-    bat_path = os.path.join(ROOT, "update.bat")
-    # Launcher exe name (with .exe)
-    launcher_name = os.path.basename(LAUNCHER_EXE)
-    # Escape backslashes for the batch file content
-    root_escaped = ROOT.replace("\\", "\\\\")
-    zip_escaped = zip_path.replace("\\", "\\\\")
-    bat_content = rf"""@echo off
-REM ========================================================================
-REM Auto-update batch para Lubricentro Winter
-REM Se ejecuta después de que el launcher descargue una actualización.
-REM ========================================================================
-
-setlocal enabledelayedexpansion
-
-set ROOT=%~dp0
-set ZIP_PATH={zip_escaped}
-set PID={pid}
-set LAUNCHER={launcher_name}
-
-REM Esperar a que termine el launcher anterior (PID %PID%).
-REM findstr con /C y < nul: no interactivo, no espera stdin.
-:WAIT_LOOP
-tasklist /FI "PID eq %PID%" /NH 2>nul < nul | findstr /C:"%PID%" >nul 2>&1
-if errorlevel 1 (
-    goto DONE_WAIT
-) else (
-    timeout /t 1 /nobreak >nul
-    goto WAIT_LOOP
-)
-:DONE_WAIT
-
-echo [UPDATE] Aplicando actualizacion desde %ZIP_PATH%...
-
-REM Backup del launcher actual por si acaso
-if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
-if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
-
-REM Descomprimir el zip (sobrescribe todo: app/, runtime/, etc.)
-powershell -NoProfile -WindowStyle Hidden -Command "Expand-Archive -Force -Path '{zip_escaped}' -DestinationPath '{root_escaped}'"
-
-REM Verificar que el nuevo launcher existe
-if not exist "%ROOT%\{launcher_name}" (
-    if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
-    exit /b 1
-)
-
-echo [UPDATE] Limpieza...
-if exist "%ZIP_PATH%" del "%ZIP_PATH%"
-if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
-if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
-
-echo [UPDATE] Iniciando nueva version...
-start "" "%ROOT%\{launcher_name}"
-
-REM Autoborrado del .bat (no se puede del mientras corre)
-(goto) 2>nul & del "%~f0"
-
-exit /b 0
-"""
-    with open(bat_path, "w", encoding="utf-8", newline="\r\n") as f:
-        f.write(bat_content)
-    return bat_path
-
-
 def check_and_launch_update() -> bool:
     """
-    Si existe UPDATE_LOCK:
-      - Lee la ruta del zip descargado
-      - Escribe update.bat
-      - Lanza update.bat con PID actual (detached)
+    Si existe UPDATE_LOCK y el .bat está presente (escrito por updater.apply_update):
+      - Lanza update.bat (detached, sin ventana)
       - Sale (return True => el caller debe hacer sys.exit(0))
-    Si no hay lock, return False.
+
+    Si solo existe UPDATE_LOCK pero no update.bat, limpia el lock (estado stale)
+    y devuelve False para seguir con flujo normal.
     """
     if not os.path.exists(UPDATE_LOCK):
         return False
 
+    # Limpiar locks stale (zip borrado o ausente)
     try:
         with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
             zip_path = f.read().strip()
@@ -146,27 +74,31 @@ def check_and_launch_update() -> bool:
         return False
 
     if not zip_path or not os.path.exists(zip_path):
-        log(f"Lock apunta a archivo inexistente: {zip_path}")
+        log(f"Lock stale: zip inexistente {zip_path}. Limpiando.")
         try:
             os.remove(UPDATE_LOCK)
         except OSError:
             pass
         return False
 
-    log(f"Actualización pendiente detectada: {zip_path}")
+    # El .bat DEBE existir: lo escribió apply_update cuando el usuario confirmó.
+    if not os.path.exists(UPDATE_BAT):
+        log(f"Lock presente pero falta {UPDATE_BAT}. Abortando update, limpiando.")
+        try:
+            os.remove(UPDATE_LOCK)
+        except OSError:
+            pass
+        return False
 
-    # Escribir update.bat y lanzarlo
-    pid = os.getpid()
-    bat_path = _write_update_batch(zip_path, pid)
-    log(f"Escrito {bat_path} para PID {pid}")
-
-    # Lanzar detached y sin ventana visible
+    log(f"Update pendiente: {zip_path}. Lanzando {UPDATE_BAT}...")
     CREATE_NO_WINDOW = 0x08000000
     try:
         subprocess.Popen(
-            ["cmd", "/c", bat_path],
+            ["cmd", "/c", UPDATE_BAT],
             cwd=ROOT,
-            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
+            creationflags=subprocess.DETACHED_PROCESS
+                         | subprocess.CREATE_NEW_PROCESS_GROUP
+                         | CREATE_NO_WINDOW,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -240,6 +172,8 @@ def main() -> int:
     log("=== Lubricentro Winter launcher ===")
 
     # 1. ¿Hay actualización pendiente al arrancar? Si sí, lanzar update.bat y salir.
+    #    El .bat lo escribió updater.apply_update (corriendo dentro de app.py),
+    #    no es responsabilidad del launcher generarlo.
     if check_and_launch_update():
         return 0
 
@@ -249,32 +183,10 @@ def main() -> int:
     ensure_dependencies()
     rc = start_streamlit()
 
-    # 3. Después de que Streamlit termine, verificar si hubo una actualización disparada en runtime
-    if os.path.exists(UPDATE_LOCK):
-        zip_path = ""
-        try:
-            with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
-                zip_path = f.read().strip()
-        except OSError:
-            zip_path = ""
-        if zip_path and os.path.exists(zip_path):
-            pid = os.getpid()
-            bat_path = _write_update_batch(zip_path, pid)
-            log("Actualización pendiente tras cierre de Streamlit. Lanzando update.bat...")
-            try:
-                CREATE_NO_WINDOW = 0x08000000
-                subprocess.Popen(
-                    ["cmd", "/c", bat_path],
-                    cwd=ROOT,
-                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-            except Exception as e:
-                log(f"Error lanzando update.bat: {e}")
-        else:
-            log("UPDATE_LOCK presente pero zip no encontrado; ignorando.")
+    # 3. Tras cerrar Streamlit, NO volvemos a tocar update.bat: si se disparó
+    #    una actualización mientras la app corría, update.bat ya fue lanzado
+    #    por app.py (que también hace os._exit). El launcher solo reguarda el
+    #    rc y sale.
     return rc
 
 

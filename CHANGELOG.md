@@ -5,6 +5,33 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.4.0] - 2026-07-25
+
+### Corregido
+- Sistema de actualizaciones automaticas completamente reescrito. `updater._write_update_batch_secure` (`updater.py:350`) ahora usa `taskkill /F /IM` + `tar -xf` nativo de Windows 11 (sin dependencias de Python externo ni PowerShell), eliminando la ventana `findstr` bloqueante, el error `failed to load python DLL` y el bloqueo hasta `Ctrl+C`.
+- Eliminada la duplicacion de escritores de `update.bat`: `build/launcher._write_update_batch` fue removido. Ahora solo `updater.apply_update` escribe el batch, y el launcher (`build/launcher.py:check_and_launch_update`) solo lo lanza si el lock esta presente.
+- Eliminado `pause` en las ramas de error del `update.bat` (`updater.py:401`, `updater.py:411`) que bloqueaba el flujo desatendido. Reemplazado por log en `%ROOT%\_logs\update_error.log`.
+- Barra de progreso y ETA durante la descarga de la actualizacion (`app.py:95`): `st.progress` con media movil de velocidad (5 muestras) y segundos restantes estimados.
+- "Consumidor Final" restaurado como primera opcion visible del selector de cliente en el modulo Ventas (`pages/7_Ventas.py:71`). Eliminado el expander roto que oculta la opcion.
+- Filtro del Historial de Ventas (`pages/7_Ventas.py:254`) ahora incluye "Consumidor Final" como filtro explicito para ventas sin cliente (`cliente_id IS NULL`).
+- Icono del .exe ahora aplica en builds del CI: `.github/workflows/release.yml:53` agrega `--uac-admin --icon build/icon.ico`. Antes los builds locales incluian icono pero el CI lo omitia, resultando en exe con icono generico de PyInstaller.
+
+### Agregado
+- Preservacion de datos de usuario entre actualizaciones: `lubricentro.db` y `backups/` ahora viven en `%APPDATA%\LubricentroWinter\` (Windows) o `~/.local/share/LubricantroWinter/` (Linux) en lugar del directorio de instalacion. Migracion automatica: `database._migrate_legacy_db_location` mueve DBs existentes al primer arranque, preservando datos cargados.
+- Funcion `_resolve_data_paths` y constante `DATA_DIR_NAME` en `database.py` para resolver el directorio de datos por SO.
+- Backup automatico de la DB al iniciar la app y antes de aplicar una actualizacion (`app.py:18`, `app.py:139`). `cleanup_old_backups` mantiene los ultimos 10.
+- `database.get_ventas` acepta `only_consumidor_final=False` para filtrar ventas a Consumidor Final.
+- Infraestructura de tests del updater en Docker: `docker/Dockerfile` (python:3.12-slim + tar + sqlite3), `docker/test_updater.py` (8 casos: preservacion de DB, migracion legacy, backup+cleanup, path traversal en zip, sanitize_filename), `docker/run_tests.sh`.
+
+### Cambiado
+- `app.py` ya no lanza el `update.bat` desde un `threading.Thread` con `sleep(4)`. Ahora lanza el `.bat` directo con `subprocess.Popen` (DETACHED_PROCESS + CREATE_NO_WINDOW) y `os._exit(0)` inmediato.
+- CI renombra el asset de release a `LubricetroWinter.zip` (sin version en el filename) para que `updater.find_asset` lo encuentre por nombre exacto. La version queda en el tag y el body de la release.
+- `build/LubricentroWinter.spec` agrega `icon='icon.ico'` para mantener alineacion con el build script.
+
+### Infraestructura
+- Tests: 90 pasan (82 originales + 8 nuevos del updater en `docker/test_updater.py`).
+
+
 ## [0.3.0] - 2026-07-23
 
 ### Agregado

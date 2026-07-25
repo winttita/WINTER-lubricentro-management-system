@@ -34,7 +34,7 @@ from typing import Optional, Tuple
 GITHUB_REPO = os.environ.get("LUBRICENTRO_REPO", "winttita/WINTER-lubricentro-management-system")
 
 # Versión actual de la aplicación. Se compara contra el tag de la última release.
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.4.0"
 
 # Nombre esperado del asset (el .exe) dentro de la release. Si se cambia, basta
 # con editar esta constante. Se busca por substring (ej: "LubricentroWinter.exe"
@@ -350,76 +350,82 @@ def _extract_zip_safe(zip_path: str, dest_dir: str) -> None:
 def _write_update_batch_secure(root: str, zip_path: str) -> str:
     """
     Escribe update.bat en root que:
-      1. Espera a que termine el proceso PID (el launcher actual)
-      2. Extrae el ZIP de forma segura usando Python (no PowerShell)
-      3. Lanza el nuevo .exe
+      1. Mata el proceso actual (LubricentroWinter.exe y sus hijos Streamlit)
+         usando taskkill /F /IM (somos admin gracias a --uac-admin).
+      2. Backup del runtime en uso a runtime.old (evita extraer sobre DLLs
+         bloqueadas).
+      3. Extrae el ZIP con `tar -xf` (nativo en Windows 10 1803+ / Win 11,
+         sin dependencias de Python/PowerShell, no abre ventanas).
+      4. Limpia backup y lock, lanza el nuevo .exe.
+      5. Se auto-elimina (goto trick).
+
     Devuelve la ruta al batch escrito.
     """
     bat_path = os.path.join(root, "update.bat")
     launcher_name = "LubricentroWinter.exe"
-    # Rutas absolutas para el batch
-    zip_abs = os.path.abspath(zip_path)
-    root_abs = os.path.abspath(root)
-    python_exe = sys.executable.replace("\\", "/")
+    zip_abs = os.path.abspath(zip_path).replace("\\", "/")
+    root_abs = os.path.abspath(root).replace("\\", "/")
 
     bat_content = rf"""@echo off
 REM ========================================================================
-REM Auto-update batch para Lubricentro Winter (seguro)
-REM Se ejecuta después de que el launcher descargue una actualización.
+REM Auto-update batch para Lubricentro Winter (seguro, Win 11 nativo).
+REM Sin findstr, sin powershell, sin python externo: tar -xf + taskkill.
 REM ========================================================================
 
 setlocal enabledelayedexpansion
 
 set ROOT=%~dp0
 set ZIP_PATH={zip_abs}
-set PYTHON={python_exe}
 set LAUNCHER={launcher_name}
 
-echo [UPDATE] Aplicando actualización desde %ZIP_PATH%...
+echo [UPDATE] Cerrando LubricentroWinter...
+REM taskkill /F /IM mata launcher + Streamlit hijos. Somos admin.
+taskkill /F /IM "LubricentroWinter.exe" >nul 2>&1
+taskkill /F /IM "pythonw.exe" >nul 2>&1
+taskkill /F /IM "streamlit.exe" >nul 2>&1
 
-REM Backup del launcher actual
-if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
-if exist "%ROOT%\{launcher_name}" rename "%ROOT%\{launcher_name}" "{launcher_name}.bak"
+REM Tiempo para que Windows libere los locks de DLLs.
+timeout /t 2 /nobreak >nul
 
-REM Extraer ZIP usando Python (seguro, valida paths, no PowerShell)
-echo [UPDATE] Extrayendo actualización...
-%PYTHON% -c ^
-"import zipfile, os, sys; ^
-zf = zipfile.ZipFile(r'%ZIP_PATH%', 'r'); ^
-for m in zf.infolist(): ^
-  n = m.filename; ^
-  if os.path.isabs(n) or n.startswith('..') or '..' + os.sep in n: ^
-    print('[ERROR] Entrada insegura:', n); sys.exit(1); ^
-  tp = os.path.normpath(os.path.join(r'%ROOT%', n)); ^
-  if not tp.startswith(os.path.abspath(r'%ROOT%') + os.sep) and tp != os.path.abspath(r'%ROOT%'): ^
-    print('[ERROR] Escape de directorio:', n); sys.exit(1); ^
-zf.extractall(r'%ROOT%'); ^
-print('[UPDATE] Extracción completada')"
+echo [UPDATE] Backup del runtime actual...
+if exist "%ROOT%\runtime.old" rmdir /S /Q "%ROOT%\runtime.old" 2>nul
+if exist "%ROOT%\runtime" rename "%ROOT%\runtime" "runtime.old"
 
+echo [UPDATE] Extrayendo actualizacion con tar (nativo Win10 1803+)...
+tar -xf "%ZIP_PATH%" -C "%ROOT%"
 if errorlevel 1 (
-    echo [ERROR] Fallo en extracción. Restaurando backup...
-    if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
-    pause
+    echo [ERROR] Fallo la extraccion. Restaurando runtime...
+    if exist "%ROOT%\runtime" rmdir /S /Q "%ROOT%\runtime" 2>nul
+    if exist "%ROOT%\runtime.old" rename "%ROOT%\runtime.old" "runtime"
+    if exist "%ROOT%\%LAUNCHER%.bak" rename "%ROOT%\%LAUNCHER%.bak" "%LAUNCHER%" 2>nul
+    REM Log desatendido (sin pause) — write to _logs/update_error.log
+    if not exist "%ROOT%\_logs" mkdir "%ROOT%\_logs" 2>nul
+    echo [%date% %time%] ERROR extraccion zip fallida: %ZIP_PATH% >> "%ROOT%\_logs\update_error.log"
     exit /b 1
 )
 
-REM Verificar que el nuevo launcher existe
-if not exist "%ROOT%\{launcher_name}" (
-    echo [ERROR] No se encontró {launcher_name} tras extraer. Restaurando backup...
-    if exist "%ROOT%\{launcher_name}.bak" rename "%ROOT%\{launcher_name}.bak" "{launcher_name}"
-    pause
-    exit /b 1
+REM Verificar que el launcher vino en el zip. Si no, restaurar backup.
+if not exist "%ROOT%\%LAUNCHER%" (
+    if exist "%ROOT%\%LAUNCHER%.bak" rename "%ROOT%\%LAUNCHER%.bak" "%LAUNCHER%" 2>nul
+    if not exist "%ROOT%\%LAUNCHER%" (
+        echo [ERROR] %LAUNCHER% no encontrado en el zip. Abortando.
+        if exist "%ROOT%\runtime.old" rename "%ROOT%\runtime.old" "runtime"
+        if not exist "%ROOT%\_logs" mkdir "%ROOT%\_logs" 2>nul
+        echo [%date% %time%] ERROR launcher no encontrado en zip >> "%ROOT%\_logs\update_error.log"
+        exit /b 1
+    )
 )
 
 echo [UPDATE] Limpieza...
+if exist "%ROOT%\runtime.old" rmdir /S /Q "%ROOT%\runtime.old" 2>nul
 if exist "%ZIP_PATH%" del "%ZIP_PATH%"
-if exist "%ROOT%\{launcher_name}.bak" del "%ROOT%\{launcher_name}.bak"
-if exist "%ROOT%\update.bat" del "%ROOT%\update.bat"
 if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
 
-echo [UPDATE] Iniciando nueva versión...
-start "" "%ROOT%\{launcher_name}"
+echo [UPDATE] Iniciando nueva version...
+start "" "%ROOT%\%LAUNCHER%"
 
+REM Autoborrado del .bat (trick: goto fuera del script + del propio).
+(goto) 2>nul & del "%~f0"
 exit /b 0
 """
     with open(bat_path, "w", encoding="utf-8", newline="\r\n") as f:
