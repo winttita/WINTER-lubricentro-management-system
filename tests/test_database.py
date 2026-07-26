@@ -1174,5 +1174,51 @@ def test_registrar_pago_cc_con_ventas_monto_negativo_devuelve_false(temp_db):
     assert ok is False
 
 
+# --- Reportes ---
+
+def test_reporte_inventario_vacio(temp_db):
+    """Cuando no hay productos activos, el reporte de inventario debe estar vacío."""
+    inv = database.get_reporte_inventario()
+    assert inv == []
+
+
+def test_reporte_inventario_con_datos(temp_db):
+    """Verifica que get_reporte_inventario devuelva datos correctos con valorización."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto(
+        "C001", "7790001", "Aceite 5W30", "Sintético",
+        1, 1, "Entero", 5, 100, 150, stock_inicial=20
+    )
+    inv = database.get_reporte_inventario()
+    assert len(inv) == 1
+    row = inv[0]
+    # (id, nombre, stock_actual, stock_minimo, precio_costo, precio_venta, categoria, valor_costo, valor_venta)
+    assert row[1] == "Aceite 5W30"
+    assert row[2] == 20.0       # stock_actual
+    assert row[3] == 5          # stock_minimo
+    assert row[4] == 100        # precio_costo
+    assert row[5] == 150        # precio_venta
+    assert row[6] == "Aceites"  # categoria
+    assert row[7] == 2000.0     # valor_costo = 20 * 100
+    assert row[8] == 3000.0     # valor_venta = 20 * 150
+
+
+def test_reporte_inventario_excluye_productos_inactivos(temp_db):
+    """Productos desactivados (activo=0) no deben aparecer en el reporte."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto(
+        "C001", "7790001", "Aceite 5W30", "Sintético",
+        1, 1, "Entero", 5, 100, 150, stock_inicial=20
+    )
+    conn = database.get_connection()
+    conn.execute("UPDATE productos SET activo = 0 WHERE id = 1")
+    conn.commit()
+    conn.close()
+    inv = database.get_reporte_inventario()
+    assert inv == []
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
