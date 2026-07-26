@@ -49,8 +49,10 @@ jobs:
 
           # NOTE: --uac-admin and --icon now INCLUDED in CI to match
           # build/build_windows.bat. icon.ico is well-formed (fixed in v0.3.0).
+          # Usamos $pwd para ruta absoluta porque --specpath pyi-spec hace que
+          # PyInstaller resuelva rutas relativas al directorio del spec.
           python -m PyInstaller --onefile --windowed --uac-admin --noconfirm --name LubricentroWinter `
-            --icon build/icon.ico `
+            --icon "$pwd\build\icon.ico" `
             --distpath dist `
             --workpath pyi-build `
             --specpath pyi-spec `
