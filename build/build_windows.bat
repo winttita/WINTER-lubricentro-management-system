@@ -45,8 +45,8 @@ echo Version detectada: %VERSION%
 
 REM --- Configurar paths ----------------------------------------------------
 set DIST=%ROOT%\dist
-set STAGE=%DIST%\LubricentroWinter_v%VERSION%
-set ZIP=%DIST%\LubricentroWinter_v%VERSION%.zip
+set STAGE=%DIST%\LubricentroWinter
+set ZIP=%DIST%\LubricentroWinter.zip
 
 REM Limpiar stage previo
 if exist "%STAGE%" rmdir /s /q "%STAGE%"
@@ -119,6 +119,7 @@ echo [5/8] Copiando codigo fuente...
 mkdir "%STAGE%\app" 2>nul
 copy /Y "%ROOT%\app.py"       "%STAGE%\app\app.py"       >nul
 copy /Y "%ROOT%\database.py" "%STAGE%\app\database.py"  >nul
+copy /Y "%ROOT%\update_worker.py" "%STAGE%\app\update_worker.py" >nul
 xcopy /E /I /Q "%ROOT%\pages" "%STAGE%\app\pages\"      >nul
 copy /Y "%ROOT%\updater.py"      "%STAGE%\updater.py"      >nul
 copy /Y "%ROOT%\requirements.txt" "%STAGE%\requirements.txt" >nul

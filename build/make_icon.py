@@ -1,4 +1,4 @@
-"""Genera build/icon.ico para LubricantroWinter.exe.
+"""Genera build/icon.ico para LubricentroWinter.exe.
 
 Diseno: bidon de aceite minimalista (cilindro con tapa y mango) en azul
 petroleo (#1B4F72), con una gota dorada (#E8A21C) como marca sobre el

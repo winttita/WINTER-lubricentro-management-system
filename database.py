@@ -27,7 +27,7 @@ def _user_data_dir() -> str:
 
     Windows: %APPDATA%\\LubricentroWinter
     macOS:   ~/Library/Application Support/LubricentroWinter
-    Linux:   $XDG_DATA_HOME/LubricentroWinter o ~/.local/share/LubricantroWinter
+    Linux:   $XDG_DATA_HOME/LubricentroWinter o ~/.local/share/LubricentroWinter
     """
     if sys.platform == "win32":
         base = os.environ.get("APPDATA") or os.path.expanduser("~")
@@ -43,12 +43,7 @@ def _resolve_data_paths() -> tuple[str, str]:
     """Calcula DB_NAME y BACKUP_DIR absolutos. Crea el dir si no existe.
     Devuelve (db_name, backup_dir)."""
     data_dir = _user_data_dir()
-    try:
-        os.makedirs(data_dir, exist_ok=True)
-    except OSError:
-        # Si no podemos crear el dir de usuario (permisos, readonly, tests),
-        # caemos al cwd. Esto mantiene a tests/debug intactos.
-        data_dir = os.getcwd()
+    os.makedirs(data_dir, exist_ok=True)
     db_name = os.path.join(data_dir, "lubricentro.db")
     backup_dir = os.path.join(data_dir, "backups")
     return db_name, backup_dir
@@ -390,6 +385,19 @@ def init_db():
     if 'ventas_imputadas' not in cols_cc:
         # CSV de venta_ids a las que aplica un pago (ej: "1,3,5")
         conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN ventas_imputadas TEXT")
+        conn.commit()
+
+    # Schema versioning: tabla de control para migraciones futuras.
+    # Version 1 = schema actual (todas las tablas + migraciones ALTER arriba).
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS _schema_version (
+            version INTEGER PRIMARY KEY,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    row = conn.execute("SELECT MAX(version) FROM _schema_version").fetchone()
+    if not row or row[0] is None:
+        conn.execute("INSERT INTO _schema_version (version) VALUES (1)")
         conn.commit()
 
     conn.close()

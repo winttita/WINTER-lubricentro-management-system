@@ -95,6 +95,7 @@ with st.sidebar:
 
     st.divider()
     st.caption(f"Versión {APP_VERSION}")
+    st.caption(f"DB: {db.DB_NAME}")
     try:
         update_info = check_for_update()
         if update_info:
@@ -144,26 +145,6 @@ with st.sidebar:
                         pass
                     apply_update(path)
                     st.success("Actualización lista. La app se cerrará y reiniciará.")
-                    # Lanzar update.bat y salir. El .bat hace taskkill del exe
-                    # + extrae con tar + relanza. Estamos en el proceso app.py
-                    # (hijo del launcher), el taskkill del .bat cierra todo.
-                    root = os.path.dirname(os.path.abspath(__file__))
-                    bat_path = os.path.join(root, "update.bat")
-                    CREATE_NO_WINDOW = 0x08000000
-                    try:
-                        subprocess.Popen(
-                            ["cmd", "/c", bat_path],
-                            cwd=root,
-                            creationflags=subprocess.DETACHED_PROCESS
-                                         | subprocess.CREATE_NEW_PROCESS_GROUP
-                                         | CREATE_NO_WINDOW,
-                            stdin=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                        )
-                    except Exception as e:
-                        st.error(f"No se pudo iniciar la actualización: {e}")
-                        st.stop()
                     os._exit(0)
                 else:
                     st.error("No se encontró el asset de actualización")

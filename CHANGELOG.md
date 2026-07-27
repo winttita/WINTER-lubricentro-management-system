@@ -5,7 +5,20 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
-## [0.4.0] - 2026-07-25
+## [0.4.1] - 2026-07-27
+
+### Corregido
+- Nombre del asset de actualización: `build/build_windows.bat` ahora genera `LubricentroWinter.zip` (sin versión) para coincidir con `updater.find_asset()` y permitir detección automática de actualizaciones
+- Sistema de actualización: Reemplazado `update.bat` por watchdog en Python (`app/update_worker.py`) lanzado vía `runtime\pythonw.exe` (sin ventana) para extracción segura y relanzamiento
+- Fallback de ruta de base de datos: Eliminado `os.getcwd()` en `database._resolve_data_paths()` para evitar que la DB aparente "desaparecer" si `os.makedirs` falla
+- Compatibilidad hacia atrás: `updater.find_asset()` ahora tiene fallback por substring para detectar assets nombrados `LubricentroWinter_vX.Y.Z.zip` (builds antiguos)
+- Versionado de esquema: Añadida tabla `_schema_version` en `database.init_db()` para migraciones futuras
+- Ubicación de DB visible: `app.py` sidebar muestra `st.caption(f"DB: {db.DB_NAME}")` para transparencia
+- Corrección de typos: "Lubricantro" → "Lubricentro" en comentarios, documentación y nombres de archivos internos
+
+### Agregado
+- Nuevo watchdog de actualización: `app/update_worker.py` script que espera salida de app, extrae ZIP con validación de path traversal, y relanza launcher
+- Mejor manejo de errores en actualización: Logging a `_logs/update_error.log` en lugar de silenciar fallos
 
 ### Corregido
 - Sistema de actualizaciones automaticas completamente reescrito. `updater._write_update_batch_secure` (`updater.py:350`) ahora usa `taskkill /F /IM` + `tar -xf` nativo de Windows 11 (sin dependencias de Python externo ni PowerShell), eliminando la ventana `findstr` bloqueante, el error `failed to load python DLL` y el bloqueo hasta `Ctrl+C`.
@@ -17,7 +30,7 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 - Icono del .exe ahora aplica en builds del CI: `.github/workflows/release.yml:53` agrega `--uac-admin --icon build/icon.ico`. Antes los builds locales incluian icono pero el CI lo omitia, resultando en exe con icono generico de PyInstaller.
 
 ### Agregado
-- Preservacion de datos de usuario entre actualizaciones: `lubricentro.db` y `backups/` ahora viven en `%APPDATA%\LubricentroWinter\` (Windows) o `~/.local/share/LubricantroWinter/` (Linux) en lugar del directorio de instalacion. Migracion automatica: `database._migrate_legacy_db_location` mueve DBs existentes al primer arranque, preservando datos cargados.
+- Preservacion de datos de usuario entre actualizaciones: `lubricentro.db` y `backups/` ahora viven en `%APPDATA%\LubricentroWinter\` (Windows) o `~/.local/share/LubricentroWinter/` (Linux) en lugar del directorio de instalacion. Migracion automatica: `database._migrate_legacy_db_location` mueve DBs existentes al primer arranque, preservando datos cargados.
 - Funcion `_resolve_data_paths` y constante `DATA_DIR_NAME` en `database.py` para resolver el directorio de datos por SO.
 - Backup automatico de la DB al iniciar la app y antes de aplicar una actualizacion (`app.py:18`, `app.py:139`). `cleanup_old_backups` mantiene los ultimos 10.
 - `database.get_ventas` acepta `only_consumidor_final=False` para filtrar ventas a Consumidor Final.

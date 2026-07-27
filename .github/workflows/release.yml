@@ -286,7 +286,7 @@ jobs:
                       $BODY += "### Cómo actualizar`n"
                       $BODY += "La aplicación verifica automáticamente nuevas versiones al iniciar. Si hay una actualización disponible, se descargará y aplicará automáticamente al cerrar la aplicación.`n`n"
                      $BODY += "### Descarga manual`n"
-                     $BODY += "Descarga el archivo `LubricentroWinter.zip`, extrae y ejecuta `LubricantroWinter.exe`."          
+                     $BODY += "Descarga el archivo `LubricentroWinter.zip`, extrae y ejecuta `LubricentroWinter.exe`."          
           $BODY | Out-File -FilePath release_notes.md -Encoding utf8
                       "body_path=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 

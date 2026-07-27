@@ -2,7 +2,7 @@
 Launcher de Lubricentro Winter.
 
 Este script se compila a un .exe pequeño con PyInstaller:
-    pyinstaller --onefile --windowed --uac-admin --name LubricantroWinter launcher.py
+    pyinstaller --onefile --windowed --uac-admin --name LubricentroWinter launcher.py
 
 El launcher.exe se distribuye junto a una carpeta `runtime/` que contiene
 Python embebido + dependencias. El launcher:

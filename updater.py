@@ -34,7 +34,7 @@ from typing import Optional, Tuple
 GITHUB_REPO = os.environ.get("LUBRICENTRO_REPO", "winttita/WINTER-lubricentro-management-system")
 
 # Versión actual de la aplicación. Se compara contra el tag de la última release.
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.4.1"
 
 # Nombre esperado del asset (el .exe) dentro de la release. Si se cambia, basta
 # con editar esta constante. Se busca por substring (ej: "LubricentroWinter.exe"
@@ -184,15 +184,26 @@ def find_asset(release: dict, hint: str = ASSET_NAME_HINT) -> Optional[dict]:
         return None
     expected_zip = f"{hint}.zip"
     expected_exe = f"{hint}.exe"
-    # Buscar match exacto .zip
+    # 1. Match exacto .zip
     for a in assets:
         if a.get("name", "").lower() == expected_zip.lower():
             return a
-    # Buscar match exacto .exe
+    # 2. Match exacto .exe
     for a in assets:
         if a.get("name", "").lower() == expected_exe.lower():
             return a
-    # No fallback a substring - solo exact matches
+    # 3. Fallback: .zip que contenga el hint (compatibilidad con releases
+    #    viejas nombradas LubricentroWinter_v0.4.0.zip).
+    hint_lower = hint.lower()
+    for a in assets:
+        name = a.get("name", "").lower()
+        if name.endswith(".zip") and hint_lower in name:
+            return a
+    # 4. Fallback: .exe que contenga el hint
+    for a in assets:
+        name = a.get("name", "").lower()
+        if name.endswith(".exe") and hint_lower in name:
+            return a
     return None
 
 
@@ -299,22 +310,22 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
 
 def apply_update(downloaded_path: str, expected_sha256: Optional[str] = None) -> str:
     """
-    Verifica el archivo descargado (checksum opcional), extrae de forma segura
-    y escribe update.bat para aplicar al reinicio.
+    Verifica el archivo descargado (checksum opcional), escribe el lock
+    de actualizacion pendiente y lanza el watchdog (update_worker.py) como
+    proceso detached sin ventana para que aplique la actualizacion al
+    cerrarse la app.
+
+    Mantenemos el .bat legacy como fallback: si un launcher viejo arranca
+    y encuentra el lock, puede usar el .bat. El worker es el camino
+    preferido en builds nuevas.
+
     Devuelve el path al lock file creado.
 
     Args:
         downloaded_path: Ruta al .zip descargado.
         expected_sha256: Hash SHA256 esperado (hex lowercase). Si se proporciona
                          y no coincide, lanza UpdateError.
-
-    Seguridad:
-    - Valida el checksum SHA256 si se proporciona.
-    - Extrae con zipfile validando cada entry (no path traversal).
-    - Extrae a directorio staging, verifica, luego renombrado atómico.
-    - No usa PowerShell ni interpolación de strings en comandos.
     """
-    # Verificar checksum si se proporciona
     if expected_sha256:
         if not _verify_checksum(downloaded_path, expected_sha256):
             raise UpdateError("Checksum SHA256 no coincide - posible archivo corrupto o manipulado")
@@ -324,7 +335,46 @@ def apply_update(downloaded_path: str, expected_sha256: Optional[str] = None) ->
         f.write(downloaded_path + "\n")
     root = os.path.dirname(UPDATE_DIR)
     _write_update_batch_secure(root, downloaded_path)
+    _spawn_update_worker(root, downloaded_path)
     return UPDATE_LOCK
+
+
+def _spawn_update_worker(root: str, zip_path: str) -> None:
+    """Lanza app/update_worker.py con el runtime embebido pythonw.exe.
+
+    No abre ninguna ventana (pythonw.exe no tiene consola). El proceso es
+    detached: sobrevive al cierre de la app principal. Si no se encuentra
+    el runtime o el worker, no hace nada (el .bat legacy actua como fallback).
+    """
+    runtime_python = os.path.join(root, "runtime", "pythonw.exe")
+    if not os.path.exists(runtime_python):
+        runtime_python = os.path.join(root, "runtime", "python.exe")
+    if not os.path.exists(runtime_python):
+        return
+
+    worker_candidates = [
+        os.path.join(root, "app", "update_worker.py"),
+        os.path.join(root, "update_worker.py"),
+    ]
+    worker_path = next((p for p in worker_candidates if os.path.exists(p)), None)
+    if not worker_path:
+        return
+
+    CREATE_NO_WINDOW = 0x08000000
+    try:
+        subprocess.Popen(
+            [runtime_python, worker_path, "--zip", zip_path, "--root", root],
+            cwd=root,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                          | getattr(subprocess, "DETACHED_PROCESS", 0)
+                          | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                          | CREATE_NO_WINDOW,
+        )
+    except OSError:
+        pass
 
 
 def _extract_zip_safe(zip_path: str, dest_dir: str) -> None:
