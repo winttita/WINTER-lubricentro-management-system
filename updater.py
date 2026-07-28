@@ -34,7 +34,7 @@ from typing import Optional, Tuple
 GITHUB_REPO = os.environ.get("LUBRICENTRO_REPO", "winttita/WINTER-lubricentro-management-system")
 
 # Versión actual de la aplicación. Se compara contra el tag de la última release.
-APP_VERSION = "0.4.1"
+APP_VERSION = "0.4.3"
 
 # Nombre esperado del asset (el .exe) dentro de la release. Si se cambia, basta
 # con editar esta constante. Se busca por substring (ej: "LubricentroWinter.exe"
@@ -51,8 +51,9 @@ UPDATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".updates"
 # al próximo inicio. Contiene la ruta absoluta del binario descargado.
 UPDATE_LOCK = os.path.join(UPDATE_DIR, "pending_update")
 
-# Máximo tamaño de descarga permitido (bytes) - 100 MB.
-MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024
+# Máximo tamaño de descarga permitido (bytes) - 300 MB.
+# El release .zip con runtime empaquetado puede pesar ~150 MB.
+MAX_DOWNLOAD_BYTES = 300 * 1024 * 1024
 
 # --- Excepciones -----------------------------------------------------------
 

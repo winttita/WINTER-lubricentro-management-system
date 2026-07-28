@@ -96,62 +96,66 @@ with st.sidebar:
     st.divider()
     st.caption(f"Versión {APP_VERSION}")
     st.caption(f"DB: {db.DB_NAME}")
+    update_info = None
     try:
         update_info = check_for_update()
-        if update_info:
-            st.warning(f"⬆️ Actualización disponible: **v{update_info['latest_version']}**")
-            if st.button("Descargar e instalar actualización", use_container_width=True):
-                from updater import download_asset, find_asset, apply_update
-                asset = find_asset({"assets": update_info["assets"]})
-                if asset:
-                    total_size = asset.get("size", 0) or 0
-                    progress_bar = st.progress(0.0, text="Iniciando descarga...")
-                    eta_text = st.empty()
-                    start_ts = time.monotonic()
-                    rate_window = []
-
-                    def _cb(done, total):
-                        elapsed = time.monotonic() - start_ts
-                        if total:
-                            frac = done / total
-                            if elapsed > 0.3 and done > 0:
-                                rate = done / elapsed
-                                rate_window.append(rate)
-                                if len(rate_window) > 5:
-                                    rate_window.pop(0)
-                                avg = sum(rate_window) / len(rate_window)
-                                remaining = (total - done) / avg
-                                eta_text.markdown(
-                                    f"**{frac*100:.1f}%** · ~{int(remaining)}s restantes · "
-                                    f"{avg/1024/1024:.1f} MB/s"
-                                )
-                            progress_bar.progress(
-                                min(frac, 1.0),
-                                text=f"{done/1024/1024:.1f} / {total/1024/1024:.1f} MB",
-                            )
-                        else:
-                            progress_bar.progress(
-                                min(done / (100 * 1024 * 1024), 1.0),
-                                text=f"{done/1024/1024:.1f} MB (tamaño desconocido)",
-                            )
-
-                    path = download_asset(asset, progress_callback=_cb)
-                    progress_bar.progress(1.0, text="Descarga completa.")
-                    eta_text.empty()
-                    # Backup de la DB antes de apply_update (silencioso).
-                    try:
-                        db.backup_db()
-                    except Exception:
-                        pass
-                    apply_update(path)
-                    st.success("Actualización lista. La app se cerrará y reiniciará.")
-                    os._exit(0)
-                else:
-                    st.error("No se encontró el asset de actualización")
-        else:
-            st.caption("✅ Última versión")
     except Exception as e:
         st.caption(f"⚠️ No se pudo verificar actualizaciones: {e}")
+    if update_info:
+        st.warning(f"⬆️ Actualización disponible: **v{update_info['latest_version']}**")
+        if st.button("Descargar e instalar actualización", use_container_width=True):
+            from updater import download_asset, find_asset, apply_update
+            asset = find_asset({"assets": update_info["assets"]})
+            if asset:
+                total_size = asset.get("size", 0) or 0
+                progress_bar = st.progress(0.0, text="Iniciando descarga...")
+                eta_text = st.empty()
+                start_ts = time.monotonic()
+                rate_window = []
+
+                def _cb(done, total):
+                    elapsed = time.monotonic() - start_ts
+                    if total:
+                        frac = done / total
+                        if elapsed > 0.3 and done > 0:
+                            rate = done / elapsed
+                            rate_window.append(rate)
+                            if len(rate_window) > 5:
+                                rate_window.pop(0)
+                            avg = sum(rate_window) / len(rate_window)
+                            remaining = (total - done) / avg
+                            eta_text.markdown(
+                                f"**{frac*100:.1f}%** · ~{int(remaining)}s restantes · "
+                                f"{avg/1024/1024:.1f} MB/s"
+                            )
+                        progress_bar.progress(
+                            min(frac, 1.0),
+                            text=f"{done/1024/1024:.1f} / {total/1024/1024:.1f} MB",
+                        )
+                    else:
+                        progress_bar.progress(
+                            min(done / (300 * 1024 * 1024), 1.0),
+                            text=f"{done/1024/1024:.1f} MB (tamaño desconocido)",
+                        )
+
+                try:
+                    path = download_asset(asset, progress_callback=_cb)
+                except Exception as e:
+                    st.error(f"❌ Error al descargar actualización: {e}")
+                    st.stop()
+                progress_bar.progress(1.0, text="Descarga completa.")
+                eta_text.empty()
+                try:
+                    db.backup_db()
+                except Exception:
+                    pass
+                apply_update(path)
+                st.success("✅ Actualización lista. La app se cerrará y reiniciará.")
+                os._exit(0)
+            else:
+                st.error("❌ No se encontró el asset de actualización")
+    else:
+        st.caption("✅ Última versión")
 
 st.divider()
 

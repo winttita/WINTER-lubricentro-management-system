@@ -15,8 +15,8 @@
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1785272584.9573302,
-    "ast_hash": "c011619402fd62e6954f70f420483cb9",
+    "mtime": 1785273156.4460704,
+    "ast_hash": "40ffd17aac78a9c81afed3d03e9c2a04",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1785272631.7513785,
-    "ast_hash": "80d0d8b3817dfdde7685b7009de3dfe2",
+    "mtime": 1785273218.7783,
+    "ast_hash": "b8b390053f422bfb00d6377c49b0d4d3",
     "semantic_hash": ""
   },
   "updater.py": {
@@ -207,6 +207,11 @@
   "docs/EDGE_CASES.md": {
     "mtime": 1785272753.2148511,
     "ast_hash": "354083098d9b2060fdbb97b7b50b61a9",
+    "semantic_hash": ""
+  },
+  "seed_data.py": {
+    "mtime": 1785273302.3900578,
+    "ast_hash": "3fd741d6bb5f2bf705c0b0fd46cd799b",
     "semantic_hash": ""
   }
 }

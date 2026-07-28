@@ -44,5 +44,15 @@
   "42": "get_cuenta_corriente_cliente",
   "43": "get_detalle_compra",
   "44": "get_reporte_ventas",
+  "45": "test_get_precios_para_lista_solo_activos_con_stock",
+  "46": "get_reporte_ingresos_egresos",
+  "47": "get_ajustes_stock",
+  "48": "get_clientes_con_deuda",
+  "49": "get_ultimo_numero_comprobante",
+  "50": "get_ventas_pendientes_cc",
+  "51": "update_producto",
+  "52": "update_servicio",
+  "53": "update_categoria",
+  "54": "update_proveedor",
   "62": "test_get_movimientos_sin_movimientos"
 }
