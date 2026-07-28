@@ -130,13 +130,18 @@ copy /Y "%ROOT%\style.py"       "%STAGE%\style.py"       >nul
 copy /Y "%ROOT%\tickets.py"     "%STAGE%\tickets.py"     >nul
 copy /Y "%ROOT%\build\icon.ico"  "%STAGE%\icon.ico"       >nul 2>nul
 
-REM --- 7. Empaquetar ZIP ---------------------------------------------------
-echo [7/8] Empaquetando %ZIP% ...
+REM --- 7. Copiar drivers de impresora ----------------------------------------
+echo [7/9] Copiando drivers de impresora...
+mkdir "%STAGE%\drivers\OCPP-80T" 2>nul
+copy /Y "%ROOT%\drivers\OCPP-80T\*" "%STAGE%\drivers\OCPP-80T\" >nul 2>nul
+
+REM --- 8. Empaquetar ZIP ---------------------------------------------------
+echo [8/9] Empaquetando %ZIP% ...
 powershell -NoProfile -Command "Compress-Archive -Path '%STAGE%\*' -DestinationPath '%ZIP%' -Force"
 
-REM --- 8. Firma digital del ZIP (opcional) ---------------------------------
+REM --- 9. Firma digital del ZIP (opcional) ---------------------------------
 if defined SIGN_CERT_PATH if defined SIGN_CERT_PASSWORD (
-    echo [8/8] Firmando ZIP digitalmente...
+    echo [9/9] Firmando ZIP digitalmente...
     signtool sign /f "%SIGN_CERT_PATH%" /p "%SIGN_CERT_PASSWORD%" ^
         /fd sha256 /tr http://timestamp.digicert.com /td sha256 ^
         "%ZIP%"
@@ -144,7 +149,7 @@ if defined SIGN_CERT_PATH if defined SIGN_CERT_PASSWORD (
         echo ADVERTENCIA: Fallo la firma del ZIP. Continuando...
     )
 ) else (
-    echo [8/8] Sin certificado de firma configurado. Saltando firma del ZIP.
+    echo [9/9] Sin certificado de firma configurado. Saltando firma del ZIP.
 )
 
 echo.

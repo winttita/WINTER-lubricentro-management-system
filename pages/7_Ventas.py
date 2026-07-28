@@ -7,7 +7,7 @@ st.set_page_config(page_title="Ventas", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("Ventas - Punto de Venta")
@@ -19,13 +19,13 @@ productos = db.get_productos()
 clientes = db.get_clientes()
 
 if not productos:
-    st.warning("No hay productos cargados. Agregalos desde Productos primero.")
+    st.warning("⚠️ No hay productos cargados. Agregalos desde Productos primero.")
     st.stop()
 
 # Filtrar productos activos con stock
 productos_activos = [p for p in productos if p[12] and p[8] > 0]
 if not productos_activos:
-    st.warning("No hay productos activos con stock disponible.")
+    st.warning("⚠️ No hay productos activos con stock disponible.")
     st.stop()
 
 # Mapeos para seleccionar productos
@@ -126,16 +126,26 @@ with st.form("venta_form"):
 
     if submitted:
         items = []
+        error_fraccion = False
         for item in st.session_state.venta_items:
             if item['producto'] and item['cantidad'] > 0 and item['precio'] > 0:
+                pid = prod_opts[item['producto']]
+                p = prod_lookup[pid]
+                tipo_unidad = p[7] if len(p) > 7 else 'Entero'
+                if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
+                    st.error(f"❌ No se puede vender \"{p[3]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    error_fraccion = True
+                    break
                 items.append({
-                    'producto_id': prod_opts[item['producto']],
+                    'producto_id': pid,
                     'cantidad': item['cantidad'],
                     'precio_unitario': item['precio']
                 })
 
-        if not items:
-            st.error("Agregá al menos un producto con cantidad mayor a 0.")
+        if error_fraccion:
+            pass
+        elif not items:
+            st.error("❌ Agregá al menos un producto con cantidad mayor a 0.")
         else:
             # Validar stock antes de enviar
             stock_ok = True
@@ -143,7 +153,7 @@ with st.form("venta_form"):
                 p = prod_lookup[it['producto_id']]
                 if it['cantidad'] > p[8]:
                     stock_ok = False
-                    st.error(f"Stock insuficiente de \"{p[3]}\": solicitado {it['cantidad']}, disponible {p[8]}")
+                    st.error(f"❌ Stock insuficiente de \"{p[3]}\": solicitado {it['cantidad']}, disponible {p[8]}")
                     break
 
             if stock_ok:
@@ -151,20 +161,20 @@ with st.form("venta_form"):
                 venta_id, numero, error = db.crear_venta(cliente_id, tipo_comp, items, metodo_pago, usuario_id)
                 if venta_id:
                     etiqueta = f"{tipo_comp.upper()} {numero:08d}" if numero else f"#{venta_id}"
-                    st.success(f"Venta confirmada! {etiqueta}")
+                    st.success(f"✅ Venta confirmada! {etiqueta}")
                     st.session_state.venta_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
 
                     # Impresión automática
                     ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
                     if ok_print:
-                        st.info("🖨️ Comprobante enviado a la impresora.")
+                        st.info("ℹ️ Comprobante enviado a la impresora.")
                     else:
-                        st.warning("No se pudo imprimir automáticamente. Botón de reintento abajo.")
+                        st.warning("⚠️ No se pudo imprimir automáticamente. Botón de reintento abajo.")
                         st.session_state.imprimir_ultima = venta_id
 
                     st.rerun()
                 else:
-                    st.error(error or "Error al procesar la venta.")
+                    st.error(f"❌ {error or 'Error al procesar la venta.'}")
 
 
 def imprimir_venta(venta_id, tipo_comp, cliente_id):
@@ -232,11 +242,11 @@ if st.session_state.imprimir_ultima:
     if st.button("🖨️ Reintentar impresión"):
         ok = imprimir_venta(st.session_state.imprimir_ultima, tipo_comp, cliente_id)
         if ok:
-            st.success("Comprobante impreso correctamente.")
+            st.success("✅ Comprobante impreso correctamente.")
             st.session_state.imprimir_ultima = None
             st.rerun()
         else:
-            st.error("La impresión falló nuevamente.")
+            st.error("❌ La impresión falló nuevamente.")
 
 st.divider()
 
@@ -282,4 +292,4 @@ if st.button("Buscar", key="hist_btn"):
                 st.write(f"**IVA:** ${v[6]:.2f}")
                 st.write(f"**Total:** ${v[7]:.2f}")
     else:
-        st.info("No se encontraron ventas.")
+        st.info("ℹ️ No se encontraron ventas.")

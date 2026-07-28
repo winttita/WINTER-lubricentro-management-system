@@ -1,4 +1,6 @@
 streamlit
 pandas
 pytest
+pywin32
+fpdf2
 # pyinstaller solo se necesita en la maquina que compila el .exe, no en runtime.

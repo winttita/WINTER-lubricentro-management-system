@@ -6,7 +6,7 @@ st.set_page_config(page_title="Compras", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("Compras a Proveedores")
@@ -15,10 +15,10 @@ proveedores = db.get_proveedores()
 productos = db.get_productos()
 
 if not proveedores:
-    st.warning("No hay proveedores cargados. Agregalos desde Configuración primero.")
+    st.warning("⚠️ No hay proveedores cargados. Agregalos desde Configuración primero.")
 
 if not productos:
-    st.warning("No hay productos cargados. Agregalos desde Productos primero.")
+    st.warning("⚠️ No hay productos cargados. Agregalos desde Productos primero.")
 
 if proveedores and productos:
     prov_dict = {p[1]: p[0] for p in proveedores}
@@ -87,15 +87,15 @@ if proveedores and productos:
                     })
 
             if not items:
-                st.error("Agregá al menos un producto con cantidad y precio mayor a 0.")
+                st.error("❌ Agregá al menos un producto con cantidad y precio mayor a 0.")
             else:
                 compra_id = db.crear_compra(prov_dict[proveedor_sel], items, observaciones)
                 if compra_id:
-                    st.success(f"Compra #{compra_id} registrada correctamente.")
+                    st.success(f"✅ Compra #{compra_id} registrada correctamente.")
                     st.session_state.compra_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
                     st.rerun()
                 else:
-                    st.error("Error al registrar la compra.")
+                    st.error("❌ Error al registrar la compra.")
 
 st.divider()
 
@@ -123,9 +123,9 @@ if compras:
                 if st.button("Anular compra", key=f"anular_{c[0]}"):
                     ok = db.anular_compra(c[0])
                     if ok:
-                        st.success("Compra anulada. Stock revertido.")
+                        st.success("✅ Compra anulada. Stock revertido correctamente.")
                         st.rerun()
                     else:
-                        st.error("Error al anular la compra.")
+                        st.error("❌ Error al anular la compra.")
 else:
-    st.info("No hay compras registradas.")
+    st.info("ℹ️ No hay compras registradas.")

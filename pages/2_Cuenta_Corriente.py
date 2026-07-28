@@ -66,7 +66,7 @@ if deudores:
         })
     st.dataframe(data, use_container_width=True, hide_index=True)
 else:
-    st.success("No hay clientes con deuda pendiente.")
+    st.info("ℹ️ No hay clientes con deuda pendiente.")
 
 st.divider()
 
@@ -145,7 +145,7 @@ if cliente_sel:
                     else:
                         ok = db.registrar_pago_cc(cli_id, monto_pago, metodo_sel, observacion, st.session_state.user_id)
                     if ok:
-                        st.success(f"Pago de ${monto_pago:.2f} registrado correctamente.")
+                        st.success(f"✅ Pago de ${monto_pago:.2f} registrado correctamente.")
                         # Limpiar selección de tickets reseteando el form
                         st.rerun()
                     else:

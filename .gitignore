@@ -14,3 +14,10 @@ _logs/
 stash.patch
 # Preview del icono generado en dev (solo para validación visual local)
 build/icon_preview.png
+# Logs de VirtualBox
+*.log
+# Drivers externos
+drivers/
+# Cachés temporales de graphify (no deben commitearse)
+graphify-out/2026-*/
+graphify-out/cache/

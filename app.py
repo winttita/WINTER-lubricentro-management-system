@@ -205,8 +205,8 @@ st.subheader("Navegación")
 st.markdown("""
 Usá el menú lateral izquierdo para acceder a las distintas secciones del sistema:
 
-- **Gestión**: Clientes, vehículos, categorías, proveedores y servicios
-- **Productos**: Alta y gestión de productos
+- **Gestión**: Clientes, vehículos, proveedores y servicios
+- **Productos**: Categorías, alta y gestión de productos
 - **Stock**: Inventario actual, movimientos y ajustes de stock
 - **Ventas**: Punto de venta
 - **Compras**: Compras a proveedores

@@ -10,17 +10,17 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1784842930.3606055,
-    "ast_hash": "83c02af48024932759efc643d754b6a8",
+    "mtime": 1785159323.3419802,
+    "ast_hash": "bc25169a4097477781c6152354f1c338",
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1784843457.7090201,
-    "ast_hash": "9a12076549e03d96032020f01e2a8f62",
+    "mtime": 1785158456.4346023,
+    "ast_hash": "b0a54bfe8defae41ef58017565c726ac",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
-    "mtime": 1784842995.5534317,
+    "mtime": 1785101485.8630955,
     "ast_hash": "4b245f619b4053f3121db25937274959",
     "semantic_hash": ""
   },
@@ -30,13 +30,13 @@
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1784843366.7815242,
-    "ast_hash": "5ec931051f9b893f59abe33aef710c2d",
+    "mtime": 1785102205.1541705,
+    "ast_hash": "c3bd960cfd367a644b36bcc08d6b8661",
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1784844371.2326949,
-    "ast_hash": "f732d61c3386870735592d197b386f89",
+    "mtime": 1785159911.826076,
+    "ast_hash": "ab2ced7b1235cb0e169c8eff8b7582e2",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -55,23 +55,23 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784299439.717911,
+    "mtime": 1785101485.8470957,
     "ast_hash": "0ee0f8a0dfda573b96393fdc7ffaa272",
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1784299439.717911,
+    "mtime": 1785101485.8630955,
     "ast_hash": "003e8ef67a249e5cdf234fc61add273a",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1784846800.8046744,
-    "ast_hash": "09c6ba03acf7a9ab9ed1bb26287a8039",
+    "mtime": 1785158520.206615,
+    "ast_hash": "058b840637ae89a01d85c4e570ba4bb9",
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1784844455.50392,
-    "ast_hash": "d2a5666c70b4bde99dc5cc914c9c96b5",
+    "mtime": 1785159962.106069,
+    "ast_hash": "e5ab3f219a574d55143ff675544ae326",
     "semantic_hash": ""
   },
   "optimized-prompt.md": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "pages/7_Ventas.py": {
-    "mtime": 1784842987.3813562,
-    "ast_hash": "f0c1fd6dad987b232dbabf5e3022180d",
+    "mtime": 1784929155.4310758,
+    "ast_hash": "ae30bfc8108a2b17f4cd524ee35be944",
     "semantic_hash": ""
   },
   "tickets.py": {
@@ -135,7 +135,7 @@
     "semantic_hash": ""
   },
   "TODO.md": {
-    "mtime": 1784647345.124872,
+    "mtime": 1785101485.8470957,
     "ast_hash": "52a5b178c48c543a1910e46e5c3202d6",
     "semantic_hash": ""
   },
@@ -177,6 +177,21 @@
   "CERTIFICATE_SIGNING.md": {
     "mtime": 1784844783.2838225,
     "ast_hash": "c27898b0fa307bc58d3876c9b7475816",
+    "semantic_hash": ""
+  },
+  "docker/run_tests.sh": {
+    "mtime": 1784934224.3473396,
+    "ast_hash": "b272a8ab0d95ba90810995e83a255337",
+    "semantic_hash": ""
+  },
+  "docker/test_updater.py": {
+    "mtime": 1784934628.77888,
+    "ast_hash": "143402d81b6108f85324c61cb38ca33e",
+    "semantic_hash": ""
+  },
+  "update_worker.py": {
+    "mtime": 1785158248.0465438,
+    "ast_hash": "a1a937dc3460afff752ff90e1da7b171",
     "semantic_hash": ""
   }
 }

@@ -1,4 +1,5 @@
 import streamlit as st
+import sqlite3
 import database as db
 from style import inject_global_css
 
@@ -6,7 +7,7 @@ st.set_page_config(page_title="Gestión de Productos")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("Productos")
@@ -19,9 +20,45 @@ cat_dict = {c[1]: c[0] for c in categorias}
 prov_dict = {p[1]: p[0] for p in proveedores}
 
 if not categorias:
-    st.warning("No hay categorías cargadas. Primero cargá al menos una categoría desde Configuración.")
+    st.warning("⚠️ No hay categorías cargadas. Agregá una en la sección Categorías de esta página.")
 if not proveedores:
-    st.warning("No hay proveedores cargados. Primero cargá al menos un proveedor desde Configuración.")
+    st.warning("⚠️ No hay proveedores cargados. Primero cargá al menos un proveedor desde la pestaña Gestión.")
+
+# --- CATEGORIAS ---
+st.subheader("📂 Categorías")
+cat_cols = st.columns([3, 1])
+with cat_cols[0]:
+    with st.form("add_cat"):
+        cat_nombre = st.text_input("Nueva categoría")
+        if st.form_submit_button("Agregar"):
+            if cat_nombre.strip():
+                if db.add_categoria(cat_nombre):
+                    st.success("✅ Categoría agregada correctamente")
+                    st.rerun()
+                else:
+                    st.error("❌ Ya existe")
+
+if categorias:
+    for c in categorias:
+        c1, c2 = st.columns([4, 1])
+        with c1:
+            st.write(f"• {c[1]}")
+        with c2:
+            if st.button("🗑️ Eliminar", key=f"del_cat_{c[0]}"):
+                try:
+                    conn = db.get_connection()
+                    conn.execute("DELETE FROM categorias WHERE id=?", (c[0],))
+                    conn.commit()
+                    st.success("✅ Categoría eliminada correctamente")
+                except sqlite3.IntegrityError:
+                    st.error("❌ No se puede eliminar: hay productos usando esta categoría")
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")
+                finally:
+                    conn.close()
+                st.rerun()
+
+st.divider()
 
 if categorias and proveedores:
      # Initialize clear flag if not present
@@ -63,12 +100,17 @@ if categorias and proveedores:
              stock_inicial = st.number_input("Stock Inicial", min_value=0.0, value=0.0)
              
          submitted = st.form_submit_button("Guardar Producto")
-         if submitted and nombre:
-             db.add_producto(codigo_interno, codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=stock_inicial)
-             # Set flag to clear scanner on next render
-             st.session_state.clear_scanner = True
-             st.success("Producto agregado correctamente")
-             st.rerun()
+         if submitted:
+             if not nombre.strip():
+                 st.error("❌ El nombre es obligatorio.")
+             else:
+                 try:
+                     db.add_producto(codigo_interno, codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=stock_inicial)
+                     st.session_state.clear_scanner = True
+                     st.success("✅ Producto agregado correctamente")
+                     st.rerun()
+                 except sqlite3.IntegrityError:
+                     st.error("❌ Error: código interno o de barras duplicado.")
 
 st.divider()
 
@@ -97,15 +139,15 @@ for p in productos:
         if st.button("💾 Guardar cambios", key=f"save_{pid}"):
             ok = db.update_producto(pid, new_cod_int, new_cod_bar, new_nombre, new_desc, cat_dict[new_cat], prov_dict[new_prov], new_tipo, new_stock_min, new_prec_costo, new_prec_venta)
             if ok:
-                st.success("Actualizado")
+                st.success("✅ Actualizado correctamente")
                 st.rerun()
             else:
-                st.error("Error al actualizar (¿código duplicado?)")
+                st.error("❌ Error al actualizar (¿código duplicado?)")
         
         if st.button("🗑️ Desactivar", key=f"del_{pid}", type="secondary"):
             conn = db.get_connection()
             conn.execute("UPDATE productos SET activo=0 WHERE id=?", (pid,))
             conn.commit()
             conn.close()
-            st.success("Producto desactivado")
+            st.success("✅ Producto desactivado correctamente")
             st.rerun()

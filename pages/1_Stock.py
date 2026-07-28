@@ -7,7 +7,7 @@ st.set_page_config(page_title="Stock", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("📦 Stock")
@@ -27,7 +27,7 @@ with tab_stock:
     productos = db.get_productos()
 
     if not productos:
-        st.info("No hay productos cargados.")
+        st.info("ℹ️ No hay productos cargados.")
     else:
         busqueda_lower = busqueda.strip().lower()
         if busqueda_lower:
@@ -144,7 +144,7 @@ with tab_mov:
             })
         st.dataframe(data, use_container_width=True, hide_index=True)
     else:
-        st.info("No hay movimientos con los filtros seleccionados.")
+        st.info("ℹ️ No hay movimientos con los filtros seleccionados.")
 
 
 # =============================================================================
@@ -155,7 +155,7 @@ with tab_adj:
     st.caption("Solo administradores y supervisores pueden hacer ajustes. Motivo obligatorio.")
 
     if st.session_state.get('user_rol') not in ('admin', 'supervisor'):
-        st.error("No tenés permisos para hacer ajustes de stock.")
+        st.error("❌ No tenés permisos para hacer ajustes de stock.")
     else:
         prod_opts_adj = {f"[{p[1]}] {p[3]} - Stock: {p[8]}": p[0] for p in productos}
 
@@ -167,7 +167,7 @@ with tab_adj:
 
                 prod_info = next((p for p in productos if p[0] == producto_id), None)
                 stock_actual = float(prod_info[8]) if prod_info else 0.0
-                st.info(f"Stock actual: **{stock_actual}**")
+                st.info(f"ℹ️ Stock actual: **{stock_actual}**")
 
             with col2:
                 stock_nuevo = st.number_input("Nuevo stock", min_value=0.0, value=stock_actual, step=1.0, key="adj_nuevo")
@@ -176,18 +176,18 @@ with tab_adj:
             submitted = st.form_submit_button("Aplicar Ajuste", type="primary")
             if submitted:
                 if not motivo.strip():
-                    st.error("El motivo es obligatorio")
+                    st.error("❌ El motivo es obligatorio")
                 else:
                     diff = stock_nuevo - stock_actual
                     if diff == 0:
-                        st.warning("El stock no cambió")
+                        st.warning("⚠️ El stock no cambió")
                     else:
                         ok = db.crear_ajuste_stock(producto_id, stock_nuevo, motivo.strip(), st.session_state.user_id)
                         if ok:
-                            st.success(f"Ajuste aplicado: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
+                            st.success(f"✅ Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
                             st.rerun()
                         else:
-                            st.error("Error al aplicar ajuste.")
+                            st.error("❌ Error al aplicar ajuste.")
 
     st.divider()
 
@@ -222,4 +222,4 @@ with tab_adj:
                 })
             st.dataframe(data, use_container_width=True, hide_index=True)
         else:
-            st.info("No hay ajustes con esos filtros.")
+            st.info("ℹ️ No hay ajustes con esos filtros.")

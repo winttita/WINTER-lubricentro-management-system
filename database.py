@@ -387,8 +387,45 @@ def init_db():
         conn.execute("ALTER TABLE cuenta_corriente ADD COLUMN ventas_imputadas TEXT")
         conn.commit()
 
+    # Migración: soft delete de clientes - agregar columna activo
+    cols_clientes = [r[1] for r in conn.execute("PRAGMA table_info(clientes)").fetchall()]
+    if 'activo' not in cols_clientes:
+        conn.execute("ALTER TABLE clientes ADD COLUMN activo INTEGER DEFAULT 1")
+        conn.commit()
+
+    # Nueva tabla caja para manejo de caja
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS caja (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            saldo_inicial REAL NOT NULL,
+            saldo_actual REAL NOT NULL,
+            fecha_apertura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fecha_cierre TIMESTAMP,
+            usuario_id INTEGER NOT NULL,
+            abierta INTEGER DEFAULT 1,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+    """)
+
+    # Nueva tabla movimientos_caja para registrar movimientos de caja
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS movimientos_caja (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            caja_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL CHECK(tipo IN ('apertura', 'cierre', 'ajuste', 'ingreso_venta')),
+            monto REAL NOT NULL,
+            saldo_anterior REAL NOT NULL,
+            saldo_nuevo REAL NOT NULL,
+            observacion TEXT,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            usuario_id INTEGER NOT NULL,
+            FOREIGN KEY (caja_id) REFERENCES caja(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+    """)
+
     # Schema versioning: tabla de control para migraciones futuras.
-    # Version 1 = schema actual (todas las tablas + migraciones ALTER arriba).
+    # Version 2 = schema actual (todas las tablas + migraciones ALTER arriba + tabla caja y movimientos_caja).
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS _schema_version (
             version INTEGER PRIMARY KEY,
@@ -397,7 +434,10 @@ def init_db():
     """)
     row = conn.execute("SELECT MAX(version) FROM _schema_version").fetchone()
     if not row or row[0] is None:
-        conn.execute("INSERT INTO _schema_version (version) VALUES (1)")
+        conn.execute("INSERT INTO _schema_version (version) VALUES (2)")
+        conn.commit()
+    elif row[0] < 2:
+        conn.execute("UPDATE _schema_version SET version = 2, applied_at = CURRENT_TIMESTAMP")
         conn.commit()
 
     conn.close()
@@ -583,11 +623,42 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
             conn.close()
 
 # --- Funciones de Clientes ---
-def get_clientes():
+def get_clientes(incluir_inactivos=False):
     conn = get_connection()
-    clientes = conn.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
+    if incluir_inactivos:
+        clientes = conn.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
+    else:
+        clientes = conn.execute("SELECT * FROM clientes WHERE activo = 1 ORDER BY nombre").fetchall()
     conn.close()
     return clientes
+
+
+def desactivar_cliente(cliente_id):
+    """Marca un cliente como inactivo (soft delete)."""
+    conn = get_connection()
+    try:
+        cursor = conn.execute("UPDATE clientes SET activo = 0 WHERE id = ?", (cliente_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def reactivar_cliente(cliente_id):
+    """Reactivar un cliente inactivo."""
+    conn = get_connection()
+    try:
+        cursor = conn.execute("UPDATE clientes SET activo = 1 WHERE id = ?", (cliente_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 def add_cliente(nombre, telefono, email):
     if not nombre or not nombre.strip():
@@ -641,7 +712,7 @@ def add_servicio(nombre, precio):
         precio = float(precio)
         if precio < 0:
             return False
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     conn = get_connection()
     try:
@@ -750,26 +821,8 @@ def add_categoria(nombre):
         param = None if nombre is None else nombre.strip()
         conn.execute("INSERT INTO categorias (nombre) VALUES (?)", (param,))
         conn.commit()
-    except sqlite3.IntegrityError as e:
-        msg = str(e)
-        if "UNIQUE constraint failed" in msg:
-            parts = msg.split(":")
-            if len(parts) >= 2:
-                rest = parts[1].strip()
-                if "." in rest:
-                    table = rest.split(".")[0]
-                    if table == "categorias":
-                        return False
-        elif "NOT NULL constraint failed" in msg:
-            parts = msg.split(":")
-            if len(parts) >= 2:
-                rest = parts[1].strip()
-                if "." in rest:
-                    table = rest.split(".")[0]
-                    column = rest.split(".")[1] if "." in rest else ""
-                    if table == "categorias" and column == "nombre":
-                        return False
-        raise
+    except sqlite3.IntegrityError:
+        return False
     finally:
         conn.close()
     return True
@@ -791,25 +844,11 @@ def add_proveedor(nombre, contacto, telefono, condiciones_pago):
                      (param, contacto, telefono, condiciones_pago))
         conn.commit()
     except sqlite3.IntegrityError as e:
-        msg = str(e)
-        if "UNIQUE constraint failed" in msg:
-            parts = msg.split(":")
-            if len(parts) >= 2:
-                rest = parts[1].strip()
-                if "." in rest:
-                    table = rest.split(".")[0]
-                    if table == "proveedores":
-                        return False
-        elif "NOT NULL constraint failed" in msg:
-            parts = msg.split(":")
-            if len(parts) >= 2:
-                rest = parts[1].strip()
-                if "." in rest:
-                    table = rest.split(".")[0]
-                    column = rest.split(".")[1] if "." in rest else ""
-                    if table == "proveedores" and column == "nombre":
-                        return False
-        raise
+        # CHECK constraint violations (e.g. invalid condiciones_pago) must propagate.
+        # UNIQUE / NOT NULL constraint violations return False (duplicate or missing name).
+        if 'CHECK constraint failed' in str(e):
+            raise
+        return False
     finally:
         conn.close()
     return True
@@ -842,7 +881,13 @@ def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_i
         cursor = conn.execute("""
             INSERT INTO productos (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_actual)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (codigo_interno, codigo_barras, nombre.strip() if nombre is not None else None, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial))
+        """, (
+            codigo_interno.strip() if codigo_interno else None,
+            codigo_barras.strip() if codigo_barras else None,
+            nombre.strip() if nombre is not None else None,
+            descripcion, categoria_id, proveedor_id, tipo_unidad,
+            stock_minimo, precio_costo, precio_venta, stock_inicial
+        ))
         producto_id = cursor.lastrowid
 
         # Registrar movimiento de compra inicial si hay stock inicial > 0
@@ -999,6 +1044,94 @@ def aumentar_precios_proveedor(proveedor_id, porcentaje):
     except Exception:
         conn.rollback()
         return False
+    finally:
+        conn.close()
+
+
+def get_categorias_por_proveedor(proveedor_id):
+    """Devuelve las categorías que tienen productos activos para un proveedor dado.
+
+    Retorna una lista de tuplas (categoria_id, categoria_nombre).
+    """
+    conn = get_connection()
+    try:
+        rows = conn.execute("""
+            SELECT DISTINCT c.id, c.nombre
+            FROM productos p
+            JOIN categorias c ON p.categoria_id = c.id
+            WHERE p.proveedor_id = ? AND p.activo = 1 AND p.categoria_id IS NOT NULL
+            ORDER BY c.nombre
+        """, (proveedor_id,)).fetchall()
+        return rows
+    finally:
+        conn.close()
+
+
+def aumentar_precios_por_categoria(proveedor_id, porcentaje, categoria_id):
+    """Aumenta el precio_venta de los productos de un proveedor filtrados por categoría.
+
+    Args:
+        proveedor_id (int): ID del proveedor.
+        porcentaje (float): Porcentaje de aumento (ej: 10.0 = +10%).
+        categoria_id (int): ID de la categoría a filtrar.
+
+    Returns:
+        int: Cantidad de productos actualizados, o 0 si no hay coincidencias
+             o los parámetros son inválidos.
+    """
+    try:
+        porcentaje = float(porcentaje)
+    except (ValueError, TypeError):
+        return 0
+    if porcentaje < 0:
+        return 0
+
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT id FROM proveedores WHERE id = ?", (proveedor_id,)).fetchone()
+        if not row:
+            return 0
+
+        factor = 1 + (porcentaje / 100.0)
+        cursor = conn.execute(
+            "UPDATE productos SET precio_venta = ROUND(precio_venta * ?, 2) "
+            "WHERE proveedor_id = ? AND categoria_id = ? AND activo = 1",
+            (factor, proveedor_id, categoria_id)
+        )
+        conn.commit()
+        return cursor.rowcount
+    except Exception:
+        conn.rollback()
+        return 0
+    finally:
+        conn.close()
+
+
+def get_precios_para_lista():
+    """Devuelve productos activos con stock > 0 para armar la lista de precios.
+
+    Retorna una lista de tuplas con:
+        (proveedor_nombre, producto_nombre, codigo_interno, codigo_barras,
+         precio_venta, stock_actual, categoria_nombre)
+    Ordenado por proveedor y luego por nombre de producto.
+    """
+    conn = get_connection()
+    try:
+        rows = conn.execute("""
+            SELECT prov.nombre as proveedor_nombre,
+                   p.nombre as producto_nombre,
+                   p.codigo_interno,
+                   p.codigo_barras,
+                   p.precio_venta,
+                   p.stock_actual,
+                   c.nombre as categoria_nombre
+            FROM productos p
+            LEFT JOIN proveedores prov ON p.proveedor_id = prov.id
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            WHERE p.activo = 1 AND p.stock_actual > 0
+            ORDER BY prov.nombre, p.nombre
+        """).fetchall()
+        return rows
     finally:
         conn.close()
 
@@ -1292,13 +1425,13 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             if not add_movimiento(item['producto_id'], 'venta', cantidad, f'Venta #{venta_id}', conn=conn):
                 conn.rollback()
                 return None, None, f"Error al registrar movimiento de venta para producto {item['producto_id']}"
-        
-        # Si es cuenta corriente, registrar deuda
+# Si es cuenta corriente, registrar deuda
         if metodo_pago == 'cuenta_corriente' and cliente_id:
             # Obtener saldo anterior
             row = conn.execute("""
                 SELECT COALESCE(SUM(monto), 0) FROM cuenta_corriente WHERE cliente_id = ?
             """, (cliente_id,)).fetchone()
+            
             saldo_anterior = float(row[0]) if row else 0.0
             saldo_nuevo = saldo_anterior + total
             
@@ -1306,6 +1439,27 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
                 INSERT INTO cuenta_corriente (cliente_id, venta_id, monto, saldo_anterior, saldo_nuevo, tipo_movimiento, metodo_pago)
                 VALUES (?, ?, ?, ?, ?, 'venta', ?)
             """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo, metodo_pago))
+        
+        # Si hay caja abierta, registrar movimiento de ingreso por venta
+        caja_abierta = get_caja_abierta()
+        if caja_abierta:
+            caja_id = caja_abierta[0]  # ID de la caja abierta
+            saldo_anterior_caja = caja_abierta[2]  # saldo_actual actual
+            saldo_nuevo_caja = saldo_anterior_caja + total
+            
+            # Registrar movimiento de ingreso en caja
+            conn.execute("""
+                INSERT INTO movimientos_caja 
+                (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
+                VALUES (?, 'ingreso_venta', ?, ?, ?, 'Ingreso por venta', ?)
+            """, (caja_id, total, saldo_anterior_caja, saldo_nuevo_caja, usuario_id))
+            
+            # Actualizar el saldo actual de la caja
+            conn.execute("""
+                UPDATE caja 
+                SET saldo_actual = ?
+                WHERE id = ?
+            """, (saldo_nuevo_caja, caja_id))
         
         conn.commit()
         return venta_id, numero_comprobante, None
@@ -1868,5 +2022,152 @@ def get_reporte_ventas_detallado(fecha_desde=None, fecha_hasta=None):
         query += " ORDER BY v.creado_en DESC"
         
         return conn.execute(query, params).fetchall()
+    finally:
+        conn.close()
+
+
+# --- Funciones de Caja ---
+def abrir_caja(saldo_inicial, usuario_id):
+    """
+    Abre una nueva caja.
+    
+    Args:
+        saldo_inicial (float): Saldo inicial de la caja
+        usuario_id (int): ID del usuario que abre la caja
+        
+    Returns:
+        int: ID de la caja creada, o None si hubo un error
+    """
+    if saldo_inicial < 0:
+        return None
+
+    conn = get_connection()
+    try:
+        # No permitir abrir si ya hay una caja abierta
+        existente = conn.execute("SELECT id FROM caja WHERE abierta = 1").fetchone()
+        if existente:
+            return None
+        cursor = conn.execute("""
+            INSERT INTO caja (saldo_inicial, saldo_actual, usuario_id)
+            VALUES (?, ?, ?)
+        """, (saldo_inicial, saldo_inicial, usuario_id))
+        caja_id = cursor.lastrowid
+        # Registrar movimiento de apertura
+        conn.execute("""
+            INSERT INTO movimientos_caja
+            (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
+            VALUES (?, 'apertura', ?, 0, ?, 'Apertura de caja', ?)
+        """, (caja_id, saldo_inicial, saldo_inicial, usuario_id))
+        conn.commit()
+        return caja_id
+    except Exception:
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def cerrar_caja(caja_id, saldo_final, usuario_id):
+    """
+    Cierra una caja abierta.
+    
+    Args:
+        caja_id (int): ID de la caja a cerrar
+        saldo_final (float): Saldo final esperado en la caja
+        usuario_id (int): ID del usuario que cierra la caja
+        
+    Returns:
+        bool: True si se cerró correctamente, False en caso de error
+    """
+    conn = get_connection()
+    try:
+        # Verificar que la caja esté abierta
+        caja = conn.execute("""
+            SELECT id, saldo_actual, abierta 
+            FROM caja 
+            WHERE id = ?
+        """, (caja_id,)).fetchone()
+        
+        if not caja or caja[2] != 1:  # No está abierta
+            return False
+            
+        # Actualizar la caja como cerrada
+        conn.execute("""
+            UPDATE caja 
+            SET fecha_cierre = CURRENT_TIMESTAMP, 
+                abierta = 0
+            WHERE id = ?
+        """, (caja_id,))
+        
+        # Registrar movimiento de cierre
+        saldo_anterior = caja[1]  # saldo_actual actual
+        conn.execute("""
+            INSERT INTO movimientos_caja 
+            (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
+            VALUES (?, 'cierre', ?, ?, ?, 'Cierre de caja', ?)
+        """, (caja_id, saldo_final - saldo_anterior, saldo_anterior, saldo_final, usuario_id))
+        
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_caja_abierta():
+    """
+    Obtiene la caja actualmente abierta.
+    
+    Returns:
+        tuple: (id, saldo_inicial, saldo_actual, fecha_apertura, fecha_cierre, usuario_id, abierta) 
+               o None si no hay caja abierta
+    """
+    conn = get_connection()
+    try:
+        caja = conn.execute("""
+            SELECT id, saldo_inicial, saldo_actual, fecha_apertura, fecha_cierre, usuario_id, abierta
+            FROM caja
+            WHERE abierta = 1
+            ORDER BY fecha_apertura DESC
+            LIMIT 1
+        """).fetchone()
+        return caja
+    finally:
+        conn.close()
+
+
+def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id):
+    """
+    Registra un movimiento en caja.
+    
+    Args:
+        caja_id (int): ID de la caja
+        tipo (str): Tipo de movimiento ('apertura', 'cierre', 'ajuste', 'ingreso_venta')
+        monto (float): Monto del movimiento
+        saldo_anterior (float): Saldo antes del movimiento
+        saldo_nuevo (float): Saldo después del movimiento
+        observacion (str): Observaciones sobre el movimiento
+        usuario_id (int): ID del usuario que registra el movimiento
+        
+    Returns:
+        bool: True si se registró correctamente, False en caso de error
+    """
+    if tipo not in ('apertura', 'cierre', 'ajuste', 'ingreso_venta'):
+        return False
+        
+    conn = get_connection()
+    try:
+        cursor = conn.execute("""
+            INSERT INTO movimientos_caja 
+            (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
     finally:
         conn.close()

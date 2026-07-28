@@ -32,6 +32,7 @@ def test_init_db_crea_tablas(temp_db):
         "clientes", "vehiculos", "servicios", "movimientos_stock",
         "ordenes_servicio", "orden_detalle", "usuarios", "ajustes_stock",
         "ventas", "venta_items", "cuenta_corriente", "compras", "detalle_compras",
+        "caja", "movimientos_caja",
     }
     assert esperadas.issubset(tablas), f"Faltan tablas: {esperadas - tablas}"
 
@@ -1218,6 +1219,487 @@ def test_reporte_inventario_excluye_productos_inactivos(temp_db):
     conn.close()
     inv = database.get_reporte_inventario()
     assert inv == []
+
+
+# --- Caja ---
+def test_abrir_caja_exitoso(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    assert caja_id is not None
+    assert isinstance(caja_id, int)
+    caja = database.get_caja_abierta()
+    assert caja is not None
+    assert caja[0] == caja_id
+    assert caja[1] == 1000.0  # saldo_inicial
+    assert caja[2] == 1000.0  # saldo_actual
+    assert caja[6] == 1       # abierta
+
+
+def test_abrir_caja_saldo_negativo(temp_db):
+    caja_id = database.abrir_caja(-100.0, 1)
+    assert caja_id is None
+    assert database.get_caja_abierta() is None
+
+
+def test_abrir_caja_ya_abierta_devuelve_none(temp_db):
+    database.abrir_caja(1000.0, 1)
+    segundo = database.abrir_caja(500.0, 1)
+    assert segundo is None
+    # Solo debe haber una caja abierta
+    assert database.get_caja_abierta() is not None
+
+
+def test_get_caja_abierta_sin_caja(temp_db):
+    assert database.get_caja_abierta() is None
+
+
+def test_cerrar_caja_exitoso(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    assert caja_id is not None
+    ok = database.cerrar_caja(caja_id, 1500.0, 1)
+    assert ok is True
+    # No debe aparecer como abierta
+    assert database.get_caja_abierta() is None
+    # Verificar que se registró movimiento de cierre
+    conn = database.get_connection()
+    mov = conn.execute(
+        "SELECT tipo, monto, saldo_anterior, saldo_nuevo FROM movimientos_caja WHERE caja_id = ?",
+        (caja_id,)
+    ).fetchall()
+    conn.close()
+    assert len(mov) >= 2  # apertura + cierre
+    assert mov[-1][0] == 'cierre'
+
+
+def test_cerrar_caja_ya_cerrada(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    database.cerrar_caja(caja_id, 1000.0, 1)
+    ok = database.cerrar_caja(caja_id, 1000.0, 1)
+    assert ok is False
+
+
+def test_cerrar_caja_inexistente(temp_db):
+    ok = database.cerrar_caja(9999, 1000.0, 1)
+    assert ok is False
+
+
+def test_registrar_movimiento_caja_exitoso(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    ok = database.registrar_movimiento_caja(caja_id, 'ajuste', 200.0, 1000.0, 1200.0, 'Ajuste manual', 1)
+    assert ok is True
+    conn = database.get_connection()
+    mov = conn.execute(
+        "SELECT tipo, monto, saldo_anterior, saldo_nuevo, observacion FROM movimientos_caja WHERE caja_id = ? AND tipo = 'ajuste'",
+        (caja_id,)
+    ).fetchone()
+    conn.close()
+    assert mov is not None
+    assert mov[0] == 'ajuste'
+    assert mov[1] == 200.0
+    assert mov[4] == 'Ajuste manual'
+
+
+def test_registrar_movimiento_caja_tipo_invalido(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    ok = database.registrar_movimiento_caja(caja_id, 'tipo_invalido', 100.0, 1000.0, 1100.0, 'Test', 1)
+    assert ok is False
+
+
+def test_crear_venta_con_caja_abierta_registra_ingreso(temp_db):
+    """Verifica que crear_venta registre automáticamente un movimiento ingreso_venta en la caja abierta."""
+    # Setup: caja abierta, productos, etc.
+    database.abrir_caja(5000.0, 1)
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
+    items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 100.0}]
+    venta_id, num, error = database.crear_venta(None, 'ticket', items, 'efectivo', 1)
+    assert venta_id is not None
+    assert error is None
+    conn = database.get_connection()
+    mov = conn.execute(
+        "SELECT tipo, monto, saldo_anterior, saldo_nuevo FROM movimientos_caja WHERE tipo = 'ingreso_venta'"
+    ).fetchone()
+    conn.close()
+    assert mov is not None
+    assert mov[0] == 'ingreso_venta'
+    assert mov[1] == 200.0  # total de la venta
+    assert mov[2] == 5000.0  # saldo anterior
+    assert mov[3] == 5200.0  # saldo nuevo
+
+
+def test_crear_venta_sin_caja_abierta_no_registra_ingreso(temp_db):
+    """Si no hay caja abierta, crear_venta no debe registrar movimiento de caja."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
+    items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 100.0}]
+    venta_id, num, error = database.crear_venta(None, 'ticket', items, 'efectivo', 1)
+    assert venta_id is not None
+    conn = database.get_connection()
+    count = conn.execute("SELECT COUNT(*) FROM movimientos_caja").fetchone()[0]
+    conn.close()
+    assert count == 0
+
+
+# --- Soft delete de clientes ---
+def test_desactivar_cliente(temp_db):
+    database.add_cliente("Juan Pérez", "1234", "juan@test.com")
+    clientes = database.get_clientes()
+    assert len(clientes) == 1
+    cliente_id = clientes[0][0]
+    ok = database.desactivar_cliente(cliente_id)
+    assert ok is True
+    # No debe aparecer en get_clientes() por defecto
+    clientes_activos = database.get_clientes()
+    assert len(clientes_activos) == 0
+    # Debe aparecer con incluir_inactivos=True
+    todos = database.get_clientes(incluir_inactivos=True)
+    assert len(todos) == 1
+    assert todos[0][4] == 0  # activo = 0
+
+
+def test_reactivar_cliente(temp_db):
+    database.add_cliente("Juan Pérez", "1234", "juan@test.com")
+    cliente_id = database.get_clientes()[0][0]
+    database.desactivar_cliente(cliente_id)
+    ok = database.reactivar_cliente(cliente_id)
+    assert ok is True
+    clientes = database.get_clientes()
+    assert len(clientes) == 1
+    assert clientes[0][0] == cliente_id
+
+
+def test_desactivar_cliente_inexistente(temp_db):
+    ok = database.desactivar_cliente(9999)
+    assert ok is False
+
+
+def test_reactivar_cliente_inexistente(temp_db):
+    ok = database.reactivar_cliente(9999)
+    assert ok is False
+
+
+# --- Lista de precios ---
+def test_get_precios_para_lista_solo_activos_con_stock(temp_db):
+    """Solo productos activos con stock > 0 deben aparecer en la lista de precios."""
+    database.add_categoria("Aceites")
+    database.add_categoria("Filtros")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_proveedor("Shell", "Ana", "5678", "Contado")
+    # Producto YPF Aceites con stock
+    database.add_producto("P001", "779001", "Aceite 5W30 YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=20)
+    # Producto Shell Filtros con stock
+    database.add_producto("P002", "779002", "Filtro Aceite Shell", "", 2, 2, "Entero", 5, 200, 300, stock_inicial=10)
+    # Producto YPF sin stock (no debe aparecer)
+    database.add_producto("P003", "779003", "Aceite 10W40 YPF", "", 1, 1, "Entero", 5, 100, 180, stock_inicial=0)
+    # Producto inactivo con stock (no debe aparecer)
+    database.add_producto("P004", "779004", "Filtro Aire YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=15)
+    conn = database.get_connection()
+    conn.execute("UPDATE productos SET activo = 0 WHERE id = 4")
+    conn.commit()
+    conn.close()
+
+    lista = database.get_precios_para_lista()
+    nombres = [p[1] for p in lista]
+    assert "Aceite 5W30 YPF" in nombres
+    assert "Filtro Aceite Shell" in nombres
+    assert "Aceite 10W40 YPF" not in nombres  # sin stock
+    assert "Filtro Aire YPF" not in nombres  # inactivo
+
+
+def test_get_precios_para_lista_ordenado_por_proveedor(temp_db):
+    """La lista debe estar ordenada por proveedor y luego por nombre de producto."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_proveedor("Shell", "Ana", "5678", "Contado")
+    database.add_producto("P003", "779003", "Z-Aceite B YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
+    database.add_producto("P001", "779001", "A-Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
+    database.add_producto("P002", "779002", "A-Aceite Shell", "", 1, 2, "Entero", 5, 100, 150, stock_inicial=5)
+
+    lista = database.get_precios_para_lista()
+    # Ordenado por proveedor, Shell < YPF
+    assert lista[0][0] == "Shell"
+    assert lista[1][0] == "YPF"
+    # Dentro de YPF, ordenado por nombre: A-Aceite A < Z-Aceite B
+    nombres_ypf = [p[1] for p in lista if p[0] == "YPF"]
+    assert nombres_ypf == ["A-Aceite A YPF", "Z-Aceite B YPF"]
+
+
+def test_get_precios_para_lista_incluye_precio_venta(temp_db):
+    """La lista debe incluir el precio de venta correcto."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150.50, stock_inicial=10)
+    lista = database.get_precios_para_lista()
+    assert len(lista) == 1
+    assert lista[0][4] == 150.50
+
+
+# --- Categorias por proveedor ---
+def test_get_categorias_por_proveedor(temp_db):
+    database.add_categoria("Aceites")
+    database.add_categoria("Filtros")
+    database.add_categoria("Lubricantes")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("P002", "779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    # P003 sin categoria ( categoria_id = NULL )
+    database.add_producto("P003", "779003", "Sin Cat YPF", "", None, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    cats = database.get_categorias_por_proveedor(1)
+    cat_nombres = [c[1] for c in cats]
+    assert "Aceites" in cat_nombres
+    assert "Filtros" in cat_nombres
+    assert "Lubricantes" not in cat_nombres  # YPF no tiene productos en Lubricantes
+    # Debe estar ordenado alfabeticamente
+    assert cat_nombres == sorted(cat_nombres)
+
+
+def test_get_categorias_por_proveedor_sin_productos(temp_db):
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    cats = database.get_categorias_por_proveedor(1)
+    assert cats == []
+
+
+def test_get_categorias_por_proveedor_proveedor_inexistente(temp_db):
+    cats = database.get_categorias_por_proveedor(9999)
+    assert cats == []
+
+
+# --- Aumentar precios por categoria ---
+def test_aumentar_precios_por_categoria(temp_db):
+    """Solo los productos del proveedor Y categoria especificados deben actualizarse."""
+    database.add_categoria("Aceites")
+    database.add_categoria("Filtros")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_proveedor("Shell", "Ana", "5678", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("P002", "779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    database.add_producto("P003", "779003", "Aceite Shell", "", 1, 2, "Entero", 5, 100, 300, stock_inicial=10)
+
+    # Aumentar 10% solo Aceites de YPF (proveedor_id=1, categoria_id=1)
+    actualizados = database.aumentar_precios_por_categoria(1, 10.0, 1)
+    assert actualizados == 1  # solo P001 es YPF + Aceites
+    conn = database.get_connection()
+    p1 = conn.execute("SELECT precio_venta FROM productos WHERE id = 1").fetchone()[0]
+    p2 = conn.execute("SELECT precio_venta FROM productos WHERE id = 2").fetchone()[0]
+    p3 = conn.execute("SELECT precio_venta FROM productos WHERE id = 3").fetchone()[0]
+    conn.close()
+    assert p1 == 165.0  # 150 * 1.10
+    assert p2 == 200.0  # sin cambios (distinta categoria)
+    assert p3 == 300.0  # sin cambios (distinto proveedor)
+
+
+def test_aumentar_precios_por_categoria_multiples_productos(temp_db):
+    """Si el proveedor tiene varios productos en la categoria, todos se actualizan."""
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("P002", "779002", "Aceite B YPF", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    database.add_producto("P003", "779003", "Filtro YPF", "", None, 1, "Entero", 5, 100, 100, stock_inicial=10)
+
+    actualizados = database.aumentar_precios_por_categoria(1, 20.0, 1)
+    assert actualizados == 2  # P001 y P002 son Aceites de YPF
+
+
+def test_aumentar_precios_por_categoria_proveedor_inexistente(temp_db):
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    actualizados = database.aumentar_precios_por_categoria(9999, 10.0, 1)
+    assert actualizados == 0
+
+
+def test_aumentar_precios_por_categoria_categoria_sin_productos(temp_db):
+    database.add_categoria("Aceites")
+    database.add_categoria("Filtros")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    # No existen productos en categoria Filtros (id=2) para YPF
+    actualizados = database.aumentar_precios_por_categoria(1, 10.0, 2)
+    assert actualizados == 0
+
+
+def test_aumentar_precios_por_categoria_porcentaje_negativo(temp_db):
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    actualizados = database.aumentar_precios_por_categoria(1, -10.0, 1)
+    assert actualizados == 0
+
+
+def test_aumentar_precios_por_categoria_porcentaje_invalido(temp_db):
+    database.add_categoria("Aceites")
+    database.add_proveedor("YPF", "Juan", "1234", "Contado")
+    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    actualizados = database.aumentar_precios_por_categoria(1, "abc", 1)
+    assert actualizados == 0
+
+
+# =============================================================================
+# Edge cases — validaciones de entrada en clientes, vehículos, servicios,
+# productos (empty name), proveedores (empty name), compras vacías,
+# órdenes de servicio, y caja.
+# =============================================================================
+
+
+# --- Clientes: add_cliente con nombre vacío ---
+def test_add_cliente_nombre_vacio(temp_db):
+    assert database.add_cliente("", "123", "a@b.com") is False
+    assert database.add_cliente("   ", "123", "a@b.com") is False
+    assert database.add_cliente(None, "123", "a@b.com") is False
+    assert len(database.get_clientes()) == 0
+
+
+def test_add_cliente_sin_telefono_email(temp_db):
+    assert database.add_cliente("Juan", None, None) is True
+    assert database.add_cliente("Pedro", "", "") is True
+    assert len(database.get_clientes()) == 2
+
+
+# --- Vehículos ---
+def test_add_vehiculo_patente_vacia(temp_db):
+    assert database.add_vehiculo(None, "", "Ford", "Fiesta", 2020) is False
+    assert database.add_vehiculo(None, "   ", "Ford", "Fiesta", 2020) is False
+
+
+def test_add_vehiculo_patente_duplicada(temp_db):
+    database.add_cliente("Juan", "123", "")
+    cliente_id = database.get_clientes()[0][0]
+    assert database.add_vehiculo(cliente_id, "ABC123", "Ford", "Fiesta", 2020) is True
+    assert database.add_vehiculo(cliente_id, "ABC123", "Chev", "Corsa", 2019) is False
+    assert len(database.get_vehiculos()) == 1
+
+
+def test_add_vehiculo_sin_cliente(temp_db):
+    assert database.add_vehiculo(None, "XYZ789", "Ford", "Fiesta", 2020) is True
+
+
+# --- Servicios ---
+def test_add_servicio_nombre_vacio(temp_db):
+    assert database.add_servicio("", 100) is False
+    assert database.add_servicio("   ", 100) is False
+    assert database.add_servicio(None, 100) is False
+    assert len(database.get_servicios()) == 0
+
+
+def test_add_servicio_precio_negativo(temp_db):
+    assert database.add_servicio("Alineación", -1) is False
+    assert database.add_servicio("Balanceo", 0) is True
+
+
+def test_add_servicio_precio_invalido(temp_db):
+    assert database.add_servicio("Test", "abc") is False
+    assert database.add_servicio("Test", None) is False
+
+
+# --- Productos: empty name (no null) ---
+def test_add_producto_nombre_vacio(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    assert database.add_producto("C999", "7790999", "", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is True
+    assert database.add_producto("C998", "7790998", "   ", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is True
+
+
+# --- Proveedores: empty name ---
+def test_add_proveedor_nombre_vacio(temp_db):
+    assert database.add_proveedor("", "Juan", "123", "Contado") is True
+    assert database.add_proveedor("   ", "Ana", "456", "Contado") is True
+    assert database.add_proveedor(None, "Luis", "789", "Contado") is False  # NOT NULL constraint
+    assert len(database.get_proveedores()) == 2
+
+
+# --- Stock: crear_ajuste_stock sin motivo ---
+def test_crear_ajuste_stock_sin_motivo(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    assert database.add_producto("C100", "7790100", "Test", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10) is True
+    prod_id = database.get_productos()[0][0]
+    assert database.crear_ajuste_stock(prod_id, 15, "", 1) is False
+    assert database.crear_ajuste_stock(prod_id, 15, "   ", 1) is False
+
+
+# --- Órdenes de servicio: add_orden_detalle edge cases ---
+def test_add_orden_detalle_cantidad_cero(temp_db):
+    database.add_cliente("Juan", "123", "")
+    cliente_id = database.get_clientes()[0][0]
+    orden_id = database.add_orden_servicio(cliente_id, None)
+    assert orden_id is not None
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("C200", "7790200", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
+    prod_id = database.get_productos()[0][0]
+    assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=0) is True
+
+
+def test_add_orden_detalle_producto_inexistente(temp_db):
+    database.add_cliente("Juan", "123", "")
+    cliente_id = database.get_clientes()[0][0]
+    orden_id = database.add_orden_servicio(cliente_id, None)
+    assert orden_id is not None
+    assert database.add_orden_detalle(orden_id, producto_id=99999) is False
+
+
+def test_add_orden_detalle_servicio_inexistente(temp_db):
+    database.add_cliente("Juan", "123", "")
+    cliente_id = database.get_clientes()[0][0]
+    orden_id = database.add_orden_servicio(cliente_id, None)
+    assert orden_id is not None
+    assert database.add_orden_detalle(orden_id, servicio_id=99999) is False
+
+
+def test_add_orden_detalle_sin_producto_ni_servicio(temp_db):
+    database.add_cliente("Juan", "123", "")
+    cliente_id = database.get_clientes()[0][0]
+    orden_id = database.add_orden_servicio(cliente_id, None)
+    assert orden_id is not None
+    assert database.add_orden_detalle(orden_id) is False
+
+
+# --- Compras: edge cases ---
+def test_crear_compra_sin_items(temp_db):
+    database.add_proveedor("YPF", "Juan", "123", "Contado")
+    prov_id = database.get_proveedores()[0][0]
+    assert database.crear_compra(prov_id, []) is None
+    assert database.crear_compra(prov_id, None) is None
+
+
+def test_crear_compra_proveedor_none(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("C300", "7790300", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=0)
+    prod_id = database.get_productos()[0][0]
+    items = [{"producto_id": prod_id, "cantidad": 5, "precio_unitario": 10}]
+    assert database.crear_compra(None, items) is None
+
+
+def test_crear_compra_producto_stock_actualizado(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("C301", "7790301", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=5)
+    prod_id = database.get_productos()[0][0]
+    items = [{"producto_id": prod_id, "cantidad": 10, "precio_unitario": 15}]
+    compra_id = database.crear_compra(prov_id, items)
+    assert compra_id is not None
+    prods = database.get_productos()
+    assert float(prods[0][8]) == 15.0
+
+
+# --- Caja: movimiento tipo ajuste ---
+def test_registrar_movimiento_caja_tipo_ajuste(temp_db):
+    caja_id = database.abrir_caja(1000.0, 1)
+    assert caja_id is not None
+    caja = database.get_caja_abierta()
+    assert caja is not None
+    ok = database.registrar_movimiento_caja(caja_id, "ajuste", 500.0, 1000.0, 1500.0, "Ajuste manual", 1)
+    assert ok is True
+
+
+# --- Ventas: cantidad = 0 explícitamente ---
+def test_crear_venta_rechaza_cantidad_cero(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.abrir_caja(1000.0, 1)
+    database.add_producto("C400", "7790400", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
+    prod_id = database.get_productos()[0][0]
+    items = [{"producto_id": prod_id, "cantidad": 0, "precio_unitario": 20}]
+    venta_id, _, msg = database.crear_venta(None, "ticket", items, "efectivo", 1)
+    assert venta_id is None
+    assert msg is not None
 
 
 if __name__ == "__main__":

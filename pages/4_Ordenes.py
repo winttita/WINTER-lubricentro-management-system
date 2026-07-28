@@ -6,7 +6,7 @@ st.set_page_config(page_title="Órdenes de Servicio", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("🔧 Órdenes de Servicio")
@@ -33,10 +33,10 @@ if 'orden_vehiculo' not in st.session_state:
 st.subheader("Nueva Orden de Servicio")
 
 if not clientes:
-    st.warning("No hay clientes cargados. Agregalos desde Gestión primero.")
+    st.warning("⚠️ No hay clientes cargados. Agregalos desde Gestión primero.")
     st.stop()
 if not vehiculos:
-    st.warning("No hay vehículos cargados. Agregalos desde Gestión primero.")
+    st.warning("⚠️ No hay vehículos cargados. Agregalos desde Gestión primero.")
     st.stop()
 
 # Cabecera: cliente + vehiculo
@@ -54,7 +54,7 @@ with col_veh:
         vehiculo_sel = st.selectbox("Vehículo *", list(vehiculo_opts.keys()))
         st.session_state.orden_vehiculo = vehiculo_opts[vehiculo_sel]
     else:
-        st.warning("Este cliente no tiene vehículos cargados.")
+        st.warning("⚠️ Este cliente no tiene vehículos cargados.")
         st.session_state.orden_vehiculo = None
 
 
@@ -113,7 +113,7 @@ if servicios:
     )
     st.write(f"**Total servicios:** ${total_servicios:.2f}")
 else:
-    st.info("No hay servicios cargados. Agregalos desde Gestión.")
+    st.info("ℹ️ No hay servicios cargados. Agregalos desde Gestión.")
     total_servicios = 0.0
 
 
@@ -177,10 +177,10 @@ if productos:
         )
         st.write(f"**Total productos:** ${total_productos:.2f}")
     else:
-        st.info("No hay productos activos con stock.")
+        st.info("ℹ️ No hay productos activos con stock.")
         total_productos = 0.0
 else:
-    st.info("No hay productos cargados.")
+    st.info("ℹ️ No hay productos cargados.")
     total_productos = 0.0
 
 
@@ -194,25 +194,30 @@ col_t3.metric("TOTAL", f"${total_final:.2f}")
 
 if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
     if st.session_state.orden_cliente is None or st.session_state.orden_vehiculo is None:
-        st.error("Seleccioná cliente y vehículo.")
+        st.error("❌ Seleccioná cliente y vehículo.")
     elif total_final == 0:
-        st.error("La orden no puede estar vacía.")
+        st.error("❌ La orden no puede estar vacía.")
     else:
-        # Validar stock de productos
+        # Validar stock y tipo_unidad de productos
         stock_ok = True
         for item in st.session_state.orden_productos:
             if item['producto'] and item['cantidad'] > 0:
                 pid = prod_opts[item['producto']]
                 p = prod_lookup[pid]
+                tipo_unidad = p[7] if len(p) > 7 else 'Entero'
+                if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
+                    st.error(f"❌ No se puede agregar \"{p[3]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    stock_ok = False
+                    break
                 if item['cantidad'] > p[8]:
                     stock_ok = False
-                    st.error(f"Stock insuficiente de \"{p[3]}\": solicitado {item['cantidad']}, disponible {p[8]}")
+                    st.error(f"❌ Stock insuficiente de \"{p[3]}\": solicitado {item['cantidad']}, disponible {p[8]}")
                     break
 
         if stock_ok:
             orden_id = db.add_orden_servicio(st.session_state.orden_cliente, st.session_state.orden_vehiculo)
             if orden_id is None:
-                st.error("Error al crear la orden.")
+                st.error("❌ Error al crear la orden.")
             else:
                 ok_all = True
                 # Agregar servicios
@@ -221,7 +226,7 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
                         sid = serv_opts[item['servicio']]
                         if not db.add_orden_detalle(orden_id, servicio_id=sid, cantidad=item['cantidad']):
                             ok_all = False
-                            st.error(f"Error al agregar servicio #{sid}")
+                            st.error(f"❌ Error al agregar servicio #{sid}")
                             break
                 # Agregar productos
                 if ok_all:
@@ -230,16 +235,16 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
                             pid = prod_opts[item['producto']]
                             if not db.add_orden_detalle(orden_id, producto_id=pid, cantidad=item['cantidad'], precio_unitario=item['precio']):
                                 ok_all = False
-                                st.error(f"Error al agregar producto #{pid}")
+                                st.error(f"❌ Error al agregar producto #{pid}")
                                 break
 
                 if ok_all:
-                    st.success(f"Orden #{orden_id} creada correctamente. Total: ${total_final:.2f}")
+                    st.success(f"✅ Orden #{orden_id} creada correctamente. Total: ${total_final:.2f}")
                     st.session_state.orden_servicios = [{'servicio': None, 'cantidad': 1}]
                     st.session_state.orden_productos = [{'producto': None, 'cantidad': 1.0}]
                     st.rerun()
                 else:
-                    st.error(f"La orden #{orden_id} quedó incompleta. Revisá los detalles.")
+                    st.error(f"❌ La orden #{orden_id} quedó incompleta. Revisá los detalles.")
 
 st.divider()
 
@@ -286,6 +291,6 @@ if ordenes:
                 elif d[6]:
                     st.write(f"• {d[6]} x{d[3]} @ ${d[4]:.2f} = ${d[3]*d[4]:.2f}")
         else:
-            st.info("Sin detalles.")
+            st.info("ℹ️ Sin detalles.")
 else:
-    st.info("No hay órdenes de servicio registradas.")
+    st.info("ℹ️ No hay órdenes de servicio registradas.")

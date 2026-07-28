@@ -1,8 +1,15 @@
 import os
+import platform
+import subprocess
 from datetime import datetime
 
 PUNTO_VENTA = "0001"
 IVA_PORCENTAJE = 0.21
+
+ESC = b'\x1b'
+GS = b'\x1d'
+
+PRINTER_NAME = None
 
 def formatear_monto(monto):
     """Formatea un monto con 2 decimales."""
@@ -146,40 +153,110 @@ def guardar_comprobante_archivo(texto, venta, tipo):
     return filename
 
 
+def obtener_impresoras_disponibles():
+    """Devuelve lista de nombres de impresoras instaladas en Windows."""
+    try:
+        import win32print
+        return [p[2] for p in win32print.EnumPrinters(2)]
+    except ImportError:
+        return []
+
+
 def imprimir_comprobante(texto):
     """
-    Intenta imprimir en impresora térmica.
+    Imprime en impresora térmica usando comandos ESC/POS.
     En Windows usa win32print, en Linux usa lp.
     """
     try:
-        import platform
         sistema = platform.system()
-        
+
+        # Build ESC/POS payload
+        payload = ESC + b'@'  # Initialize printer
+        payload += texto.encode('cp1252' if sistema == 'Windows' else 'utf-8', errors='ignore')
+        payload += b'\n\n'
+        payload += GS + b'V\x00'  # Full cut
+
         if sistema == "Windows":
             try:
                 import win32print
-                printer_name = win32print.GetDefaultPrinter()
+                printer_name = PRINTER_NAME or win32print.GetDefaultPrinter()
+                if not printer_name:
+                    return False
                 hPrinter = win32print.OpenPrinter(printer_name)
-                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Comprobante", None, "RAW"))
-                win32print.StartPagePrinter(hPrinter)
-                win32print.WritePrinter(hPrinter, texto.encode('cp1252', errors='ignore'))
-                win32print.EndPagePrinter(hPrinter)
-                win32print.EndDocPrinter(hPrinter)
-                win32print.ClosePrinter(hPrinter)
+                try:
+                    hJob = win32print.StartDocPrinter(hPrinter, 1, ("Comprobante", None, "RAW"))
+                    win32print.StartPagePrinter(hPrinter)
+                    win32print.WritePrinter(hPrinter, payload)
+                    win32print.EndPagePrinter(hPrinter)
+                    win32print.EndDocPrinter(hPrinter)
+                finally:
+                    win32print.ClosePrinter(hPrinter)
                 return True
             except ImportError:
                 pass
-        
+
         elif sistema == "Linux":
             try:
-                import subprocess
-                proc = subprocess.Popen(['lp', '-d', 'default'], stdin=subprocess.PIPE)
-                proc.communicate(input=texto.encode('utf-8'))
+                proc = subprocess.Popen(['lp', '-d', PRINTER_NAME or 'default'], stdin=subprocess.PIPE)
+                proc.communicate(input=payload)
                 return proc.returncode == 0
-            except:
+            except Exception:
                 pass
-        
-        # Fallback: guardar archivo
+
         return False
-    except:
+    except Exception:
         return False
+
+
+def imprimir_prueba():
+    """Imprime un ticket de prueba."""
+    from datetime import datetime
+    lineas = []
+    lineas.append("=" * 40)
+    lineas.append("  LUBRICENTRO WINTER".center(40))
+    lineas.append("=" * 40)
+    lineas.append("  PRUEBA DE IMPRESION".center(40))
+    lineas.append("-" * 40)
+    lineas.append(f"  Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    lineas.append(f"  Impresora: {PRINTER_NAME or 'Default'}")
+    lineas.append("-" * 40)
+    lineas.append("  Si ves este texto, la impresora")
+    lineas.append("  funciona correctamente.")
+    lineas.append("=" * 40)
+    lineas.append("")
+    return imprimir_comprobante("\n".join(lineas))
+
+
+def abrir_cajon():
+    """Abre el cajón de dinero usando ESC/POS."""
+    sistema = platform.system()
+    payload = ESC + b'@'  # Initialize
+    payload += ESC + b'p\x00\x30\xff'  # Cash drawer pin 2
+    payload += ESC + b'p\x01\x30\xff'  # Cash drawer pin 5
+
+    if sistema == "Windows":
+        try:
+            import win32print
+            printer_name = PRINTER_NAME or win32print.GetDefaultPrinter()
+            if not printer_name:
+                return False
+            hPrinter = win32print.OpenPrinter(printer_name)
+            try:
+                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Cajon", None, "RAW"))
+                win32print.StartPagePrinter(hPrinter)
+                win32print.WritePrinter(hPrinter, payload)
+                win32print.EndPagePrinter(hPrinter)
+                win32print.EndDocPrinter(hPrinter)
+            finally:
+                win32print.ClosePrinter(hPrinter)
+            return True
+        except ImportError:
+            return False
+    elif sistema == "Linux":
+        try:
+            proc = subprocess.Popen(['lp', '-d', PRINTER_NAME or 'default'], stdin=subprocess.PIPE)
+            proc.communicate(input=payload)
+            return proc.returncode == 0
+        except Exception:
+            return False
+    return False

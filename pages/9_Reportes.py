@@ -8,7 +8,7 @@ st.set_page_config(page_title="Reportes", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("Reportes")
@@ -54,7 +54,7 @@ with tab_ventas:
         c4.metric("Subtotal", f"${df['Subtotal'].sum():,.2f}")
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
-        st.info("No hay ventas en el periodo seleccionado.")
+        st.info("ℹ️ No hay ventas en el periodo seleccionado.")
 
 with tab_inventario:
     st.subheader("Inventario actual")
@@ -77,11 +77,11 @@ with tab_inventario:
         st.markdown("### Productos bajo stock mínimo")
         bajos = df[df["Stock Actual"] < df["Stock Mínimo"]][["Nombre", "Stock Actual", "Stock Mínimo"]]
         if bajos.empty:
-            st.success("Todos los productos están por encima del stock mínimo")
+            st.success("✅ Todos los productos están por encima del stock mínimo")
         else:
             st.dataframe(bajos, use_container_width=True, hide_index=True)
     else:
-        st.info("No hay productos activos.")
+        st.info("ℹ️ No hay productos activos.")
 
 with tab_ingr_egr:
     st.subheader(f"Ingresos vs Egresos - {periodo}")
@@ -105,7 +105,7 @@ with tab_ingr_egr:
             )
             st.dataframe(df_i, use_container_width=True, hide_index=True)
         else:
-            st.info("Sin ingresos en el periodo.")
+            st.info("ℹ️ Sin ingresos en el periodo.")
     with col2:
         st.markdown("#### Egresos (Compras de stock)")
         if egresos:
@@ -114,7 +114,7 @@ with tab_ingr_egr:
             )
             st.dataframe(df_e, use_container_width=True, hide_index=True)
         else:
-            st.info("Sin egresos en el periodo.")
+            st.info("ℹ️ Sin egresos en el periodo.")
 
 with tab_cc:
     st.subheader("Clientes con Cuenta Corriente")
@@ -134,6 +134,6 @@ with tab_cc:
                 df_m = pd.DataFrame(movs, columns=["ID", "Venta ID", "Monto", "Saldo Ant.", "Saldo Nvo.", "Fecha", "Tipo Comp.", "Punto Vta", "Número", "Tipo Mov.", "Método Pago", "Observación"])
                 st.dataframe(df_m, use_container_width=True, hide_index=True)
             else:
-                st.info("Sin movimientos")
+                st.info("ℹ️ Sin movimientos")
     else:
-        st.info("No hay clientes con deuda.")
+        st.info("ℹ️ No hay clientes con deuda.")
