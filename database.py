@@ -754,6 +754,8 @@ def add_orden_servicio(cliente_id, vehiculo_id, fecha=None):
         conn.close()
 
 def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, precio_unitario=None):
+    if cantidad <= 0:
+        return False
     conn = get_connection()
     try:
         if producto_id is not None:
@@ -816,10 +818,11 @@ def get_categorias():
     return categorias
 
 def add_categoria(nombre):
+    if not nombre or not nombre.strip():
+        return False
     conn = get_connection()
     try:
-        param = None if nombre is None else nombre.strip()
-        conn.execute("INSERT INTO categorias (nombre) VALUES (?)", (param,))
+        conn.execute("INSERT INTO categorias (nombre) VALUES (?)", (nombre.strip(),))
         conn.commit()
     except sqlite3.IntegrityError:
         return False
@@ -837,11 +840,12 @@ def get_proveedores():
     return proveedores
 
 def add_proveedor(nombre, contacto, telefono, condiciones_pago):
+    if not nombre or not nombre.strip():
+        return False
     conn = get_connection()
     try:
-        param = None if nombre is None else nombre.strip()
         conn.execute("INSERT INTO proveedores (nombre, contacto, telefono, condiciones_pago) VALUES (?, ?, ?, ?)",
-                     (param, contacto, telefono, condiciones_pago))
+                     (nombre.strip(), contacto, telefono, condiciones_pago))
         conn.commit()
     except sqlite3.IntegrityError as e:
         # CHECK constraint violations (e.g. invalid condiciones_pago) must propagate.
@@ -867,7 +871,8 @@ def get_productos():
     return productos
 
 def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
-    # Ensure numeric fields are non-negative (optional)
+    if not nombre or not nombre.strip():
+        return False
     if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
         return False
     try:
@@ -884,7 +889,7 @@ def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_i
         """, (
             codigo_interno.strip() if codigo_interno else None,
             codigo_barras.strip() if codigo_barras else None,
-            nombre.strip() if nombre is not None else None,
+            nombre.strip(),
             descripcion, categoria_id, proveedor_id, tipo_unidad,
             stock_minimo, precio_costo, precio_venta, stock_inicial
         ))

@@ -62,9 +62,9 @@ def test_add_categoria_null(temp_db):
 
 
 def test_add_categoria_string_vacio(temp_db):
-    # "" es válido para NOT NULL en SQLite
-    assert database.add_categoria("") is True
-    assert len(database.get_categorias()) == 1
+    assert database.add_categoria("") is False
+    assert database.add_categoria("   ") is False
+    assert len(database.get_categorias()) == 0
 
 
 # --- Proveedores ---
@@ -170,11 +170,10 @@ def test_add_producto_stock_precio_cero(temp_db):
 
 def test_add_producto_nombre_null(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    with pytest.raises(sqlite3.IntegrityError):
-        database.add_producto(
-            "C005", "7790005", None, "desc", cat_id, prov_id,
-            "Entero", 1, 1, 2
-        )
+    assert database.add_producto(
+        "C005", "7790005", None, "desc", cat_id, prov_id,
+        "Entero", 1, 1, 2
+    ) is False
 
 
 def test_get_productos_excluye_inactivos(temp_db):
@@ -1596,16 +1595,16 @@ def test_add_servicio_precio_invalido(temp_db):
 # --- Productos: empty name (no null) ---
 def test_add_producto_nombre_vacio(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    assert database.add_producto("C999", "7790999", "", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is True
-    assert database.add_producto("C998", "7790998", "   ", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is True
+    assert database.add_producto("C999", "7790999", "", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
+    assert database.add_producto("C998", "7790998", "   ", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
 
 
 # --- Proveedores: empty name ---
 def test_add_proveedor_nombre_vacio(temp_db):
-    assert database.add_proveedor("", "Juan", "123", "Contado") is True
-    assert database.add_proveedor("   ", "Ana", "456", "Contado") is True
-    assert database.add_proveedor(None, "Luis", "789", "Contado") is False  # NOT NULL constraint
-    assert len(database.get_proveedores()) == 2
+    assert database.add_proveedor("", "Juan", "123", "Contado") is False
+    assert database.add_proveedor("   ", "Ana", "456", "Contado") is False
+    assert database.add_proveedor(None, "Luis", "789", "Contado") is False
+    assert len(database.get_proveedores()) == 0
 
 
 # --- Stock: crear_ajuste_stock sin motivo ---
@@ -1626,7 +1625,8 @@ def test_add_orden_detalle_cantidad_cero(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.add_producto("C200", "7790200", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
     prod_id = database.get_productos()[0][0]
-    assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=0) is True
+    assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=0) is False
+    assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=-1) is False
 
 
 def test_add_orden_detalle_producto_inexistente(temp_db):

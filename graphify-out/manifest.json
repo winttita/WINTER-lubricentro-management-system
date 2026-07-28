@@ -10,28 +10,28 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1785159323.3419802,
-    "ast_hash": "bc25169a4097477781c6152354f1c338",
+    "mtime": 1785191816.3114383,
+    "ast_hash": "84c27c1094cd5669a3ec06dddf5e9a3e",
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1785158456.4346023,
-    "ast_hash": "b0a54bfe8defae41ef58017565c726ac",
+    "mtime": 1785272584.9573302,
+    "ast_hash": "c011619402fd62e6954f70f420483cb9",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
-    "mtime": 1785101485.8630955,
-    "ast_hash": "4b245f619b4053f3121db25937274959",
+    "mtime": 1785247734.8299544,
+    "ast_hash": "52460f82f50674d1636fa78573f175c3",
     "semantic_hash": ""
   },
   "pages/9_Reportes.py": {
-    "mtime": 1784843285.6737597,
-    "ast_hash": "84a26e3bc66fce0d931aa12a1b31333f",
+    "mtime": 1785248026.14246,
+    "ast_hash": "f6bb8bb2c12ef9c69de6f623a58a0f81",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1785102205.1541705,
-    "ast_hash": "c3bd960cfd367a644b36bcc08d6b8661",
+    "mtime": 1785272631.7513785,
+    "ast_hash": "80d0d8b3817dfdde7685b7009de3dfe2",
     "semantic_hash": ""
   },
   "updater.py": {
@@ -55,13 +55,13 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1785101485.8470957,
-    "ast_hash": "0ee0f8a0dfda573b96393fdc7ffaa272",
+    "mtime": 1785192404.9030359,
+    "ast_hash": "6e5cbfb8d35d53372583bdad69a19616",
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1785101485.8630955,
-    "ast_hash": "003e8ef67a249e5cdf234fc61add273a",
+    "mtime": 1785248996.8469656,
+    "ast_hash": "290e0d1a525e17f2ec61cc26ba5ba112",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "pages/7_Ventas.py": {
-    "mtime": 1784929155.4310758,
-    "ast_hash": "ae30bfc8108a2b17f4cd524ee35be944",
+    "mtime": 1785247916.2679477,
+    "ast_hash": "19c04e6436eda92be8c2455b6e4a2351",
     "semantic_hash": ""
   },
   "tickets.py": {
-    "mtime": 1784757360.058781,
-    "ast_hash": "7e9e81ce272a350b6f2c7aaf42e1dc4a",
+    "mtime": 1785192168.1557364,
+    "ast_hash": "bd69192411944db9bef4c48b63506cfe",
     "semantic_hash": ""
   },
   "prompt_optimizado.md": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "pages/8_Compras.py": {
-    "mtime": 1784843019.841618,
-    "ast_hash": "fab33d5ccc4787aa240dbe882c35b45e",
+    "mtime": 1785248098.5357535,
+    "ast_hash": "80faad2c3d603379f2fc045f3ad60a02",
     "semantic_hash": ""
   },
   "CONVENTIONS.md": {
@@ -135,8 +135,8 @@
     "semantic_hash": ""
   },
   "TODO.md": {
-    "mtime": 1785101485.8470957,
-    "ast_hash": "52a5b178c48c543a1910e46e5c3202d6",
+    "mtime": 1785194833.0728133,
+    "ast_hash": "b402b2e0971a702d5da2a3b306eaebc8",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-07-20-compras-ventas-iva-v0.2.5.md": {
@@ -150,23 +150,23 @@
     "semantic_hash": ""
   },
   "pages/0_Gestion.py": {
-    "mtime": 1784843237.857869,
-    "ast_hash": "c2f392d2a1abb788d3a602bfea18d284",
+    "mtime": 1785249232.4659505,
+    "ast_hash": "b4a5f5376c6923b4e99353e6b00e85f6",
     "semantic_hash": ""
   },
   "pages/1_Stock.py": {
-    "mtime": 1784843003.8655014,
-    "ast_hash": "d95786ea10e32b7ae5003b84deb9a5ff",
+    "mtime": 1785247649.3581142,
+    "ast_hash": "fcfe5e4180ab8c81187efa760464ad42",
     "semantic_hash": ""
   },
   "pages/2_Cuenta_Corriente.py": {
-    "mtime": 1784843942.782552,
-    "ast_hash": "5daa951f9fcde15c9b094d6eeedb9989",
+    "mtime": 1785272730.5556695,
+    "ast_hash": "276b4f8b1433fdb446a88f3e004dfd08",
     "semantic_hash": ""
   },
   "pages/4_Ordenes.py": {
-    "mtime": 1784842953.3809614,
-    "ast_hash": "9939d0149def702737ffa2f46d01f71f",
+    "mtime": 1785247831.8774831,
+    "ast_hash": "bc5649f242d6e1ca2f80af760abc6ffe",
     "semantic_hash": ""
   },
   "style.py": {
@@ -192,6 +192,21 @@
   "update_worker.py": {
     "mtime": 1785158248.0465438,
     "ast_hash": "a1a937dc3460afff752ff90e1da7b171",
+    "semantic_hash": ""
+  },
+  "pages/10_ListaPrecios.py": {
+    "mtime": 1785249130.9584308,
+    "ast_hash": "2268c65caf8e0ea14692b2998d36ceec",
+    "semantic_hash": ""
+  },
+  "pages/8_Caja.py": {
+    "mtime": 1785244133.0451672,
+    "ast_hash": "e6f5cabe9f3243eb2faf17170df646c9",
+    "semantic_hash": ""
+  },
+  "docs/EDGE_CASES.md": {
+    "mtime": 1785272753.2148511,
+    "ast_hash": "354083098d9b2060fdbb97b7b50b61a9",
     "semantic_hash": ""
   }
 }
