@@ -97,7 +97,7 @@ with st.form("venta_form"):
             if prod_label and item['precio'] == 0.0:
                 pid = prod_opts[prod_label]
                 p = prod_lookup[pid]
-                item['precio'] = float(p[10])
+                item['precio'] = float(p[11])
         with col_cant:
             item['cantidad'] = st.number_input(
                 "Cant.", min_value=0.0, step=1.0,
