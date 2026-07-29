@@ -5,6 +5,18 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.4.4] - 2026-07-28
+
+### Corregido
+- Validación de nombre vacío en `add_categoria()`, `add_proveedor()`, `add_producto()`, `add_orden_detalle()`: ahora retornan `False` en lugar de insertar filas vacías
+- Validación de cantidad <= 0 en `add_orden_detalle()`: retorna `False` si cantidad es 0 o negativa
+- Límite de descarga de actualización aumentado de 100 MB a 300 MB (el ZIP con runtime empaquetado pesa ~150 MB)
+- Manejo de errores en bloque de actualización: la UI ya no se rompe si falla la verificación de versión o la descarga
+- `APP_VERSION` en `updater.py` sincronizada con la versión de release (0.4.4)
+
+### Agregado
+- `seed_data.py`: script para generar datos de prueba en todos los módulos del sistema
+
 ## [0.4.1] - 2026-07-27
 
 ### Corregido
