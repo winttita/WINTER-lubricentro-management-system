@@ -304,7 +304,7 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
                 os.unlink(part_path)
             except OSError:
                 pass
-        raise UpdateError(f"Error descargando {safe_name}: {e.reason}")
+        raise UpdateError(f"Error descargando update.zip: {e.reason}")
     except Exception:
         if os.path.exists(part_path):
             try:
