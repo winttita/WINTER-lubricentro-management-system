@@ -57,6 +57,7 @@ def log(msg: str) -> None:
 # --- Auto-actualización ----------------------------------------------------
 
 def _read_retry_count() -> int:
+    """Lee el contador de reintentos de update. Devuelve 0 si no existe o es inválido."""
     if not os.path.exists(UPDATE_RETRY):
         return 0
     try:
@@ -67,6 +68,7 @@ def _read_retry_count() -> int:
 
 
 def _increment_retry() -> int:
+    """Incrementa y persiste el contador de reintentos. Devuelve el nuevo valor."""
     count = _read_retry_count() + 1
     try:
         os.makedirs(UPDATE_DIR, exist_ok=True)
@@ -78,6 +80,7 @@ def _increment_retry() -> int:
 
 
 def _clean_stale_update() -> None:
+    """Elimina todos los artefactos de update stale (lock, retry, bat)."""
     for path in [UPDATE_LOCK, UPDATE_RETRY, UPDATE_BAT]:
         try:
             if os.path.exists(path):
@@ -87,13 +90,15 @@ def _clean_stale_update() -> None:
 
 
 def _cleanup_orphan_update_artifacts() -> None:
+    """Limpia update.bat y update_retry huerfanos (cuando no hay pending_update)."""
     if not os.path.exists(UPDATE_LOCK):
-        if os.path.exists(UPDATE_BAT):
-            log("Limpiando update.bat huerfano (sin pending_update).")
-            try:
-                os.remove(UPDATE_BAT)
-            except OSError:
-                pass
+        for path in [UPDATE_BAT, UPDATE_RETRY]:
+            if os.path.exists(path):
+                log(f"Limpiando {os.path.basename(path)} huerfano (sin pending_update).")
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
 
 
 def check_and_launch_update() -> bool:

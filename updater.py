@@ -131,14 +131,13 @@ def _verify_checksum(path: str, expected_sha256: str) -> bool:
 
 
 def _verify_zip_integrity(zip_path: str) -> bool:
+    """Verifica que un ZIP sea íntegro via CRC (testzip()) sin cargarlo en memoria.
+
+    Devuelve True si el ZIP es válido; False si está corrupto o es ilegible.
+    """
     try:
         with zipfile.ZipFile(zip_path, "r") as zf:
-            bad = zf.testzip()
-            if bad is not None:
-                return False
-            for member in zf.infolist():
-                zf.read(member.filename)
-        return True
+            return zf.testzip() is None
     except (zipfile.BadZipFile, OSError, RuntimeError):
         return False
 
