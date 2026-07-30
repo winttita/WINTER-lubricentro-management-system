@@ -37,6 +37,8 @@ REQUIREMENTS = os.path.join(ROOT, "requirements.txt")
 UPDATE_DIR = os.path.join(ROOT, ".updates")
 UPDATE_LOCK = os.path.join(UPDATE_DIR, "pending_update")
 UPDATE_BAT = os.path.join(ROOT, "update.bat")
+UPDATE_RETRY = os.path.join(UPDATE_DIR, "update_retry")
+MAX_UPDATE_RETRIES = 3
 LAUNCHER_EXE = sys.executable if getattr(sys, "frozen", False) else __file__
 
 # --- Logging simple --------------------------------------------------------
@@ -54,43 +56,55 @@ def log(msg: str) -> None:
 
 # --- Auto-actualización ----------------------------------------------------
 
-def check_and_launch_update() -> bool:
-    """
-    Si existe UPDATE_LOCK y el .bat está presente (escrito por updater.apply_update):
-      - Lanza update.bat (detached, sin ventana)
-      - Sale (return True => el caller debe hacer sys.exit(0))
-
-    Si solo existe UPDATE_LOCK pero no update.bat, limpia el lock (estado stale)
-    y devuelve False para seguir con flujo normal.
-    """
-    if not os.path.exists(UPDATE_LOCK):
-        return False
-
-    # Limpiar locks stale (zip borrado o ausente)
+def _read_retry_count() -> int:
+    if not os.path.exists(UPDATE_RETRY):
+        return 0
     try:
-        with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
-            zip_path = f.read().strip()
+        with open(UPDATE_RETRY, "r", encoding="utf-8") as f:
+            return int(f.read().strip())
+    except (OSError, ValueError):
+        return 0
+
+
+def _increment_retry() -> int:
+    count = _read_retry_count() + 1
+    try:
+        os.makedirs(UPDATE_DIR, exist_ok=True)
+        with open(UPDATE_RETRY, "w", encoding="utf-8") as f:
+            f.write(f"{count}\n")
     except OSError:
-        return False
+        pass
+    return count
 
-    if not zip_path or not os.path.exists(zip_path):
-        log(f"Lock stale: zip inexistente {zip_path}. Limpiando.")
+
+def _clean_stale_update() -> None:
+    for path in [UPDATE_LOCK, UPDATE_RETRY, UPDATE_BAT]:
         try:
-            os.remove(UPDATE_LOCK)
+            if os.path.exists(path):
+                os.remove(path)
         except OSError:
             pass
+
+
+def check_and_launch_update() -> bool:
+    if not os.path.exists(UPDATE_LOCK):
+        _clean_stale_update()
         return False
 
-    # El .bat DEBE existir: lo escribió apply_update cuando el usuario confirmó.
     if not os.path.exists(UPDATE_BAT):
-        log(f"Lock presente pero falta {UPDATE_BAT}. Abortando update, limpiando.")
-        try:
-            os.remove(UPDATE_LOCK)
-        except OSError:
-            pass
+        log(f"Lock presente pero falta {UPDATE_BAT}. Limpiando update stale.")
+        _clean_stale_update()
         return False
 
-    log(f"Update pendiente: {zip_path}. Lanzando {UPDATE_BAT}...")
+    retry_count = _read_retry_count()
+    if retry_count >= MAX_UPDATE_RETRIES:
+        log(f"Update reintentado {retry_count} veces. Limpiando y arrancando normalmente.")
+        _clean_stale_update()
+        return False
+
+    retry_count = _increment_retry()
+    log(f"Update pendiente, intento {retry_count}/{MAX_UPDATE_RETRIES}. Lanzando {UPDATE_BAT}...")
+
     CREATE_NO_WINDOW = 0x08000000
     try:
         subprocess.Popen(
