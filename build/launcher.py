@@ -86,6 +86,16 @@ def _clean_stale_update() -> None:
             pass
 
 
+def _cleanup_orphan_update_artifacts() -> None:
+    if not os.path.exists(UPDATE_LOCK):
+        if os.path.exists(UPDATE_BAT):
+            log("Limpiando update.bat huerfano (sin pending_update).")
+            try:
+                os.remove(UPDATE_BAT)
+            except OSError:
+                pass
+
+
 def check_and_launch_update() -> bool:
     if not os.path.exists(UPDATE_LOCK):
         _clean_stale_update()
@@ -184,6 +194,8 @@ def start_streamlit() -> int:
 
 def main() -> int:
     log("=== Lubricentro Winter launcher ===")
+
+    _cleanup_orphan_update_artifacts()
 
     # 1. ¿Hay actualización pendiente al arrancar? Si sí, lanzar update.bat y salir.
     #    El .bat lo escribió updater.apply_update (corriendo dentro de app.py),
