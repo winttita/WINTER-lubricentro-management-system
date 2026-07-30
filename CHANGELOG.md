@@ -5,6 +5,23 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.5.1] - 2026-07-30
+
+### Corregido
+- Updater: `updater.py:apply_update` verifica integridad del ZIP descargado antes de comprometer la actualizacion; si el ZIP esta corrupto, la UI muestra error y no se aplica
+- Updater: `updater.py:download_asset` estandariza la ruta de descarga a `.updates/update.zip` (nombre fijo), evitando rutas temporales inconsistentes
+- Updater: `updater.py:_write_update_batch_secure` respalda `LubricentroWinter.exe` antes de la extraccion y restaura desde `.bak` en caso de fallo
+- Updater: `update.bat` agrega fallback a `Expand-Archive` de PowerShell cuando `tar -xf` no esta disponible o falla
+- Updater: `update.bat` limpia `pending_update`, `update_retry` y el ZIP descargado en todos los caminos de error, evitando locks stale y loops infinitos
+- Updater: `updater.py:_spawn_update_worker` reemplazado por no-op (codigo muerto que fallaba silenciosamente sin `runtime/pythonw.exe`)
+- Updater: `updater.py:download_asset`:`URLError` referenciaba una variable eliminada (`safe_name`) causando `NameError`; corregido
+- Launcher: `build/launcher.py:check_and_launch_update` agrega proteccion de reintentos (maximo 3 intentos registrados en `.updates/update_retry`); al agotarse, limpia el estado y arranca normalmente
+- Launcher: `build/launcher.py:_cleanup_orphan_update_artifacts` limpia `update.bat` y `update_retry` huerfanos al inicio normal
+- App: `app.py` captura errores de `apply_update` (ZIP corrupto, checksum invalido) y muestra mensaje al usuario en lugar de crashear
+
+### Removido
+- Updater: llamada a `update_worker.py` eliminada del flujo de actualizacion (el .bat es el unico mecanismo de aplicacion)
+
 ## [0.5.0] - 2026-07-30
 
 ### Agregado

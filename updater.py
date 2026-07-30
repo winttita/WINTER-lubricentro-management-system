@@ -34,7 +34,7 @@ from typing import Optional, Tuple
 GITHUB_REPO = os.environ.get("LUBRICENTRO_REPO", "winttita/WINTER-lubricentro-management-system")
 
 # Versión actual de la aplicación. Se compara contra el tag de la última release.
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.5.1"
 
 # Nombre esperado del asset (el .exe) dentro de la release. Si se cambia, basta
 # con editar esta constante. Se busca por substring (ej: "LubricentroWinter.exe"
