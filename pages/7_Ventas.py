@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 import streamlit as st
 import database as db
 import tickets as tk
@@ -178,7 +179,10 @@ with st.form("venta_form"):
 
             if stock_ok:
                 usuario_id = st.session_state.user_id
-                venta_id, numero, error = db.crear_venta(cliente_id, tipo_comp, items, metodo_pago, usuario_id)
+                try:
+                    venta_id, numero, error = db.crear_venta(cliente_id, tipo_comp, items, metodo_pago, usuario_id)
+                except sqlite3.IntegrityError:
+                    venta_id, numero, error = None, None, "Error de integridad en la venta"
                 if venta_id:
                     etiqueta = f"{tipo_comp.upper()} {numero:08d}" if numero else f"#{venta_id}"
                     st.success(f"✅ Venta confirmada! {etiqueta}")

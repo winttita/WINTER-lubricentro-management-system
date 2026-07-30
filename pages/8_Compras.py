@@ -1,3 +1,4 @@
+import sqlite3
 import streamlit as st
 import database as db
 from style import inject_global_css
@@ -26,7 +27,7 @@ if proveedores and productos:
     prod_lookup = {p[0]: p for p in productos}
 
     if 'compra_items' not in st.session_state:
-        st.session_state.compra_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
+        st.session_state.compra_items = []
 
     def agregar_fila():
         st.session_state.compra_items.append({'producto': None, 'cantidad': 1.0, 'precio': 0.0})
@@ -89,7 +90,10 @@ if proveedores and productos:
             if not items:
                 st.error("❌ Agregá al menos un producto con cantidad y precio mayor a 0.")
             else:
-                compra_id = db.crear_compra(prov_dict[proveedor_sel], items, observaciones)
+                try:
+                    compra_id = db.crear_compra(prov_dict[proveedor_sel], items, observaciones)
+                except sqlite3.IntegrityError:
+                    compra_id = None
                 if compra_id:
                     st.success(f"✅ Compra #{compra_id} registrada correctamente.")
                     st.session_state.compra_items = []

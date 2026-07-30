@@ -1,3 +1,4 @@
+import sqlite3
 import streamlit as st
 import database as db
 from datetime import date
@@ -21,7 +22,7 @@ tab_stock, tab_mov, tab_adj, tab_precios = st.tabs(["Stock Actual", "Movimientos
 with tab_stock:
     st.subheader("Inventario actual")
 
-    busqueda = st.text_input("Buscar producto", placeholder="Nombre, código interno o código de barras...", key="stock_search")
+    busqueda = st.text_input("Buscar producto", placeholder="Nombre o código de barras...", key="stock_search")
 
     inventario = db.get_reporte_inventario()
     productos = db.get_productos()
@@ -172,18 +173,21 @@ with tab_adj:
             submitted = st.form_submit_button("Aplicar Ajuste", type="primary")
             if submitted:
                 if not motivo.strip():
-                    st.error("El motivo es obligatorio")
+                    st.error("❌ El motivo es obligatorio.")
                 else:
                     diff = stock_nuevo - stock_actual
                     if diff == 0:
-                        st.warning("El stock no cambió")
+                        st.warning("⚠️ El stock no cambió.")
                     else:
-                        ok = db.crear_ajuste_stock(producto_id, stock_nuevo, motivo.strip(), st.session_state.user_id)
+                        try:
+                            ok = db.crear_ajuste_stock(producto_id, stock_nuevo, motivo.strip(), st.session_state.user_id)
+                        except sqlite3.IntegrityError:
+                            ok = None
                         if ok:
-                            st.success(f"Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
+                            st.success(f"✅ Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
                             st.rerun()
                         else:
-                            st.error("Error al aplicar ajuste.")
+                            st.error("❌ Error al aplicar ajuste.")
 
     st.divider()
 
@@ -225,7 +229,7 @@ with tab_precios:
     proveedores = db.get_proveedores()
     prov_dict = {p[1]: p[0] for p in proveedores}
     if not proveedores:
-        st.warning("No hay proveedores cargados.")
+        st.warning("⚠️ No hay proveedores cargados.")
     else:
         modo = st.radio("Modalidad", ["General", "Parcial"], horizontal=True)
         prov_sel = st.selectbox("Proveedor", list(prov_dict.keys()), key="aum_prov")
@@ -234,14 +238,17 @@ with tab_precios:
             porcentaje = st.number_input("Porcentaje de aumento (%)", min_value=0.0, step=0.5, format="%.1f", key="aum_pct_gen")
             if st.button("Aplicar a todos los productos", type="primary"):
                 if porcentaje <= 0:
-                    st.error("Ingrese un porcentaje mayor a 0.")
+                    st.error("❌ Ingrese un porcentaje mayor a 0.")
                 else:
-                    ok = db.aumentar_precios_proveedor(prov_dict[prov_sel], porcentaje)
+                    try:
+                        ok = db.aumentar_precios_proveedor(prov_dict[prov_sel], porcentaje)
+                    except sqlite3.IntegrityError:
+                        ok = False
                     if ok:
-                        st.success(f"Aumento del {porcentaje}% aplicado a todos los productos de {prov_sel}.")
+                        st.success(f"✅ Aumento del {porcentaje}% aplicado a todos los productos de {prov_sel}.")
                         st.rerun()
                     else:
-                        st.error("Error al aplicar aumento.")
+                        st.error("❌ Error al aplicar aumento.")
 
         else:
             busqueda = st.text_input("Buscar productos", placeholder="Ej: elaion, aceite, filtro...", key="aum_busqueda")
@@ -250,7 +257,7 @@ with tab_precios:
                 busqueda if busqueda else None
             )
             if not productos_prov:
-                st.info("No hay productos para este proveedor con ese filtro.")
+                st.info("ℹ️ No hay productos para este proveedor con ese filtro.")
             else:
                 st.write(f"Productos encontrados: {len(productos_prov)}")
                 seleccionados = []
@@ -261,13 +268,16 @@ with tab_precios:
                 porcentaje = st.number_input("Porcentaje de aumento (%)", min_value=0.0, step=0.5, format="%.1f", key="aum_pct_par")
                 if st.button("Aplicar a seleccionados", type="primary"):
                     if not seleccionados:
-                        st.error("Seleccione al menos un producto.")
+                        st.error("❌ Seleccione al menos un producto.")
                     elif porcentaje <= 0:
-                        st.error("Ingrese un porcentaje mayor a 0.")
+                        st.error("❌ Ingrese un porcentaje mayor a 0.")
                     else:
-                        cant = db.aumentar_precios_por_lista(seleccionados, porcentaje)
+                        try:
+                            cant = db.aumentar_precios_por_lista(seleccionados, porcentaje)
+                        except sqlite3.IntegrityError:
+                            cant = 0
                         if cant > 0:
-                            st.success(f"Aumento del {porcentaje}% aplicado a {cant} producto(s).")
+                            st.success(f"✅ Aumento del {porcentaje}% aplicado a {cant} producto(s).")
                             st.rerun()
                         else:
-                            st.error("Error al aplicar aumento.")
+                            st.error("❌ Error al aplicar aumento.")

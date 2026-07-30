@@ -1,3 +1,4 @@
+import sqlite3
 import streamlit as st
 import database as db
 from style import inject_global_css
@@ -88,7 +89,10 @@ if caja:
             st.caption(f"⚠️ Diferencia con el sistema: ${diferencia:,.2f}")
         cerrar = st.form_submit_button("Cerrar caja")
         if cerrar:
-            ok = db.cerrar_caja(caja_id, saldo_final, usuario_id)
+            try:
+                ok = db.cerrar_caja(caja_id, saldo_final, usuario_id)
+            except sqlite3.IntegrityError:
+                ok = None
             if ok:
                 st.success("✅ Caja cerrada correctamente.")
                 st.rerun()
@@ -111,7 +115,10 @@ else:
             if saldo_inicial < 0:
                 st.error("❌ El saldo inicial no puede ser negativo.")
             else:
-                nuevo_id = db.abrir_caja(float(saldo_inicial), usuario_id)
+                try:
+                    nuevo_id = db.abrir_caja(float(saldo_inicial), usuario_id)
+                except sqlite3.IntegrityError:
+                    nuevo_id = None
                 if nuevo_id:
                     st.success(f"✅ Caja #{nuevo_id} abierta correctamente.")
                     st.rerun()

@@ -1513,7 +1513,7 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             """, (cliente_id, venta_id, total, saldo_anterior, saldo_nuevo, metodo_pago))
         
         # Si hay caja abierta, registrar movimiento de ingreso por venta
-        caja_abierta = get_caja_abierta()
+        caja_abierta = get_caja_abierta(conn)
         if caja_abierta:
             caja_id = caja_abierta[0]  # ID de la caja abierta
             saldo_anterior_caja = caja_abierta[2]  # saldo_actual actual
@@ -2188,15 +2188,21 @@ def cerrar_caja(caja_id, saldo_final, usuario_id):
         conn.close()
 
 
-def get_caja_abierta():
+def get_caja_abierta(conn=None):
     """
     Obtiene la caja actualmente abierta.
+    
+    Args:
+        conn: conexión opcional (si se proporciona, no la cierra)
     
     Returns:
         tuple: (id, saldo_inicial, saldo_actual, fecha_apertura, fecha_cierre, usuario_id, abierta) 
                o None si no hay caja abierta
     """
-    conn = get_connection()
+    close_conn = False
+    if conn is None:
+        conn = get_connection()
+        close_conn = True
     try:
         caja = conn.execute("""
             SELECT id, saldo_inicial, saldo_actual, fecha_apertura, fecha_cierre, usuario_id, abierta
@@ -2207,7 +2213,8 @@ def get_caja_abierta():
         """).fetchone()
         return caja
     finally:
-        conn.close()
+        if close_conn:
+            conn.close()
 
 
 def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id):

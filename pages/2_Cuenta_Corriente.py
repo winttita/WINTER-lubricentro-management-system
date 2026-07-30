@@ -1,3 +1,4 @@
+import sqlite3
 import streamlit as st
 import database as db
 from datetime import datetime
@@ -7,7 +8,7 @@ st.set_page_config(page_title="Cuenta Corriente", layout="wide")
 inject_global_css()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    st.warning("Debe iniciar sesión para acceder a esta página.")
+    st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
     st.stop()
 
 st.title("💰 Cuenta Corriente")
@@ -138,18 +139,20 @@ if cliente_sel:
 
             if st.form_submit_button("Registrar pago", type="primary"):
                 if monto_pago <= 0:
-                    st.error("El monto debe ser mayor a 0.")
+                    st.error("❌ El monto debe ser mayor a 0.")
                 else:
-                    if ventas_sel_ids:
-                        ok = db.registrar_pago_cc_con_ventas(cli_id, monto_pago, metodo_sel, observacion, st.session_state.user_id, venta_ids=ventas_sel_ids)
-                    else:
-                        ok = db.registrar_pago_cc(cli_id, monto_pago, metodo_sel, observacion, st.session_state.user_id)
+                    try:
+                        if ventas_sel_ids:
+                            ok = db.registrar_pago_cc_con_ventas(cli_id, monto_pago, metodo_sel, observacion, st.session_state.user_id, venta_ids=ventas_sel_ids)
+                        else:
+                            ok = db.registrar_pago_cc(cli_id, monto_pago, metodo_sel, observacion, st.session_state.user_id)
+                    except sqlite3.IntegrityError:
+                        ok = False
                     if ok:
                         st.success(f"✅ Pago de ${monto_pago:.2f} registrado correctamente.")
-                        # Limpiar selección de tickets reseteando el form
                         st.rerun()
                     else:
-                        st.error("Error al registrar el pago.")
+                        st.error("❌ Error al registrar el pago.")
 
     # --- Movimientos del cliente ---
     st.markdown("#### Movimientos")
