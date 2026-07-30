@@ -134,7 +134,6 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS productos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo_interno TEXT UNIQUE,
             codigo_barras TEXT UNIQUE,
             nombre TEXT NOT NULL,
             descripcion TEXT,
@@ -151,6 +150,12 @@ def init_db():
         )
     """)
     
+    # Migracion: eliminar codigo_interno de productos (v0.5.0)
+    try:
+        cursor.execute("ALTER TABLE productos DROP COLUMN codigo_interno")
+    except sqlite3.OperationalError:
+        pass  # Ya migrado
+
     # 4. Catalogo Proveedor
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS catalogo_proveedor (
@@ -870,7 +875,7 @@ def get_productos():
     conn.close()
     return productos
 
-def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
+def add_producto(codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
     if not nombre or not nombre.strip():
         return False
     if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
@@ -884,10 +889,9 @@ def add_producto(codigo_interno, codigo_barras, nombre, descripcion, categoria_i
     conn = get_connection()
     try:
         cursor = conn.execute("""
-            INSERT INTO productos (codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_actual)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO productos (codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_actual)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            codigo_interno.strip() if codigo_interno else None,
             codigo_barras.strip() if codigo_barras else None,
             nombre.strip(),
             descripcion, categoria_id, proveedor_id, tipo_unidad,
@@ -1116,7 +1120,7 @@ def get_precios_para_lista():
     """Devuelve productos activos con stock > 0 para armar la lista de precios.
 
     Retorna una lista de tuplas con:
-        (proveedor_nombre, producto_nombre, codigo_interno, codigo_barras,
+        (proveedor_nombre, producto_nombre, codigo_barras,
          precio_venta, stock_actual, categoria_nombre)
     Ordenado por proveedor y luego por nombre de producto.
     """
@@ -1125,7 +1129,6 @@ def get_precios_para_lista():
         rows = conn.execute("""
             SELECT prov.nombre as proveedor_nombre,
                    p.nombre as producto_nombre,
-                   p.codigo_interno,
                    p.codigo_barras,
                    p.precio_venta,
                    p.stock_actual,
@@ -1141,7 +1144,7 @@ def get_precios_para_lista():
         conn.close()
 
 
-def update_producto(id, codigo_interno, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
+def update_producto(id, codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta):
     """Actualiza los datos de un producto existente."""
     # Validaciones básicas
     if not nombre or not nombre.strip():
@@ -1161,12 +1164,11 @@ def update_producto(id, codigo_interno, codigo_barras, nombre, descripcion, cate
     try:
         cursor = conn.execute("""
             UPDATE productos 
-            SET codigo_interno = ?, codigo_barras = ?, nombre = ?, descripcion = ?, 
+            SET codigo_barras = ?, nombre = ?, descripcion = ?, 
                 categoria_id = ?, proveedor_id = ?, tipo_unidad = ?, 
                 stock_minimo = ?, precio_costo = ?, precio_venta = ?
             WHERE id = ?
         """, (
-            codigo_interno.strip() if codigo_interno else None,
             codigo_barras.strip() if codigo_barras else None,
             nombre.strip(),
             descripcion,
@@ -1183,7 +1185,7 @@ def update_producto(id, codigo_interno, codigo_barras, nombre, descripcion, cate
     except sqlite3.IntegrityError as e:
         # Handle unique constraint violations
         if 'UNIQUE constraint failed' in str(e):
-            return False  # Código interno o de barras duplicado
+            return False  # Código de barras duplicado
         raise
     finally:
         conn.close()

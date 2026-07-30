@@ -112,43 +112,36 @@ def _crear_dependencias():
 def test_add_y_get_productos(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.add_producto(
-        "C001", "7790001", "Aceite 5W30", "Sintético", cat_id, prov_id,
+        "7790001", "Aceite 5W30", "Sintético", cat_id, prov_id,
         "Entero", 5, 1000, 1500
     )
     prods = database.get_productos()
     assert len(prods) == 1
-    # nombre está en índice 3
-    assert prods[0][3] == "Aceite 5W30"
+    # nombre está en índice 2
+    assert prods[0][2] == "Aceite 5W30"
 
 
 def test_add_producto_tipo_unidad_invalido(temp_db):
     cat_id, prov_id = _crear_dependencias()
     with pytest.raises(sqlite3.IntegrityError):
         database.add_producto(
-            "C002", "7790002", "Aceite", "desc", cat_id, prov_id,
+            "7790002", "Aceite", "desc", cat_id, prov_id,
             "Litro", 1, 10, 20
         )
     assert len(database.get_productos()) == 0
 
 
-def test_add_producto_codigo_duplicado(temp_db):
-    cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C001", "7790001", "A", "d", cat_id, prov_id, "Entero", 1, 1, 2)
-    with pytest.raises(sqlite3.IntegrityError):
-        database.add_producto("C001", "7790009", "B", "d", cat_id, prov_id, "Entero", 1, 1, 2)
-
-
 def test_add_producto_codigo_barras_duplicado(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C010", "7790001", "A", "d", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("7790001", "A", "d", cat_id, prov_id, "Entero", 1, 1, 2)
     with pytest.raises(sqlite3.IntegrityError):
-        database.add_producto("C011", "7790001", "B", "d", cat_id, prov_id, "Entero", 1, 1, 2)
+        database.add_producto("7790001", "B", "d", cat_id, prov_id, "Entero", 1, 1, 2)
 
 
 def test_add_producto_fraccionable(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.add_producto(
-        "C003", "7790003", "Limpiafondos", "desc", cat_id, prov_id,
+        "7790003", "Limpiafondos", "desc", cat_id, prov_id,
         "Fraccionable", 0.5, 100, 150
     )
     assert len(database.get_productos()) == 1
@@ -157,31 +150,31 @@ def test_add_producto_fraccionable(temp_db):
 def test_add_producto_stock_precio_cero(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.add_producto(
-        "C004", "7790004", "Regalo", "desc", cat_id, prov_id,
+        "7790004", "Regalo", "desc", cat_id, prov_id,
         "Entero", 0, 0, 0
     )
     prods = database.get_productos()
     assert len(prods) == 1
-    # stock_minimo índice 9, precio_costo 10, precio_venta 11
+    # stock_minimo índice 8, precio_costo 9, precio_venta 10
+    assert prods[0][8] == 0
     assert prods[0][9] == 0
     assert prods[0][10] == 0
-    assert prods[0][11] == 0
 
 
 def test_add_producto_nombre_null(temp_db):
     cat_id, prov_id = _crear_dependencias()
     assert database.add_producto(
-        "C005", "7790005", None, "desc", cat_id, prov_id,
+        "7790005", None, "desc", cat_id, prov_id,
         "Entero", 1, 1, 2
     ) is False
 
 
 def test_get_productos_excluye_inactivos(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C100", "7790100", "Activo", "d", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("7790100", "Activo", "d", cat_id, prov_id, "Entero", 1, 1, 2)
     # marcamos uno inactivo directamente
     conn = database.get_connection()
-    conn.execute("UPDATE productos SET activo=0 WHERE codigo_interno='C100'")
+    conn.execute("UPDATE productos SET activo=0 WHERE id=1")
     conn.commit()
     conn.close()
     assert len(database.get_productos()) == 0
@@ -211,12 +204,11 @@ def _crear_producto_con_stock():
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
     database.add_producto(
-        "C001", "7790001", "Aceite 5W30", "Sintético", cat_id, prov_id,
-        "Entero", 10, 1000, 1500  # stock_minimo=10, pero stock_actual empieza en 0
+        "7790001", "Aceite 5W30", "Sintético", cat_id, prov_id,
+        "Entero", 10, 1000, 1500
     )
-    # Establecemos un stock inicial de 20 unidades
     conn = database.get_connection()
-    conn.execute("UPDATE productos SET stock_actual = 20 WHERE codigo_interno = 'C001'")
+    conn.execute("UPDATE productos SET stock_actual = 20 WHERE id = 1")
     conn.commit()
     conn.close()
     return cat_id, prov_id
@@ -274,7 +266,7 @@ def test_add_movimiento_compra_exitosa(temp_db):
     # Verificar que el stock aumentó
     producto_actualizado = database.get_productos()[0]
     # stock_actual está en el índice 8 (según la consulta en get_productos)
-    assert producto_actualizado[8] == 30  # 20 inicial + 10 compra
+    assert producto_actualizado[7] == 30  # 20 inicial + 10 compra
 
 
 def test_add_movimiento_venta_exitosa(temp_db):
@@ -295,7 +287,7 @@ def test_add_movimiento_venta_exitosa(temp_db):
     
     # Verificar que el stock disminuyó
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 15  # 20 inicial - 5 venta
+    assert producto_actualizado[7] == 15  # 20 inicial - 5 venta
 
 
 def test_add_movimiento_ajuste_positivo(temp_db):
@@ -309,7 +301,7 @@ def test_add_movimiento_ajuste_positivo(temp_db):
     
     # Verificar que el stock aumentó (para ajuste, la cantidad se suma directamente)
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 25  # 20 inicial + 5 ajuste
+    assert producto_actualizado[7] == 25  # 20 inicial + 5 ajuste
 
 
 def test_add_movimiento_ajuste_negativo(temp_db):
@@ -323,7 +315,7 @@ def test_add_movimiento_ajuste_negativo(temp_db):
     
     # Verificar que el stock disminuyó
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 15  # 20 inicial + (-5) ajuste
+    assert producto_actualizado[7] == 15  # 20 inicial + (-5) ajuste
 
 
 def test_add_movimiento_devolucion(temp_db):
@@ -337,7 +329,7 @@ def test_add_movimiento_devolucion(temp_db):
     
     # Verificar que el stock aumentó (igual que compra)
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 23  # 20 inicial + 3 devolucion
+    assert producto_actualizado[7] == 23  # 20 inicial + 3 devolucion
 
 
 def test_add_movimiento_uso_interno(temp_db):
@@ -351,7 +343,7 @@ def test_add_movimiento_uso_interno(temp_db):
     
     # Verificar que el stock disminuyó (igual que venta)
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 16  # 20 inicial - 4 uso_interno
+    assert producto_actualizado[7] == 16  # 20 inicial - 4 uso_interno
 
 
 def test_add_movimiento_stock_insuficiente(temp_db):
@@ -369,7 +361,7 @@ def test_add_movimiento_stock_insuficiente(temp_db):
     
     # Verificar que el stock no cambió
     producto_actualizado = database.get_productos()[0]
-    assert producto_actualizado[8] == 20  # Stock unchanged
+    assert producto_actualizado[7] == 20  # Stock unchanged
 
 
 def test_add_movimiento_producto_inexistente(temp_db):
@@ -452,12 +444,12 @@ def test_add_producto_con_stock_inicial(temp_db):
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
 
-    database.add_producto("C100", "7790100", "Test Stock", "", cat_id, prov_id,
+    database.add_producto("7790100", "Test Stock", "", cat_id, prov_id,
                           "Entero", 5, 100, 200, stock_inicial=25)
 
     productos = database.get_productos()
     p = productos[0]
-    assert p[8] == 25.0, f"Stock esperado 25, obtenido {p[8]}"
+    assert p[7] == 25.0, f"Stock esperado 25, obtenido {p[7]}"
 
     conn = database.get_connection()
     movs = conn.execute("SELECT tipo, cantidad, motivo FROM movimientos_stock").fetchall()
@@ -474,11 +466,11 @@ def test_add_producto_sin_stock_inicial(temp_db):
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
 
-    database.add_producto("C101", "7790101", "Test Sin Stock", "", cat_id, prov_id,
+    database.add_producto("7790101", "Test Sin Stock", "", cat_id, prov_id,
                           "Entero", 5, 100, 200)
 
     p = database.get_productos()[0]
-    assert p[8] == 0.0
+    assert p[7] == 0.0
 
     conn = database.get_connection()
     movs = conn.execute("SELECT tipo, cantidad FROM movimientos_stock").fetchall()
@@ -494,7 +486,7 @@ def test_crear_ajuste_stock_con_movimiento(temp_db):
     database.add_proveedor("YPF", "", "", "Contado")
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
-    database.add_producto("C200", "7790200", "Ajustable", "", cat_id, prov_id,
+    database.add_producto("7790200", "Ajustable", "", cat_id, prov_id,
                           "Entero", 5, 100, 200, stock_inicial=50)
 
     p = database.get_productos()[0]
@@ -524,14 +516,14 @@ def test_crear_y_get_compras(temp_db):
     database.add_proveedor("Mann Filter", "", "", "Contado")
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
-    database.add_producto("C300", "7790300", "Filtro Aceite", "", cat_id, prov_id,
+    database.add_producto("7790300", "Filtro Aceite", "", cat_id, prov_id,
                           "Entero", 10, 500, 800, stock_inicial=20)
-    database.add_producto("C301", "7790301", "Filtro Aire", "", cat_id, prov_id,
+    database.add_producto("7790301", "Filtro Aire", "", cat_id, prov_id,
                           "Entero", 10, 300, 500, stock_inicial=10)
 
     productos = database.get_productos()
-    filtro_aceite = [p for p in productos if p[1] == "C300"][0]
-    filtro_aire = [p for p in productos if p[1] == "C301"][0]
+    filtro_aceite = [p for p in productos if p[2] == "Filtro Aceite"][0]
+    filtro_aire = [p for p in productos if p[2] == "Filtro Aire"][0]
 
     items = [
         {'producto_id': filtro_aceite[0], 'cantidad': 10, 'precio_unitario': 450},
@@ -582,7 +574,7 @@ def test_anular_compra(temp_db):
     database.add_proveedor("Mann Filter", "", "", "Contado")
     cat_id = database.get_categorias()[0][0]
     prov_id = database.get_proveedores()[0][0]
-    database.add_producto("C400", "7790400", "Filtro Test", "", cat_id, prov_id,
+    database.add_producto("7790400", "Filtro Test", "", cat_id, prov_id,
                           "Entero", 5, 100, 200, stock_inicial=10)
 
     p = database.get_productos()[0]
@@ -632,7 +624,7 @@ def test_crear_venta_stock_insuficiente_retorna_mensaje_especifico(temp_db):
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
     # Setup: crear producto con stock 5
-    add_producto("P1", "CB001", "Producto Test", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 5)
+    add_producto("CB001", "Producto Test", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 5)
     items = [{"producto_id": 1, "cantidad": 10, "precio_unitario": 100.0}]
     venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
     assert venta_id is None
@@ -646,7 +638,7 @@ def test_crear_venta_factura_a_calculo_iva_incluido(temp_db):
     """Factura A: precio_venta ya incluye IVA. Total = subtotal_neto + iva = precio_final."""
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
-    add_producto("P2", "CB002", "Producto A", "", cat_id, prov_id, "Entero", 0, 10.0, 121.0, 10)
+    add_producto("CB002", "Producto A", "", cat_id, prov_id, "Entero", 0, 10.0, 121.0, 10)
     items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 121.0}]
     venta_id, numero, error = crear_venta(None, "factura_a", items, "efectivo", 1)
     print(f"DEBUG: venta_id={venta_id}, numero={numero}, error={error}")
@@ -666,7 +658,7 @@ def test_crear_venta_ticket_sin_iva(temp_db):
     """Ticket: sin IVA, subtotal = total = precio_venta."""
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
-    add_producto("P3", "CB003", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
+    add_producto("CB003", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
     items = [{"producto_id": 1, "cantidad": 2, "precio_unitario": 100.0}]
     venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
     assert venta_id is not None
@@ -684,7 +676,7 @@ def test_crear_venta_producto_inactivo_retorna_error(temp_db):
     """Producto inactivo debe retornar error especifico."""
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
-    add_producto("P4", "CB004", "Producto Inactivo", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
+    add_producto("CB004", "Producto Inactivo", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 10)
     # Desactivar producto
     import database as db
     conn = db.get_connection()
@@ -710,7 +702,7 @@ def test_crear_venta_factura_b_sin_iva(temp_db):
     """Factura B: sin IVA desglosado."""
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
-    add_producto("P5", "CB005", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 150.0, 10)
+    add_producto("CB005", "Producto B", "", cat_id, prov_id, "Entero", 0, 10.0, 150.0, 10)
     items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 150.0}]
     venta_id, numero, error = crear_venta(None, "factura_b", items, "efectivo", 1)
     assert venta_id is not None
@@ -728,7 +720,7 @@ def test_crear_venta_factura_c_sin_iva(temp_db):
     """Factura C: sin IVA desglosado."""
     from database import crear_venta, add_producto
     cat_id, prov_id = _crear_dependencias()
-    add_producto("P6", "CB006", "Producto C", "", cat_id, prov_id, "Entero", 0, 10.0, 200.0, 10)
+    add_producto("CB006", "Producto C", "", cat_id, prov_id, "Entero", 0, 10.0, 200.0, 10)
     items = [{"producto_id": 1, "cantidad": 1, "precio_unitario": 200.0}]
     venta_id, numero, error = crear_venta(None, "factura_c", items, "efectivo", 1)
     assert venta_id is not None
@@ -810,9 +802,9 @@ def test_crear_compra_actualiza_precio_costo(temp_db):
     prods = get_productos()
     prod = next((p for p in prods if p[0] == 1), None)
     assert prod is not None
-    # precio_costo está en índice 10 (p.*: id, codigo_interno, codigo_barras, nombre, descripcion, 
+    # precio_costo está en índice 9 (p.*: id, codigo_barras, nombre, descripcion, 
     # categoria_id, proveedor_id, tipo_unidad, stock_actual, stock_minimo, precio_costo, precio_venta, ...)
-    assert prod[10] == 1200.0, f"precio_costo debería ser 1200.0, es {prod[10]}"
+    assert prod[9] == 1200.0, f"precio_costo debería ser 1200.0, es {prod[9]}"
 
 
 def test_crear_compra_registra_iva(temp_db):
@@ -967,7 +959,7 @@ def test_registrar_pago_cc_reduce_deuda(temp_db):
     # Generar deuda: venta a cuenta corriente
     database.add_categoria("Aceites")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("COD1", None, "Aceite 5W30", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    database.add_producto(None, "Aceite 5W30", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
     items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 200}]
     venta_id, _, _ = crear_venta(1, 'ticket', items, 'cuenta_corriente', 1)
     assert venta_id is not None
@@ -986,7 +978,7 @@ def test_registrar_pago_cc_pago_total_saldando(temp_db):
     add_cliente("Ana", "111", "ana@mail.com")
     database.add_categoria("Filtros")
     database.add_proveedor("Prov2", None, None, "Contado")
-    database.add_producto("F1", None, "Filtro", "", 1, 1, "Entero", 2, 50, 100, stock_inicial=20)
+    database.add_producto(None, "Filtro", "", 1, 1, "Entero", 2, 50, 100, stock_inicial=20)
     items = [{'producto_id': 1, 'cantidad': 3, 'precio_unitario': 100}]
     crear_venta(1, 'ticket', items, 'cuenta_corriente', 1)
     # Deuda 300, pago total 300
@@ -1014,7 +1006,7 @@ def test_registrar_pago_cc_registra_tipo_movimiento_pago(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     registrar_pago_cc(1, 20.0, 'efectivo', 'Pago', 1)
     conn = get_connection()
@@ -1030,7 +1022,7 @@ def test_crear_venta_cuenta_corriente_registra_tipo_venta(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     conn = get_connection()
     row = conn.execute("SELECT tipo_movimiento FROM cuenta_corriente WHERE cliente_id=1 ORDER BY id DESC LIMIT 1").fetchone()
@@ -1045,7 +1037,7 @@ def test_get_clientes_con_deuda_incluye_antiguedad(temp_db):
     add_cliente("Cliente Antiguo", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=5)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     deudores = database.get_clientes_con_deuda()
     assert len(deudores) == 1
@@ -1059,7 +1051,7 @@ def test_get_movimientos_cuenta_corriente_incluye_tipo_y_metodo(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=10)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=10)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     registrar_pago_cc(1, 10.0, 'transferencia', 'Pago parcial', 1)
     movs = database.get_movimientos_cuenta_corriente(1)
@@ -1078,21 +1070,21 @@ def test_aumentar_precios_proveedor(temp_db):
     assert add_categoria("Cat") is True
     assert add_proveedor("ProvX", None, None, "Contado") is True
     # productos del proveedor
-    assert add_producto("P1", None, "Producto UNO", "", 1, 1, "Entero", 1, 100.0, 200.0, stock_inicial=5)
-    assert add_producto("P2", None, "Producto DOS", "", 1, 1, "Entero", 1, 50.0, 100.0, stock_inicial=5)
+    assert add_producto(None, "Producto UNO", "", 1, 1, "Entero", 1, 100.0, 200.0, stock_inicial=5)
+    assert add_producto(None, "Producto DOS", "", 1, 1, "Entero", 1, 50.0, 100.0, stock_inicial=5)
     # producto de OTRO proveedor (no debe cambiar)
     assert add_proveedor("ProvY", None, None, "Contado") is True
-    assert add_producto("P3", None, "Producto TRES", "", 1, 2, "Entero", 1, 80.0, 160.0, stock_inicial=5)
+    assert add_producto(None, "Producto TRES", "", 1, 2, "Entero", 1, 80.0, 160.0, stock_inicial=5)
 
     # Aumentar 10% al proveedor 1
     ok = aumentar_precios_proveedor(1, 10.0)
     assert ok is True
 
     prods = get_productos()
-    precios = {p[1]: p[11] for p in prods}  # p[11] = precio_venta
-    assert precios["P1"] == 220.0, f"P1 deberia ser 220.0, es {precios['P1']}"
-    assert precios["P2"] == 110.0, f"P2 deberia ser 110.0, es {precios['P2']}"
-    assert precios["P3"] == 160.0, f"P3 NO deberia cambiar, es {precios['P3']}"
+    precios = {p[2]: p[10] for p in prods}  # p[10] = precio_venta
+    assert precios["Producto UNO"] == 220.0, f"Producto UNO deberia ser 220.0, es {precios.get('Producto UNO')}"
+    assert precios["Producto DOS"] == 110.0, f"Producto DOS deberia ser 110.0, es {precios.get('Producto DOS')}"
+    assert precios["Producto TRES"] == 160.0, f"Producto TRES NO deberia cambiar, es {precios.get('Producto TRES')}"
 
 
 def test_aumentar_precios_proveedor_proveedor_inexistente(temp_db):
@@ -1117,7 +1109,7 @@ def test_get_ventas_pendientes_cc(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 1, 'precio_unitario': 50}], 'cuenta_corriente', 1)
     pendientes = database.get_ventas_pendientes_cc(1)
@@ -1135,7 +1127,7 @@ def test_get_ventas_pendientes_cc_tras_pago_parcial(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=30)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=30)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     # Pago parcial de 15 aplicado a venta #1
     registrar_pago_cc_con_ventas(1, 15.0, 'efectivo', 'Pago parcial', 1, [1])
@@ -1152,7 +1144,7 @@ def test_registrar_pago_cc_con_ventas_imputa_pago(temp_db):
     add_cliente("Cliente", None, None)
     database.add_categoria("Cat")
     database.add_proveedor("Prov", None, None, "Contado")
-    database.add_producto("P1", None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
+    database.add_producto(None, "Prod", "", 1, 1, "Entero", 1, 10, 20, stock_inicial=20)
     crear_venta(1, 'ticket', [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 20}], 'cuenta_corriente', 1)
     # Pago total de 40 aplicado a venta #1
     ok = registrar_pago_cc_con_ventas(1, 40.0, 'efectivo', 'Pago total', 1, [1])
@@ -1187,7 +1179,7 @@ def test_reporte_inventario_con_datos(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
     database.add_producto(
-        "C001", "7790001", "Aceite 5W30", "Sintético",
+        "7790001", "Aceite 5W30", "Sintético",
         1, 1, "Entero", 5, 100, 150, stock_inicial=20
     )
     inv = database.get_reporte_inventario()
@@ -1209,7 +1201,7 @@ def test_reporte_inventario_excluye_productos_inactivos(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
     database.add_producto(
-        "C001", "7790001", "Aceite 5W30", "Sintético",
+        "7790001", "Aceite 5W30", "Sintético",
         1, 1, "Entero", 5, 100, 150, stock_inicial=20
     )
     conn = database.get_connection()
@@ -1309,7 +1301,7 @@ def test_crear_venta_con_caja_abierta_registra_ingreso(temp_db):
     database.abrir_caja(5000.0, 1)
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
+    database.add_producto("779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
     items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 100.0}]
     venta_id, num, error = database.crear_venta(None, 'ticket', items, 'efectivo', 1)
     assert venta_id is not None
@@ -1330,7 +1322,7 @@ def test_crear_venta_sin_caja_abierta_no_registra_ingreso(temp_db):
     """Si no hay caja abierta, crear_venta no debe registrar movimiento de caja."""
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
+    database.add_producto("779001", "Aceite 20W50", "", 1, 1, "Entero", 5, 50, 100, stock_inicial=100)
     items = [{'producto_id': 1, 'cantidad': 2, 'precio_unitario': 100.0}]
     venta_id, num, error = database.crear_venta(None, 'ticket', items, 'efectivo', 1)
     assert venta_id is not None
@@ -1386,13 +1378,13 @@ def test_get_precios_para_lista_solo_activos_con_stock(temp_db):
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
     database.add_proveedor("Shell", "Ana", "5678", "Contado")
     # Producto YPF Aceites con stock
-    database.add_producto("P001", "779001", "Aceite 5W30 YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=20)
+    database.add_producto("779001", "Aceite 5W30 YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=20)
     # Producto Shell Filtros con stock
-    database.add_producto("P002", "779002", "Filtro Aceite Shell", "", 2, 2, "Entero", 5, 200, 300, stock_inicial=10)
+    database.add_producto("779002", "Filtro Aceite Shell", "", 2, 2, "Entero", 5, 200, 300, stock_inicial=10)
     # Producto YPF sin stock (no debe aparecer)
-    database.add_producto("P003", "779003", "Aceite 10W40 YPF", "", 1, 1, "Entero", 5, 100, 180, stock_inicial=0)
+    database.add_producto("779003", "Aceite 10W40 YPF", "", 1, 1, "Entero", 5, 100, 180, stock_inicial=0)
     # Producto inactivo con stock (no debe aparecer)
-    database.add_producto("P004", "779004", "Filtro Aire YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=15)
+    database.add_producto("779004", "Filtro Aire YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=15)
     conn = database.get_connection()
     conn.execute("UPDATE productos SET activo = 0 WHERE id = 4")
     conn.commit()
@@ -1411,9 +1403,9 @@ def test_get_precios_para_lista_ordenado_por_proveedor(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
     database.add_proveedor("Shell", "Ana", "5678", "Contado")
-    database.add_producto("P003", "779003", "Z-Aceite B YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
-    database.add_producto("P001", "779001", "A-Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
-    database.add_producto("P002", "779002", "A-Aceite Shell", "", 1, 2, "Entero", 5, 100, 150, stock_inicial=5)
+    database.add_producto("779003", "Z-Aceite B YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
+    database.add_producto("779001", "A-Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=5)
+    database.add_producto("779002", "A-Aceite Shell", "", 1, 2, "Entero", 5, 100, 150, stock_inicial=5)
 
     lista = database.get_precios_para_lista()
     # Ordenado por proveedor, Shell < YPF
@@ -1428,10 +1420,10 @@ def test_get_precios_para_lista_incluye_precio_venta(temp_db):
     """La lista debe incluir el precio de venta correcto."""
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150.50, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150.50, stock_inicial=10)
     lista = database.get_precios_para_lista()
     assert len(lista) == 1
-    assert lista[0][4] == 150.50
+    assert lista[0][3] == 150.50
 
 
 # --- Categorias por proveedor ---
@@ -1440,10 +1432,10 @@ def test_get_categorias_por_proveedor(temp_db):
     database.add_categoria("Filtros")
     database.add_categoria("Lubricantes")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
-    database.add_producto("P002", "779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 150, stock_inicial=10)
     # P003 sin categoria ( categoria_id = NULL )
-    database.add_producto("P003", "779003", "Sin Cat YPF", "", None, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779003", "Sin Cat YPF", "", None, 1, "Entero", 5, 100, 150, stock_inicial=10)
     cats = database.get_categorias_por_proveedor(1)
     cat_nombres = [c[1] for c in cats]
     assert "Aceites" in cat_nombres
@@ -1472,9 +1464,9 @@ def test_aumentar_precios_por_categoria(temp_db):
     database.add_categoria("Filtros")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
     database.add_proveedor("Shell", "Ana", "5678", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
-    database.add_producto("P002", "779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=10)
-    database.add_producto("P003", "779003", "Aceite Shell", "", 1, 2, "Entero", 5, 100, 300, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779002", "Filtro YPF", "", 2, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    database.add_producto("779003", "Aceite Shell", "", 1, 2, "Entero", 5, 100, 300, stock_inicial=10)
 
     # Aumentar 10% solo Aceites de YPF (proveedor_id=1, categoria_id=1)
     actualizados = database.aumentar_precios_por_categoria(1, 10.0, 1)
@@ -1493,9 +1485,9 @@ def test_aumentar_precios_por_categoria_multiples_productos(temp_db):
     """Si el proveedor tiene varios productos en la categoria, todos se actualizan."""
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
-    database.add_producto("P002", "779002", "Aceite B YPF", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
-    database.add_producto("P003", "779003", "Filtro YPF", "", None, 1, "Entero", 5, 100, 100, stock_inicial=10)
+    database.add_producto("779001", "Aceite A YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779002", "Aceite B YPF", "", 1, 1, "Entero", 5, 100, 200, stock_inicial=10)
+    database.add_producto("779003", "Filtro YPF", "", None, 1, "Entero", 5, 100, 100, stock_inicial=10)
 
     actualizados = database.aumentar_precios_por_categoria(1, 20.0, 1)
     assert actualizados == 2  # P001 y P002 son Aceites de YPF
@@ -1504,7 +1496,7 @@ def test_aumentar_precios_por_categoria_multiples_productos(temp_db):
 def test_aumentar_precios_por_categoria_proveedor_inexistente(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
     actualizados = database.aumentar_precios_por_categoria(9999, 10.0, 1)
     assert actualizados == 0
 
@@ -1513,7 +1505,7 @@ def test_aumentar_precios_por_categoria_categoria_sin_productos(temp_db):
     database.add_categoria("Aceites")
     database.add_categoria("Filtros")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
     # No existen productos en categoria Filtros (id=2) para YPF
     actualizados = database.aumentar_precios_por_categoria(1, 10.0, 2)
     assert actualizados == 0
@@ -1522,7 +1514,7 @@ def test_aumentar_precios_por_categoria_categoria_sin_productos(temp_db):
 def test_aumentar_precios_por_categoria_porcentaje_negativo(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
     actualizados = database.aumentar_precios_por_categoria(1, -10.0, 1)
     assert actualizados == 0
 
@@ -1530,7 +1522,7 @@ def test_aumentar_precios_por_categoria_porcentaje_negativo(temp_db):
 def test_aumentar_precios_por_categoria_porcentaje_invalido(temp_db):
     database.add_categoria("Aceites")
     database.add_proveedor("YPF", "Juan", "1234", "Contado")
-    database.add_producto("P001", "779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
+    database.add_producto("779001", "Aceite YPF", "", 1, 1, "Entero", 5, 100, 150, stock_inicial=10)
     actualizados = database.aumentar_precios_por_categoria(1, "abc", 1)
     assert actualizados == 0
 
@@ -1595,8 +1587,8 @@ def test_add_servicio_precio_invalido(temp_db):
 # --- Productos: empty name (no null) ---
 def test_add_producto_nombre_vacio(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    assert database.add_producto("C999", "7790999", "", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
-    assert database.add_producto("C998", "7790998", "   ", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
+    assert database.add_producto("7790999", "", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
+    assert database.add_producto("7790998", "   ", "desc", cat_id, prov_id, "Entero", 1, 10, 20) is False
 
 
 # --- Proveedores: empty name ---
@@ -1610,7 +1602,7 @@ def test_add_proveedor_nombre_vacio(temp_db):
 # --- Stock: crear_ajuste_stock sin motivo ---
 def test_crear_ajuste_stock_sin_motivo(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    assert database.add_producto("C100", "7790100", "Test", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10) is True
+    assert database.add_producto("7790100", "Test", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10) is True
     prod_id = database.get_productos()[0][0]
     assert database.crear_ajuste_stock(prod_id, 15, "", 1) is False
     assert database.crear_ajuste_stock(prod_id, 15, "   ", 1) is False
@@ -1623,7 +1615,7 @@ def test_add_orden_detalle_cantidad_cero(temp_db):
     orden_id = database.add_orden_servicio(cliente_id, None)
     assert orden_id is not None
     cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C200", "7790200", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
+    database.add_producto("7790200", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
     prod_id = database.get_productos()[0][0]
     assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=0) is False
     assert database.add_orden_detalle(orden_id, producto_id=prod_id, cantidad=-1) is False
@@ -1663,7 +1655,7 @@ def test_crear_compra_sin_items(temp_db):
 
 def test_crear_compra_proveedor_none(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C300", "7790300", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=0)
+    database.add_producto("7790300", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=0)
     prod_id = database.get_productos()[0][0]
     items = [{"producto_id": prod_id, "cantidad": 5, "precio_unitario": 10}]
     assert database.crear_compra(None, items) is None
@@ -1671,13 +1663,13 @@ def test_crear_compra_proveedor_none(temp_db):
 
 def test_crear_compra_producto_stock_actualizado(temp_db):
     cat_id, prov_id = _crear_dependencias()
-    database.add_producto("C301", "7790301", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=5)
+    database.add_producto("7790301", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=5)
     prod_id = database.get_productos()[0][0]
     items = [{"producto_id": prod_id, "cantidad": 10, "precio_unitario": 15}]
     compra_id = database.crear_compra(prov_id, items)
     assert compra_id is not None
     prods = database.get_productos()
-    assert float(prods[0][8]) == 15.0
+    assert float(prods[0][7]) == 15.0
 
 
 # --- Caja: movimiento tipo ajuste ---
@@ -1694,7 +1686,7 @@ def test_registrar_movimiento_caja_tipo_ajuste(temp_db):
 def test_crear_venta_rechaza_cantidad_cero(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.abrir_caja(1000.0, 1)
-    database.add_producto("C400", "7790400", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
+    database.add_producto("7790400", "Prod", "", cat_id, prov_id, "Entero", 1, 10, 20, stock_inicial=10)
     prod_id = database.get_productos()[0][0]
     items = [{"producto_id": prod_id, "cantidad": 0, "precio_unitario": 20}]
     venta_id, _, msg = database.crear_venta(None, "ticket", items, "efectivo", 1)
