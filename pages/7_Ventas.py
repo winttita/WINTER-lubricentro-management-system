@@ -195,12 +195,18 @@ with st.form("venta_form"):
 
 def imprimir_venta(venta_id, tipo_comp, cliente_id):
     """Genera e imprime el comprobante de una venta."""
+    import logging
+    logging.basicConfig(level=logging.DEBUG, filename='impresora.log')
     try:
         vc = db.get_venta_completa(venta_id)
         if not vc:
+            logging.error(f"get_venta_completa devolvio None para venta_id={venta_id}")
             return False
         v = vc['venta']
-        items_db = vc['items']
+        if not v:
+            logging.error(f"vc['venta'] es None para venta_id={venta_id}")
+            return False
+        items_db = vc.get('items', [])
 
         venta_dict = {
             'tipo_comprobante': v[2],
@@ -240,8 +246,11 @@ def imprimir_venta(venta_id, tipo_comp, cliente_id):
         # Guardar como respaldo
         tk.guardar_comprobante_archivo(texto, venta_dict, tipo_comp)
         # Enviar a impresora
-        return tk.imprimir_comprobante(texto)
-    except Exception:
+        result = tk.imprimir_comprobante(texto)
+        logging.info(f"imprimir_comprobante resulto: {result}")
+        return result
+    except Exception as e:
+        logging.exception(f"Error en imprimir_venta para venta_id={venta_id}: {e}")
         return False
 
 # Totales calculados (visual)

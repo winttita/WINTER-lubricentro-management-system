@@ -173,7 +173,7 @@ def imprimir_comprobante(texto):
         # Build ESC/POS payload
         payload = ESC + b'@'  # Initialize printer
         payload += texto.encode('cp1252' if sistema == 'Windows' else 'utf-8', errors='ignore')
-        payload += b'\n\n'
+        payload += b'\n' * 8
         payload += GS + b'V\x00'  # Full cut
 
         if sistema == "Windows":
