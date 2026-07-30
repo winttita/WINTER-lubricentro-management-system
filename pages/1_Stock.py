@@ -159,35 +159,31 @@ with tab_adj:
     else:
         prod_opts_adj = {f"{p[2]} - Stock: {p[7]}": p[0] for p in productos}
 
+        prod_sel = st.selectbox("Producto", list(prod_opts_adj.keys()), key="adj_prod")
+        producto_id = prod_opts_adj[prod_sel]
+        prod_info = next((p for p in productos if p[0] == producto_id), None)
+        stock_actual = float(prod_info[7]) if prod_info else 0.0
+        st.info(f"Stock actual: **{stock_actual}**")
+
         with st.form("ajuste_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                prod_sel = st.selectbox("Producto", list(prod_opts_adj.keys()), key="adj_prod")
-                producto_id = prod_opts_adj[prod_sel]
-
-                prod_info = next((p for p in productos if p[0] == producto_id), None)
-                stock_actual = float(prod_info[7]) if prod_info else 0.0
-                st.info(f"ℹ️ Stock actual: **{stock_actual}**")
-
-            with col2:
-                stock_nuevo = st.number_input("Nuevo stock", min_value=0.0, value=stock_actual, step=1.0, key="adj_nuevo")
-                motivo = st.text_area("Motivo *", placeholder="Ej: Rotura, merma, inventario físico, error de carga...", height=100, key="adj_motivo")
+            stock_nuevo = st.number_input("Nuevo stock", min_value=0.0, value=stock_actual, step=1.0, key="adj_nuevo")
+            motivo = st.text_area("Motivo *", placeholder="Ej: Rotura, merma, inventario físico, error de carga...", height=100, key="adj_motivo")
 
             submitted = st.form_submit_button("Aplicar Ajuste", type="primary")
             if submitted:
                 if not motivo.strip():
-                    st.error("❌ El motivo es obligatorio")
+                    st.error("El motivo es obligatorio")
                 else:
                     diff = stock_nuevo - stock_actual
                     if diff == 0:
-                        st.warning("⚠️ El stock no cambió")
+                        st.warning("El stock no cambió")
                     else:
                         ok = db.crear_ajuste_stock(producto_id, stock_nuevo, motivo.strip(), st.session_state.user_id)
                         if ok:
-                            st.success(f"✅ Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
+                            st.success(f"Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
                             st.rerun()
                         else:
-                            st.error("❌ Error al aplicar ajuste.")
+                            st.error("Error al aplicar ajuste.")
 
     st.divider()
 
