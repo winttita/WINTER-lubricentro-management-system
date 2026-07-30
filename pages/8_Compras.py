@@ -92,7 +92,7 @@ if proveedores and productos:
                 compra_id = db.crear_compra(prov_dict[proveedor_sel], items, observaciones)
                 if compra_id:
                     st.success(f"✅ Compra #{compra_id} registrada correctamente.")
-                    st.session_state.compra_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
+        st.session_state.compra_items = []
                     st.rerun()
                 else:
                     st.error("❌ Error al registrar la compra.")
