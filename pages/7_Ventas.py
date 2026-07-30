@@ -28,23 +28,12 @@ if not productos_activos:
     st.warning("⚠️ No hay productos activos con stock disponible.")
     st.stop()
 
-# Mapeos para seleccionar productos
-prod_opts = {f"{p[2]} - Stock: {p[7]} - ${p[9]:.2f}": p[0] for p in productos_activos}
+# Lookup de productos por ID
 prod_lookup = {p[0]: p for p in productos_activos}
 
 # Estado del carrito
 if 'venta_items' not in st.session_state:
-    st.session_state.venta_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
-
-
-def agregar_fila():
-    st.session_state.venta_items.append({'producto': None, 'cantidad': 1.0, 'precio': 0.0})
-
-
-def eliminar_fila(idx):
-    if len(st.session_state.venta_items) > 1:
-        st.session_state.venta_items.pop(idx)
-        st.rerun()
+    st.session_state.venta_items = []
 
 
 def calcular_totales(items, tipo_comprobante):
@@ -53,7 +42,7 @@ def calcular_totales(items, tipo_comprobante):
       - factura_a: precios ya incluyen IVA. subtotal = total / 1.21, iva = total - subtotal.
       - ticket / factura_b / factura_c: sin IVA desglosado. subtotal = total, iva = 0.
     """
-    total = sum(it['cantidad'] * it['precio'] for it in items if it['producto'])
+    total = sum(it['cantidad'] * it['precio'] for it in items if it.get('producto_id'))
     if tipo_comprobante == 'factura_a':
         subtotal = round(total / 1.21, 2)
         iva = round(total - subtotal, 2)
@@ -82,62 +71,90 @@ with col_mp:
     metodo_pago = st.selectbox("Metodo de pago", metodos)
 
 st.markdown("#### Productos")
-with st.form("venta_form"):
-    for idx, item in enumerate(st.session_state.venta_items):
-        col_prod, col_cant, col_precio, col_sub, col_del = st.columns([3, 1, 1, 1, 0.5])
-        with col_prod:
-            prod_label = st.selectbox(
-                f"Producto {idx+1}",
-                list(prod_opts.keys()),
-                index=list(prod_opts.keys()).index(item['producto']) if item['producto'] in prod_opts else 0,
-                key=f"venta_prod_{idx}"
-            )
-            item['producto'] = prod_label
-            # Auto-fill precio con precio de venta del producto
-            if prod_label and item['precio'] == 0.0:
-                pid = prod_opts[prod_label]
-                p = prod_lookup[pid]
-                item['precio'] = float(p[10])
-        with col_cant:
-            item['cantidad'] = st.number_input(
-                "Cant.", min_value=0.0, step=1.0,
-                value=item['cantidad'], key=f"venta_cant_{idx}"
-            )
-        with col_precio:
-            # Precio NO editable (se asigna automáticamente desde el producto)
-            st.write("Precio Unit.")
-            st.write(f"**${item['precio']:.2f}**")
-        with col_sub:
-            subtotal_item = item['cantidad'] * item['precio']
-            st.write("Subtotal")
-            st.write(f"**${subtotal_item:.2f}**")
-        with col_del:
-            st.write("")
-            if st.form_submit_button("🗑️", key=f"venta_del_{idx}", use_container_width=True):
-                eliminar_fila(idx)
 
-    col_add, col_spacer, col_submit = st.columns([1, 2, 2])
-    with col_add:
-        if st.form_submit_button("Agregar producto", use_container_width=True):
-            agregar_fila()
+# Busqueda por codigo de barras
+codigo_barras_input = st.text_input(
+    "Codigo de barras",
+    placeholder="Escanee o escriba el codigo de barras",
+    key="barcode_input"
+)
+producto_encontrado = None
+if codigo_barras_input:
+    for p in productos_activos:
+        if p[1] and str(p[1]).strip() == codigo_barras_input.strip():
+            producto_encontrado = p
+            break
+    if producto_encontrado:
+        st.success(f"Producto: {producto_encontrado[2]} - Stock: {producto_encontrado[7]} - Precio: ${producto_encontrado[9]:.2f}")
+    else:
+        st.warning("Producto no encontrado con ese codigo de barras.")
+
+# Fuera del form: selector de producto + cantidad + boton agregar
+col_prod, col_cant, col_add = st.columns([3, 1, 1])
+with col_prod:
+    prod_opts = {p[2]: p for p in productos_activos}
+    prod_sel = st.selectbox(
+        "Seleccionar producto",
+        [""] + list(prod_opts.keys()),
+        key="venta_prod_sel"
+    )
+with col_cant:
+    cant_agregar = st.number_input("Cantidad", min_value=0.0, step=1.0, value=1.0, key="venta_cant_agregar")
+with col_add:
+    st.write("")
+    if st.button("Agregar al carrito", use_container_width=True):
+        if prod_sel and cant_agregar > 0:
+            p = prod_opts[prod_sel]
+            st.session_state.venta_items.append({
+                'producto_id': p[0],
+                'nombre': p[2],
+                'cantidad': float(cant_agregar),
+                'precio': float(p[9]),
+                'stock': float(p[7])
+            })
             st.rerun()
-    with col_submit:
-        submitted = st.form_submit_button("Confirmar Venta", type="primary", use_container_width=True)
+
+# Mostrar precio del producto seleccionado (autofill inmediato)
+if prod_sel:
+    p = prod_opts[prod_sel]
+    st.info(f"Precio: ${float(p[9]):.2f} | Stock disponible: {float(p[7]):.0f}")
+
+st.markdown("#### Carrito")
+with st.form("venta_form"):
+    if not st.session_state.venta_items:
+        st.info("Agregue productos al carrito usando el selector de arriba.")
+    else:
+        for idx, item in enumerate(st.session_state.venta_items[:]):
+            c1, c2, c3, c4, c5 = st.columns([3, 1, 1, 1, 0.5])
+            with c1:
+                st.write(item['nombre'])
+            with c2:
+                item['cantidad'] = st.number_input("Cant.", min_value=0.0, step=1.0, value=item['cantidad'], key=f"vc_{idx}")
+            with c3:
+                st.write(f"${item['precio']:.2f}")
+            with c4:
+                st.write(f"${item['cantidad'] * item['precio']:.2f}")
+            with c5:
+                if st.form_submit_button("X", key=f"vdel_{idx}", use_container_width=True):
+                    st.session_state.venta_items.pop(idx)
+                    st.rerun()
+
+        col_submit = st.columns([1])
+        with col_submit[0]:
+            submitted = st.form_submit_button("Confirmar Venta", type="primary", use_container_width=True)
 
     if submitted:
         items = []
         error_fraccion = False
         for item in st.session_state.venta_items:
-            if item['producto'] and item['cantidad'] > 0 and item['precio'] > 0:
-                pid = prod_opts[item['producto']]
-                p = prod_lookup[pid]
-                tipo_unidad = p[6] if len(p) > 6 else 'Entero'
+            if item['cantidad'] > 0 and item['precio'] > 0:
+                tipo_unidad = prod_lookup[item['producto_id']][6] if len(prod_lookup[item['producto_id']]) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
-                    st.error(f"❌ No se puede vender \"{p[2]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    st.error(f"❌ No se puede vender \"{item['nombre']}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
                     error_fraccion = True
                     break
                 items.append({
-                    'producto_id': pid,
+                    'producto_id': item['producto_id'],
                     'cantidad': item['cantidad'],
                     'precio_unitario': item['precio']
                 })
@@ -147,7 +164,6 @@ with st.form("venta_form"):
         elif not items:
             st.error("❌ Agregá al menos un producto con cantidad mayor a 0.")
         else:
-            # Validar stock antes de enviar
             stock_ok = True
             for it in items:
                 p = prod_lookup[it['producto_id']]
@@ -162,9 +178,8 @@ with st.form("venta_form"):
                 if venta_id:
                     etiqueta = f"{tipo_comp.upper()} {numero:08d}" if numero else f"#{venta_id}"
                     st.success(f"✅ Venta confirmada! {etiqueta}")
-                    st.session_state.venta_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
+                    st.session_state.venta_items = []
 
-                    # Impresión automática
                     ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
                     if ok_print:
                         st.info("ℹ️ Comprobante enviado a la impresora.")
