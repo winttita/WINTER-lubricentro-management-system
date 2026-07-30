@@ -130,6 +130,19 @@ def _verify_checksum(path: str, expected_sha256: str) -> bool:
     return sha256.hexdigest().lower() == expected_sha256.lower()
 
 
+def _verify_zip_integrity(zip_path: str) -> bool:
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            bad = zf.testzip()
+            if bad is not None:
+                return False
+            for member in zf.infolist():
+                zf.read(member.filename)
+        return True
+    except (zipfile.BadZipFile, OSError, RuntimeError):
+        return False
+
+
 # --- API de GitHub Releases -------------------------------------------------
 
 def get_latest_release() -> Optional[dict]:
@@ -255,7 +268,7 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
     name = asset.get("name", "update_download.bin")
     safe_name = _sanitize_filename(name)
     os.makedirs(dest_dir, exist_ok=True)
-    dest_path = os.path.join(dest_dir, safe_name)
+    dest_path = os.path.join(dest_dir, "update.zip")
     part_path = dest_path + ".part"
 
     headers = {"User-Agent": "LubricentroWinter-Updater/1.0"}
@@ -310,72 +323,30 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
 
 
 def apply_update(downloaded_path: str, expected_sha256: Optional[str] = None) -> str:
-    """
-    Verifica el archivo descargado (checksum opcional), escribe el lock
-    de actualizacion pendiente y lanza el watchdog (update_worker.py) como
-    proceso detached sin ventana para que aplique la actualizacion al
-    cerrarse la app.
-
-    Mantenemos el .bat legacy como fallback: si un launcher viejo arranca
-    y encuentra el lock, puede usar el .bat. El worker es el camino
-    preferido en builds nuevas.
-
-    Devuelve el path al lock file creado.
-
-    Args:
-        downloaded_path: Ruta al .zip descargado.
-        expected_sha256: Hash SHA256 esperado (hex lowercase). Si se proporciona
-                         y no coincide, lanza UpdateError.
-    """
     if expected_sha256:
         if not _verify_checksum(downloaded_path, expected_sha256):
             raise UpdateError("Checksum SHA256 no coincide - posible archivo corrupto o manipulado")
 
+    if not _verify_zip_integrity(downloaded_path):
+        raise UpdateError("El archivo ZIP descargado está corrupto o es inválido")
+
     os.makedirs(UPDATE_DIR, exist_ok=True)
+
+    zip_abs = os.path.abspath(downloaded_path)
     with open(UPDATE_LOCK, "w", encoding="utf-8") as f:
-        f.write(downloaded_path + "\n")
+        f.write(zip_abs + "\n")
+
+    retry_path = os.path.join(UPDATE_DIR, "update_retry")
+    with open(retry_path, "w", encoding="utf-8") as f:
+        f.write("0\n")
+
     root = os.path.dirname(UPDATE_DIR)
-    _write_update_batch_secure(root, downloaded_path)
-    _spawn_update_worker(root, downloaded_path)
+    _write_update_batch_secure(root, zip_abs)
     return UPDATE_LOCK
 
 
 def _spawn_update_worker(root: str, zip_path: str) -> None:
-    """Lanza app/update_worker.py con el runtime embebido pythonw.exe.
-
-    No abre ninguna ventana (pythonw.exe no tiene consola). El proceso es
-    detached: sobrevive al cierre de la app principal. Si no se encuentra
-    el runtime o el worker, no hace nada (el .bat legacy actua como fallback).
-    """
-    runtime_python = os.path.join(root, "runtime", "pythonw.exe")
-    if not os.path.exists(runtime_python):
-        runtime_python = os.path.join(root, "runtime", "python.exe")
-    if not os.path.exists(runtime_python):
-        return
-
-    worker_candidates = [
-        os.path.join(root, "app", "update_worker.py"),
-        os.path.join(root, "update_worker.py"),
-    ]
-    worker_path = next((p for p in worker_candidates if os.path.exists(p)), None)
-    if not worker_path:
-        return
-
-    CREATE_NO_WINDOW = 0x08000000
-    try:
-        subprocess.Popen(
-            [runtime_python, worker_path, "--zip", zip_path, "--root", root],
-            cwd=root,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
-                          | getattr(subprocess, "DETACHED_PROCESS", 0)
-                          | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-                          | CREATE_NO_WINDOW,
-        )
-    except OSError:
-        pass
+    pass
 
 
 def _extract_zip_safe(zip_path: str, dest_dir: str) -> None:
