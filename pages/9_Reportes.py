@@ -14,7 +14,7 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 st.title("Reportes")
 
 st.sidebar.header("Filtros")
-periodo = st.sidebar.selectbox("Periodo", ["Hoy", "Últimos 7 días", "Últimos 30 días", "Este mes", "Todo"])
+periodo = st.sidebar.select_slider("Periodo", options=["Hoy", "Últimos 7 días", "Últimos 30 días", "Este mes", "Todo"], value="Hoy")
 hoy = datetime.now().date()
 if periodo == "Hoy":
     fecha_desde, fecha_hasta = hoy, hoy
