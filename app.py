@@ -149,8 +149,13 @@ with st.sidebar:
                     db.backup_db()
                 except Exception:
                     pass
-                apply_update(path)
+                try:
+                    apply_update(path)
+                except Exception as e:
+                    st.error(f"❌ Error al preparar la actualización: {e}")
+                    st.stop()
                 st.success("✅ Actualización lista. La app se cerrará y reiniciará.")
+                time.sleep(2)
                 os._exit(0)
             else:
                 st.error("❌ No se encontró el asset de actualización")
