@@ -85,7 +85,7 @@ if codigo_barras_input:
             producto_encontrado = p
             break
     if producto_encontrado:
-        st.success(f"Producto: {producto_encontrado[2]} - Stock: {producto_encontrado[7]} - Precio: ${producto_encontrado[9]:.2f}")
+        st.success(f"Producto: {producto_encontrado[2]} - Stock: {producto_encontrado[7]} - Precio: ${producto_encontrado[10]:.2f}")
     else:
         st.warning("Producto no encontrado con ese codigo de barras.")
 
@@ -109,7 +109,7 @@ with col_add:
                 'producto_id': p[0],
                 'nombre': p[2],
                 'cantidad': float(cant_agregar),
-                'precio': float(p[9]),
+                'precio': float(p[10]),
                 'stock': float(p[7])
             })
             st.rerun()
@@ -117,10 +117,11 @@ with col_add:
 # Mostrar precio del producto seleccionado (autofill inmediato)
 if prod_sel:
     p = prod_opts[prod_sel]
-    st.info(f"Precio: ${float(p[9]):.2f} | Stock disponible: {float(p[7]):.0f}")
+    st.info(f"Precio: ${float(p[10]):.2f} | Stock disponible: {float(p[7]):.0f}")
 
 st.markdown("#### Carrito")
 with st.form("venta_form"):
+    submitted = False
     if not st.session_state.venta_items:
         st.info("Agregue productos al carrito usando el selector de arriba.")
     else:
