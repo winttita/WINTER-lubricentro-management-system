@@ -121,9 +121,9 @@ else:
 st.markdown("#### Productos")
 
 if productos:
-    prod_activos = [p for p in productos if p[12] and p[8] > 0]
+    prod_activos = [p for p in productos if p[11] and p[7] > 0]
     if prod_activos:
-        prod_opts = {f"[{p[1]}] {p[3]} - Stock: {p[8]} - ${p[10]:.2f}": p[0] for p in prod_activos}
+        prod_opts = {f"{p[2]} - Stock: {p[7]} - ${p[9]:.2f}": p[0] for p in prod_activos}
         prod_lookup = {p[0]: p for p in prod_activos}
 
         def agregar_producto():
@@ -150,7 +150,7 @@ if productos:
                 pid = prod_opts[prod_label] if prod_label else None
                 # Auto-fill precio
                 if pid and not item.get('precio'):
-                    item['precio'] = float(prod_lookup[pid][10])
+                    item['precio'] = float(prod_lookup[pid][9])
             with col_c:
                 item['cantidad'] = st.number_input("Cant.", min_value=0.0, step=1.0, value=item['cantidad'], key=f"ord_pc_{idx}")
             with col_pre:
@@ -204,14 +204,14 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
             if item['producto'] and item['cantidad'] > 0:
                 pid = prod_opts[item['producto']]
                 p = prod_lookup[pid]
-                tipo_unidad = p[7] if len(p) > 7 else 'Entero'
+                tipo_unidad = p[6] if len(p) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
-                    st.error(f"❌ No se puede agregar \"{p[3]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    st.error(f"❌ No se puede agregar \"{p[2]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
                     stock_ok = False
                     break
-                if item['cantidad'] > p[8]:
+                if item['cantidad'] > p[7]:
                     stock_ok = False
-                    st.error(f"❌ Stock insuficiente de \"{p[3]}\": solicitado {item['cantidad']}, disponible {p[8]}")
+                    st.error(f"❌ Stock insuficiente de \"{p[2]}\": solicitado {item['cantidad']}, disponible {p[7]}")
                     break
 
         if stock_ok:

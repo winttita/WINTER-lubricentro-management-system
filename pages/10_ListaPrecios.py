@@ -74,8 +74,8 @@ def generar_pdf(productos):
         for p in items:
             codigo = (p[2] or "-")[:25]
             nombre = (p[1] or "-")[:50]
-            categoria = (p[6] or "-")[:22]
-            precio = f"${p[4]:,.2f}"
+            categoria = (p[5] or "-")[:22]
+            precio = f"${p[3]:,.2f}"
 
             pdf.cell(25, 6, codigo, border=1)
             pdf.cell(85, 6, nombre, border=1)
@@ -112,9 +112,9 @@ for proveedor, items in grupos.items():
             data.append({
                 "Codigo": p[2] or "-",
                 "Producto": p[1],
-                "Categoria": p[6] or "-",
-                "Precio Venta": p[4],
-                "Stock": p[5],
+                "Categoria": p[5] or "-",
+                "Precio Venta": p[3],
+                "Stock": p[4],
             })
         df = pd.DataFrame(data)
         st.dataframe(df, use_container_width=True, hide_index=True)

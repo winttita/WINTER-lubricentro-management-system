@@ -23,13 +23,13 @@ if not productos:
     st.stop()
 
 # Filtrar productos activos con stock
-productos_activos = [p for p in productos if p[12] and p[8] > 0]
+productos_activos = [p for p in productos if p[11] and p[7] > 0]
 if not productos_activos:
     st.warning("⚠️ No hay productos activos con stock disponible.")
     st.stop()
 
 # Mapeos para seleccionar productos
-prod_opts = {f"[{p[1]}] {p[3]} - Stock: {p[8]} - ${p[10]:.2f}": p[0] for p in productos_activos}
+prod_opts = {f"{p[2]} - Stock: {p[7]} - ${p[9]:.2f}": p[0] for p in productos_activos}
 prod_lookup = {p[0]: p for p in productos_activos}
 
 # Estado del carrito
@@ -97,7 +97,7 @@ with st.form("venta_form"):
             if prod_label and item['precio'] == 0.0:
                 pid = prod_opts[prod_label]
                 p = prod_lookup[pid]
-                item['precio'] = float(p[11])
+                item['precio'] = float(p[10])
         with col_cant:
             item['cantidad'] = st.number_input(
                 "Cant.", min_value=0.0, step=1.0,
@@ -131,9 +131,9 @@ with st.form("venta_form"):
             if item['producto'] and item['cantidad'] > 0 and item['precio'] > 0:
                 pid = prod_opts[item['producto']]
                 p = prod_lookup[pid]
-                tipo_unidad = p[7] if len(p) > 7 else 'Entero'
+                tipo_unidad = p[6] if len(p) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
-                    st.error(f"❌ No se puede vender \"{p[3]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    st.error(f"❌ No se puede vender \"{p[2]}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
                     error_fraccion = True
                     break
                 items.append({
@@ -151,9 +151,9 @@ with st.form("venta_form"):
             stock_ok = True
             for it in items:
                 p = prod_lookup[it['producto_id']]
-                if it['cantidad'] > p[8]:
+                if it['cantidad'] > p[7]:
                     stock_ok = False
-                    st.error(f"❌ Stock insuficiente de \"{p[3]}\": solicitado {it['cantidad']}, disponible {p[8]}")
+                    st.error(f"❌ Stock insuficiente de \"{p[2]}\": solicitado {it['cantidad']}, disponible {p[7]}")
                     break
 
             if stock_ok:

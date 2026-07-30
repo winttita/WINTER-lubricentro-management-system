@@ -82,7 +82,7 @@ with tab_mov:
     with col2:
         fecha_hasta = st.date_input("Hasta", value=None, key="mov_fh")
     with col3:
-        prod_opts = ["Todos"] + [f"[{p[1]}] {p[3]}" for p in productos]
+        prod_opts = ["Todos"] + [f"{p[2]}" for p in productos]
         filtro_prod = st.selectbox("Producto", prod_opts, key="mov_prod")
 
     tipo_filtro = st.selectbox("Tipo", ["Todos", "compra", "venta", "ajuste", "devolucion", "uso_interno"], key="mov_tipo")
@@ -101,7 +101,7 @@ with tab_mov:
         query += " AND date(m.fecha) <= date(?)"
         params.append(fecha_hasta.strftime("%Y-%m-%d"))
     if filtro_prod != "Todos":
-        prod_id = next((p[0] for p in productos if f"[{p[1]}] {p[3]}" == filtro_prod), None)
+        prod_id = next((p[0] for p in productos if f"{p[2]}" == filtro_prod), None)
         if prod_id:
             query += " AND m.producto_id = ?"
             params.append(prod_id)
@@ -157,7 +157,7 @@ with tab_adj:
     if st.session_state.get('user_rol') not in ('admin', 'supervisor'):
         st.error("❌ No tenés permisos para hacer ajustes de stock.")
     else:
-        prod_opts_adj = {f"[{p[1]}] {p[3]} - Stock: {p[8]}": p[0] for p in productos}
+        prod_opts_adj = {f"{p[2]} - Stock: {p[7]}": p[0] for p in productos}
 
         with st.form("ajuste_form"):
             col1, col2 = st.columns(2)
@@ -166,7 +166,7 @@ with tab_adj:
                 producto_id = prod_opts_adj[prod_sel]
 
                 prod_info = next((p for p in productos if p[0] == producto_id), None)
-                stock_actual = float(prod_info[8]) if prod_info else 0.0
+                stock_actual = float(prod_info[7]) if prod_info else 0.0
                 st.info(f"ℹ️ Stock actual: **{stock_actual}**")
 
             with col2:

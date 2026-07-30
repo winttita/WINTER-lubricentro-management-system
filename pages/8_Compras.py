@@ -22,7 +22,7 @@ if not productos:
 
 if proveedores and productos:
     prov_dict = {p[1]: p[0] for p in proveedores}
-    prod_opts = {f"[{p[1]}] {p[3]} - Stock: {p[8]}": p[0] for p in productos if p[12]}
+    prod_opts = {f"{p[2]} - Stock: {p[7]}": p[0] for p in productos if p[11]}
     prod_lookup = {p[0]: p for p in productos}
 
     if 'compra_items' not in st.session_state:
