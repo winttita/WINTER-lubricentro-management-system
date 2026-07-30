@@ -265,8 +265,6 @@ def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
     if not asset or "browser_download_url" not in asset:
         raise UpdateError("Asset inválido o sin URL de descarga")
     url = asset["browser_download_url"]
-    name = asset.get("name", "update_download.bin")
-    safe_name = _sanitize_filename(name)
     os.makedirs(dest_dir, exist_ok=True)
     dest_path = os.path.join(dest_dir, "update.zip")
     part_path = dest_path + ".part"
