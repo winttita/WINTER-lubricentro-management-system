@@ -5,6 +5,25 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.5.0] - 2026-07-30
+
+### Agregado
+- Aumento de precios por proveedor: modalidad general y parcial con busqueda y seleccion por checkboxes (F01)
+
+### Corregido
+- Ventas: precio unitario tomaba precio de costo en vez de precio de venta (B04)
+- Ventas: precio ahora se muestra al seleccionar producto sin necesidad de presionar "Agregar" (B03)
+- Ventas: carrito inicia vacio y se agrega campo de codigo de barras (B02)
+- Ventas: se agrega diagnostico a impresora para identificar fallas (B01)
+- Stock: ajustes muestran stock actual al seleccionar producto (B07)
+- Compras: carrito inicia vacio (B07)
+- Productos: se elimina campo codigo_interno de UI y BD (B06)
+- Reportes: selector de periodo cambiado a deslizador visual (B05)
+- Tickets: se corrigen saltos de linea antes del corte (B01)
+
+### Removido
+- Columna codigo_interno de la tabla productos
+
 ## [0.4.4] - 2026-07-28
 
 ### Corregido
