@@ -428,6 +428,7 @@ start "" "%ROOT%\%LAUNCHER%"
 exit /b 0
 
 :FAIL
+if exist "%ZIP_PATH%" del "%ZIP_PATH%" 2>nul
 echo [ERROR] Fallo la actualizacion. Restaurando respaldo...
 if exist "%ROOT%\runtime.old" (
     if exist "%ROOT%\runtime" rmdir /S /Q "%ROOT%\runtime" 2>nul
