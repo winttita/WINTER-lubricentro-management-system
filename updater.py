@@ -368,85 +368,78 @@ def _extract_zip_safe(zip_path: str, dest_dir: str) -> None:
 
 
 def _write_update_batch_secure(root: str, zip_path: str) -> str:
-    """
-    Escribe update.bat en root que:
-      1. Mata el proceso actual (LubricentroWinter.exe y sus hijos Streamlit)
-         usando taskkill /F /IM (somos admin gracias a --uac-admin).
-      2. Backup del runtime en uso a runtime.old (evita extraer sobre DLLs
-         bloqueadas).
-      3. Extrae el ZIP con `tar -xf` (nativo en Windows 10 1803+ / Win 11,
-         sin dependencias de Python/PowerShell, no abre ventanas).
-      4. Limpia backup y lock, lanza el nuevo .exe.
-      5. Se auto-elimina (goto trick).
-
-    Devuelve la ruta al batch escrito.
-    """
     bat_path = os.path.join(root, "update.bat")
     launcher_name = "LubricentroWinter.exe"
-    zip_abs = os.path.abspath(zip_path).replace("\\", "/")
-    root_abs = os.path.abspath(root).replace("\\", "/")
+    zip_abs = os.path.abspath(zip_path)
+    root_abs = os.path.abspath(root)
 
     bat_content = rf"""@echo off
-REM ========================================================================
-REM Auto-update batch para Lubricentro Winter (seguro, Win 11 nativo).
-REM Sin findstr, sin powershell, sin python externo: tar -xf + taskkill.
-REM ========================================================================
-
 setlocal enabledelayedexpansion
 
 set ROOT=%~dp0
 set ZIP_PATH={zip_abs}
 set LAUNCHER={launcher_name}
 
+if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update" 2>nul
+if exist "%ROOT%\.updates\update_retry" del "%ROOT%\.updates\update_retry" 2>nul
+
 echo [UPDATE] Cerrando LubricentroWinter...
-REM taskkill /F /IM mata launcher + Streamlit hijos. Somos admin.
-taskkill /F /IM "LubricentroWinter.exe" >nul 2>&1
+taskkill /F /IM "%LAUNCHER%" >nul 2>&1
 taskkill /F /IM "pythonw.exe" >nul 2>&1
 taskkill /F /IM "streamlit.exe" >nul 2>&1
 
-REM Tiempo para que Windows libere los locks de DLLs.
-timeout /t 2 /nobreak >nul
+timeout /t 3 /nobreak >nul
 
-echo [UPDATE] Backup del runtime actual...
+echo [UPDATE] Respaldando binario actual...
+if exist "%ROOT%\%LAUNCHER%" (
+    copy /Y "%ROOT%\%LAUNCHER%" "%ROOT%\%LAUNCHER%.bak" >nul 2>&1
+)
+
+echo [UPDATE] Respaldando runtime actual...
 if exist "%ROOT%\runtime.old" rmdir /S /Q "%ROOT%\runtime.old" 2>nul
 if exist "%ROOT%\runtime" rename "%ROOT%\runtime" "runtime.old"
 
-echo [UPDATE] Extrayendo actualizacion con tar (nativo Win10 1803+)...
+echo [UPDATE] Extrayendo actualizacion...
 tar -xf "%ZIP_PATH%" -C "%ROOT%"
 if errorlevel 1 (
-    echo [ERROR] Fallo la extraccion. Restaurando runtime...
-    if exist "%ROOT%\runtime" rmdir /S /Q "%ROOT%\runtime" 2>nul
-    if exist "%ROOT%\runtime.old" rename "%ROOT%\runtime.old" "runtime"
-    if exist "%ROOT%\%LAUNCHER%.bak" rename "%ROOT%\%LAUNCHER%.bak" "%LAUNCHER%" 2>nul
-    REM Log desatendido (sin pause) — write to _logs/update_error.log
-    if not exist "%ROOT%\_logs" mkdir "%ROOT%\_logs" 2>nul
-    echo [%date% %time%] ERROR extraccion zip fallida: %ZIP_PATH% >> "%ROOT%\_logs\update_error.log"
-    exit /b 1
+    echo [UPDATE] tar fallo, intentando con PowerShell Expand-Archive...
+    powershell -Command "Expand-Archive -Path '%ZIP_PATH%' -DestinationPath '%ROOT%' -Force" >nul 2>&1
 )
+if errorlevel 1 goto FAIL
 
-REM Verificar que el launcher vino en el zip. Si no, restaurar backup.
 if not exist "%ROOT%\%LAUNCHER%" (
-    if exist "%ROOT%\%LAUNCHER%.bak" rename "%ROOT%\%LAUNCHER%.bak" "%LAUNCHER%" 2>nul
-    if not exist "%ROOT%\%LAUNCHER%" (
-        echo [ERROR] %LAUNCHER% no encontrado en el zip. Abortando.
-        if exist "%ROOT%\runtime.old" rename "%ROOT%\runtime.old" "runtime"
-        if not exist "%ROOT%\_logs" mkdir "%ROOT%\_logs" 2>nul
-        echo [%date% %time%] ERROR launcher no encontrado en zip >> "%ROOT%\_logs\update_error.log"
-        exit /b 1
+    echo [ERROR] %LAUNCHER% no encontrado en el zip.
+    if exist "%ROOT%\%LAUNCHER%.bak" (
+        copy /Y "%ROOT%\%LAUNCHER%.bak" "%ROOT%\%LAUNCHER%" >nul 2>&1
     )
+    goto FAIL
 )
 
 echo [UPDATE] Limpieza...
 if exist "%ROOT%\runtime.old" rmdir /S /Q "%ROOT%\runtime.old" 2>nul
-if exist "%ZIP_PATH%" del "%ZIP_PATH%"
-if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update"
+if exist "%ROOT%\%LAUNCHER%.bak" del "%ROOT%\%LAUNCHER%.bak" 2>nul
+if exist "%ZIP_PATH%" del "%ZIP_PATH%" 2>nul
+if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update" 2>nul
+if exist "%ROOT%\.updates\update_retry" del "%ROOT%\.updates\update_retry" 2>nul
 
 echo [UPDATE] Iniciando nueva version...
 start "" "%ROOT%\%LAUNCHER%"
-
-REM Autoborrado del .bat (trick: goto fuera del script + del propio).
 (goto) 2>nul & del "%~f0"
 exit /b 0
+
+:FAIL
+echo [ERROR] Fallo la actualizacion. Restaurando respaldo...
+if exist "%ROOT%\runtime.old" (
+    if exist "%ROOT%\runtime" rmdir /S /Q "%ROOT%\runtime" 2>nul
+    rename "%ROOT%\runtime.old" "runtime"
+)
+if exist "%ROOT%\%LAUNCHER%.bak" (
+    copy /Y "%ROOT%\%LAUNCHER%.bak" "%ROOT%\%LAUNCHER%" >nul 2>&1
+    del "%ROOT%\%LAUNCHER%.bak" 2>nul
+)
+if not exist "%ROOT%\_logs" mkdir "%ROOT%\_logs" 2>nul
+echo [%date% %time%] ERROR: update fallo - %ZIP_PATH% >> "%ROOT%\_logs\update_error.log"
+exit /b 1
 """
     with open(bat_path, "w", encoding="utf-8", newline="\r\n") as f:
         f.write(bat_content)
