@@ -1,16 +1,16 @@
-# Graph Report - Lubricentro  (2026-07-28)
+# Graph Report - Lubricentro  (2026-07-30)
 
 ## Corpus Check
-- 36 files · ~46,778 words
+- 40 files · ~53,143 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 620 nodes · 1167 edges · 56 communities (40 shown, 16 thin omitted)
+- 646 nodes · 797 edges · 120 communities (38 shown, 82 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `dc5b2392`
+- Built from commit: `d176fc0e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,7 +21,6 @@
 - database.py
 - add_movimiento
 - get_movimientos
-- _crear_producto_con_stock
 - tickets.py
 - database.py
 - crear_venta
@@ -42,6 +41,7 @@
 - get_ventas
 - update_categoria
 - update_proveedor
+- update_producto
 - update_cliente
 - update_vehiculo
 - update_servicio
@@ -52,51 +52,115 @@
 - anular_compra
 - Sistema de Gestión para LUBRICENTRO WINTER
 - Agente de Testing
-- backup_db
+- test_get_ventas_pendientes_cc_tras_pago_parcial
 - crear_compra
 - get_cuenta_corriente_cliente
 - get_detalle_compra
 - get_reporte_ventas
-- test_get_precios_para_lista_solo_activos_con_stock
-- get_reporte_ingresos_egresos
-- get_ajustes_stock
-- get_clientes_con_deuda
 - get_ultimo_numero_comprobante
+- get_reporte_ingresos_egresos
+- update_cliente
+- get_movimientos_cuenta_corriente
+- get_reporte_ventas
+- get_ventas
 - get_ventas_pendientes_cc
 - update_producto
+- update_vehiculo
+- test_add_movimiento_uso_interno
+- test_add_movimiento_tipo_invalido
+- test_add_movimiento_tipo_nulo
+- test_add_movimiento_fecha_personalizada
+- get_cuenta_corriente_cliente
 - update_servicio
 - update_categoria
+- get_ultimo_numero_comprobante
+- update_producto
+- update_vehiculo
+- registrar_movimiento_caja
+- reactivar_cliente
 - update_proveedor
+- test_registrar_pago_cc_registra_tipo_movimiento_pago
+- test_crear_venta_cuenta_corriente_registra_tipo_venta
+- test_get_clientes_con_deuda_incluye_antiguedad
+- test_get_movimientos_cuenta_corriente_incluye_tipo_y_metodo
+- test_aumentar_precios_proveedor
+- test_aumentar_precios_proveedor_proveedor_inexistente
+- test_aumentar_precios_proveedor_porcentaje_negativo
+- temp_db
+- test_aumentar_precios_por_lista_happy_path
+- test_aumentar_precios_por_lista_lista_vacia
+- test_aumentar_precios_por_lista_porcentaje_negativo
+- test_aumentar_precios_por_lista_ids_inexistentes
+- test_get_productos_por_proveedor_happy_path
+- test_get_productos_por_proveedor_con_busqueda
+- test_get_productos_por_proveedor_proveedor_inexistente
+- test_get_productos_por_proveedor_sin_busqueda
+- test_get_ventas_pendientes_cc
+- test_registrar_pago_cc_con_ventas_imputa_pago
+- test_registrar_pago_cc_con_ventas_monto_negativo_devuelve_false
+- test_reporte_inventario_vacio
+- test_reporte_inventario_con_datos
+- test_reporte_inventario_excluye_productos_inactivos
+- test_crear_venta_con_caja_abierta_registra_ingreso
+- test_crear_venta_sin_caja_abierta_no_registra_ingreso
+- test_get_precios_para_lista_solo_activos_con_stock
+- test_get_precios_para_lista_ordenado_por_proveedor
+- test_get_precios_para_lista_incluye_precio_venta
+- test_aumentar_precios_por_categoria
+- test_aumentar_precios_por_categoria_multiples_productos
 - test_get_movimientos_sin_movimientos
+- test_add_movimiento_producto_inexistente
+- test_add_movimiento_producto_id_nulo
+- test_add_producto_con_stock_inicial
+- test_add_producto_sin_stock_inicial
+- test_crear_ajuste_stock_con_movimiento
+- test_crear_y_get_compras
+- test_anular_compra
+- test_crear_venta_items_vacios_retorna_error
+- test_init_db_admin_no_password_vacio
+- test_get_connection_tiene_busy_timeout
+- test_hash_password_es_deterministico
+- test_hash_password_diferente_para_distintas_entradas
+- test_init_db_crea_usuario_admin_por_defecto
+- test_verificar_login_admin_correcto
+- test_verificar_login_password_incorrecta
+- test_verificar_login_usuario_inexistente
+- test_verificar_login_usuario_inactivo
+- test_cambiar_password_actualiza_hash
+- test_cambiar_password_usuario_inexistente
+- test_registrar_pago_cc_reduce_deuda
+- test_registrar_pago_cc_pago_total_saldando
+- test_registrar_pago_cc_monto_negativo_devuelve_false
+- test_registrar_pago_cc_cliente_inexistente_devuelve_false
 
 ## God Nodes (most connected - your core abstractions)
-1. `get_connection()` - 85 edges
-2. `add_producto()` - 54 edges
-3. `add_proveedor()` - 43 edges
-4. `add_categoria()` - 40 edges
-5. `get_productos()` - 33 edges
-6. `_crear_producto_con_stock()` - 30 edges
-7. `crear_venta()` - 29 edges
-8. `_crear_dependencias()` - 25 edges
-9. `add_movimiento()` - 23 edges
-10. `add_cliente()` - 23 edges
+1. `get_connection()` - 62 edges
+2. `_crear_producto_con_stock()` - 24 edges
+3. `_crear_dependencias()` - 20 edges
+4. `Changelog - Lubricentro Winter` - 16 edges
+5. `Guía de Firma Digital (Code Signing) para Lubricentro Winter` - 13 edges
+6. `Global Constraints` - 13 edges
+7. `Convenciones del proyecto — Lubricentro Winter` - 12 edges
+8. `Diseño: Correcciones UX en Compras, Ventas e IVA para v0.2.5` - 10 edges
+9. `UpdateError` - 9 edges
+10. `main()` - 9 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `_crear_producto_con_stock()` --calls--> `get_connection()`  [EXTRACTED]
-  tests/test_database.py → database.py
-- `test_anular_compra_registra_devolucion_no_ajuste()` --calls--> `get_connection()`  [EXTRACTED]
-  tests/test_database.py → database.py
-- `test_aumentar_precios_por_categoria()` --calls--> `get_connection()`  [EXTRACTED]
-  tests/test_database.py → database.py
-- `test_cerrar_caja_exitoso()` --calls--> `get_connection()`  [EXTRACTED]
-  tests/test_database.py → database.py
-- `test_crear_compra_registra_iva()` --calls--> `get_connection()`  [EXTRACTED]
-  tests/test_database.py → database.py
+- `abrir_caja()` --calls--> `get_connection()`  [EXTRACTED]
+  database.py → database.py  _Bridges community 2 → community 29_
+- `add_categoria()` --calls--> `get_connection()`  [EXTRACTED]
+  database.py → database.py  _Bridges community 2 → community 22_
+- `add_movimiento()` --calls--> `get_connection()`  [EXTRACTED]
+  database.py → database.py  _Bridges community 2 → community 9_
+- `add_orden_servicio()` --calls--> `get_connection()`  [EXTRACTED]
+  database.py → database.py  _Bridges community 2 → community 8_
+- `anular_compra()` --calls--> `get_connection()`  [EXTRACTED]
+  database.py → database.py  _Bridges community 2 → community 44_
 
 ## Import Cycles
 - None detected.
 
-## Communities (56 total, 16 thin omitted)
+## Communities (120 total, 82 thin omitted)
 
 ### Community 0 - "updater.py"
 Cohesion: 0.08
@@ -107,32 +171,32 @@ Cohesion: 0.15
 Nodes (12): 10. Actualización de este documento, 11. Uso de este documento, 1. Propósito y alcance, 2. Tono y estilo, 3. Prohibición de emojis, 4. Versionado (SemVer), 5. Releases y CHANGELOG, 6. Conventional Commits (+4 more)
 
 ### Community 2 - "get_connection"
-Cohesion: 0.12
-Nodes (26): crear_ajuste_stock(), get_categorias(), get_compras(), get_connection(), get_detalle_compra(), get_proveedores(), Crea un ajuste de stock con auditoría.     Inserta el movimiento en la misma tra, Obtiene listado de compras con información del proveedor. (+18 more)
+Cohesion: 0.10
+Nodes (20): add_cliente(), add_servicio(), add_vehiculo(), crear_ajuste_stock(), get_ajustes_stock(), get_categorias(), get_connection(), get_movimientos() (+12 more)
 
 ### Community 3 - "database.py"
 Cohesion: 0.29
 Nodes (6): After Code Changes, AGENTS.md - Lubricentro Project, Auto-load Graphify Context on Session Start, Project Conventions, Project Structure, Quick Queries During Session
 
 ### Community 4 - "add_movimiento"
-Cohesion: 0.04
-Nodes (46): [0.1.0] - 2026-07-16, [0.2.0] - 2026-07-17, [0.2.1] - 2026-07-17, [0.2.2] - 2026-07-17, [0.2.3] - 2026-07-18, [0.2.4] - 2026-07-20, [0.2.5] - 2026-07-21, [0.2.6] - 2026-07-21 (+38 more)
+Cohesion: 0.33
+Nodes (5): [0.1.0] - 2026-07-16, Agregado, Changelog - Lubricentro Winter, Convenciones de commits, Formato de versiones
 
 ### Community 5 - "get_movimientos"
-Cohesion: 0.11
-Nodes (23): add_movimiento(), get_productos(), Registra un movimiento de stock y actualiza el stock_actual del producto.     Re, Debe manejar un ajuste positivo correctamente, Debe manejar un ajuste negativo correctamente, Debe manejar una devolución como entrada de stock, Debe manejar el uso interno como salida de stock, Debe fallar cuando el producto_id no existe (+15 more)
+Cohesion: 0.04
+Nodes (46): _crear_producto_con_stock(), Helper para crear un producto con categoría, proveedor y stock inicial, Debe devolver movimientos ordenados por fecha descendente y aplicar límite, Debe agregar una compra exitosamente y aumentar el stock, Debe agregar una venta exitosamente y disminuir el stock, Debe manejar un ajuste positivo correctamente, Debe manejar un ajuste negativo correctamente, Debe manejar una devolución como entrada de stock (+38 more)
 
 ### Community 7 - "tickets.py"
-Cohesion: 0.12
-Nodes (21): abrir_cajon(), formatear_monto(), generar_factura_a_texto(), generar_factura_b_texto(), generar_factura_c_texto(), generar_ticket_texto(), guardar_comprobante_archivo(), imprimir_comprobante() (+13 more)
+Cohesion: 0.09
+Nodes (25): calcular_totales(), imprimir_venta(), Genera e imprime el comprobante de una venta., Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada, abrir_cajon(), formatear_monto(), generar_factura_a_texto(), generar_factura_b_texto() (+17 more)
 
 ### Community 8 - "database.py"
 Cohesion: 0.11
-Nodes (29): add_cliente(), add_orden_detalle(), add_orden_servicio(), add_vehiculo(), desactivar_cliente(), get_clientes(), get_vehiculos(), Registra un pago de cuenta corriente imputándolo a ventas específicas. (+21 more)
+Nodes (14): add_orden_servicio(), cleanup_old_backups(), get_categorias_por_proveedor(), get_clientes(), get_clientes_con_deuda(), get_precios_para_lista(), get_proveedores(), get_servicios() (+6 more)
 
 ### Community 9 - "crear_venta"
-Cohesion: 0.16
-Nodes (18): abrir_caja(), cerrar_caja(), get_caja_abierta(), Abre una nueva caja.          Args:         saldo_inicial (float): Saldo inicial, Cierra una caja abierta.          Args:         caja_id (int): ID de la caja a c, Obtiene la caja actualmente abierta.          Returns:         tuple: (id, saldo, Registra un movimiento en caja.          Args:         caja_id (int): ID de la c, registrar_movimiento_caja() (+10 more)
+Cohesion: 0.29
+Nodes (7): add_movimiento(), add_orden_detalle(), crear_venta(), get_caja_abierta(), Crea una venta completa con items, actualiza stock y registra movimiento.     it, Obtiene la caja actualmente abierta.          Args:         conn: conexión opcio, Registra un movimiento de stock y actualiza el stock_actual del producto.     Re
 
 ### Community 11 - "get_venta_completa"
 Cohesion: 0.50
@@ -143,12 +207,12 @@ Cohesion: 0.50
 Nodes (3): plugin, $schema, .opencode/plugins/graphify.js
 
 ### Community 13 - "init_db"
-Cohesion: 0.14
-Nodes (15): cleanup_old_backups(), get_movimientos_cuenta_corriente(), get_orden_detalle(), get_ordenes(), init_db(), _migrate_legacy_db_location(), Obtiene movimientos de cuenta corriente de un cliente (ventas y pagos)., Devuelve el directorio de datos de usuario (absoluto) por SO.      Windows: %APP (+7 more)
+Cohesion: 0.29
+Nodes (7): [0.4.1] - 2026-07-27, Agregado, Agregado, Cambiado, Corregido, Corregido, Infraestructura
 
 ### Community 14 - "crear_ajuste_stock"
-Cohesion: 0.11
-Nodes (19): add_proveedor(), get_categorias_por_proveedor(), Devuelve las categorías que tienen productos activos para un proveedor dado., crear_venta a cuenta corriente debe registrar tipo_movimiento='venta'., get_clientes_con_deuda debe incluir antigüedad en días., Verifica que get_reporte_inventario devuelva datos correctos con valorización., Productos desactivados (activo=0) no deben aparecer en el reporte., test_add_proveedor_condicion_pago_invalida() (+11 more)
+Cohesion: 0.33
+Nodes (6): [0.3.0] - 2026-07-23, Agregado, Cambiado, Corregido, Infraestructura, Seguridad
 
 ### Community 15 - "get_ajustes_stock"
 Cohesion: 0.13
@@ -166,41 +230,29 @@ Nodes (14): 1. Contexto y motivacion, 2. Alcance, 3. Decisiones confirmadas con 
 Cohesion: 0.09
 Nodes (21): 1. Obtener el Certificado, 2. Configurar Secrets en GitHub, 3. Build Local con Firma (Windows), 4. Build en GitHub Actions (CI/CD), 5. Configuración del Launcher (`--uac-admin`), 6. Troubleshooting Común, 6. Verificación Manual, 7. Renovación Anual (+13 more)
 
-### Community 19 - "get_movimientos_cuenta_corriente"
-Cohesion: 0.15
-Nodes (14): get_cuenta_corriente_cliente(), Obtiene el saldo actual de cuenta corriente de un cliente., Registra un pago (abono) de cuenta corriente.          Inserta un movimiento con, registrar_pago_cc(), registrar_pago_cc debe devolver False si el cliente no existe., El movimiento de pago debe tener tipo_movimiento='pago'., get_movimientos_cuenta_corriente debe incluir tipo_movimiento y metodo_pago., registrar_pago_cc debe insertar un movimiento negativo y reducir el saldo. (+6 more)
-
 ### Community 20 - "get_reporte_ingresos_egresos"
-Cohesion: 0.29
-Nodes (4): calcular_totales(), imprimir_venta(), Genera e imprime el comprobante de una venta., Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada
+Cohesion: 0.50
+Nodes (4): [0.2.2] - 2026-07-17, Agregado, Cambiado, Corregido
 
 ### Community 21 - "get_reporte_inventario"
-Cohesion: 0.33
-Nodes (4): cerrar_sesion(), init_session(), Inicializa flags de sesión si no existen., Limpia el estado de sesión.
+Cohesion: 0.50
+Nodes (4): [0.2.3] - 2026-07-18, Agregado, Cambiado, Corregido
 
 ### Community 22 - "get_reporte_ventas"
-Cohesion: 0.10
-Nodes (22): cambiar_password(), hash_password(), Genera un hash SHA-256 de la contraseña., Verifica credenciales de usuario.          Devuelve un dict con user_id, nombre,, Actualiza la contraseña de un usuario.          Devuelve True si se actualizó co, verificar_login(), hash_password debe devolver el mismo hash para la misma entrada., hash_password deve devolver hashes distintos para passwords distintas. (+14 more)
+Cohesion: 0.18
+Nodes (10): add_categoria(), add_producto(), add_proveedor(), init_db(), _migrate_legacy_db_location(), Devuelve el directorio de datos de usuario (absoluto) por SO.      Windows: %APP, Calcula DB_NAME y BACKUP_DIR absolutos. Crea el dir si no existe.     Devuelve (, Mueve lubricantro.db (y backups/) desde el directorio del script/app     (legacy (+2 more)
 
-### Community 25 - "update_categoria"
+### Community 23 - "get_reporte_ventas_detallado"
 Cohesion: 0.33
-Nodes (6): aumentar_precios_proveedor(), Aumenta el precio_venta de todos los productos de un proveedor en un porcentaje, aumentar_precios_proveedor debe devolver False si el proveedor no existe., aumentar_precios_proveedor no debe aceptar porcentaje negativo., test_aumentar_precios_proveedor_porcentaje_negativo(), test_aumentar_precios_proveedor_proveedor_inexistente()
+Nodes (6): cambiar_password(), hash_password(), Genera un hash SHA-256 de la contraseña., Verifica credenciales de usuario.          Devuelve un dict con user_id, nombre,, Actualiza la contraseña de un usuario.          Devuelve True si se actualizó co, verificar_login()
 
-### Community 26 - "update_proveedor"
-Cohesion: 0.40
-Nodes (5): add_servicio(), get_servicios(), test_add_servicio_nombre_vacio(), test_add_servicio_precio_invalido(), test_add_servicio_precio_negativo()
-
-### Community 28 - "update_cliente"
-Cohesion: 0.67
-Nodes (3): agrupar_por_proveedor(), generar_pdf(), Genera un PDF de la lista de precios agrupada por proveedor.      Maneja acentos
-
-### Community 29 - "update_vehiculo"
-Cohesion: 0.67
-Nodes (3): backup_db(), test_backup_db_crea_archivo(), test_backup_db_no_existe()
+### Community 24 - "get_ventas"
+Cohesion: 0.50
+Nodes (4): [0.2.4] - 2026-07-20, Agregado, Cambiado, Corregido
 
 ### Community 30 - "update_servicio"
-Cohesion: 0.17
-Nodes (27): add_producto(), _crear_dependencias(), Stock insuficiente debe retornar mensaje especifico, no (None, None)., Factura A: precio_venta ya incluye IVA. Total = subtotal_neto + iva = precio_fin, Ticket: sin IVA, subtotal = total = precio_venta., Producto inactivo debe retornar error especifico., Factura B: sin IVA desglosado., Factura C: sin IVA desglosado. (+19 more)
+Cohesion: 0.08
+Nodes (26): _crear_dependencias(), Stock insuficiente debe retornar mensaje especifico, no (None, None)., Factura A: precio_venta ya incluye IVA. Total = subtotal_neto + iva = precio_fin, Ticket: sin IVA, subtotal = total = precio_venta., Producto inactivo debe retornar error especifico., Factura B: sin IVA desglosado., Factura C: sin IVA desglosado., test_add_orden_detalle_cantidad_cero() (+18 more)
 
 ### Community 33 - "get_compras"
 Cohesion: 0.06
@@ -210,13 +262,9 @@ Nodes (32): 1. Manejo de caja (simple), 2. IntegrityError faltantes (rápido), 3
 Cohesion: 0.22
 Nodes (8): Adaptación a otros lenguajes, Buenas prácticas generales, Checklist antes de hacer commit, Con pdoc (más simple), Con Sphinx (recomendado para Python), Documentar Código, Generar documentación automática, Pasos para documentar un módulo (ejemplo en Python)
 
-### Community 35 - "7_Ventas.py"
-Cohesion: 0.50
-Nodes (4): get_reporte_inventario(), Reporte de inventario actual: productos con stock y valorizacion., Cuando no hay productos activos, el reporte de inventario debe estar vacío., test_reporte_inventario_vacio()
-
-### Community 37 - "anular_compra"
-Cohesion: 0.17
-Nodes (13): anular_compra(), crear_compra(), Crea una compra a proveedor con múltiples items.     Actualiza stock de cada pro, Anula una compra revirtiendo el stock de cada producto.     Retorna True si se a, crear_compra debe actualizar productos.precio_costo con el precio de compra., crear_compra debe registrar IVA de la compra., anular_compra debe rechazar si el stock resultante sería negativo., anular_compra debe registrar el movimiento como 'devolucion', no 'ajuste'. (+5 more)
+### Community 36 - "8_Compras.py"
+Cohesion: 0.08
+Nodes (9): cerrar_sesion(), init_session(), Inicializa flags de sesión si no existen., Limpia el estado de sesión., agrupar_por_proveedor(), generar_pdf(), Genera un PDF de la lista de precios agrupada por proveedor.      Maneja acentos, inject_global_css() (+1 more)
 
 ### Community 38 - "Sistema de Gestión para LUBRICENTRO WINTER"
 Cohesion: 0.17
@@ -227,44 +275,52 @@ Cohesion: 0.40
 Nodes (4): Agente de Testing, Flujo de trabajo típico, Idioma, Responsabilidades
 
 ### Community 42 - "get_cuenta_corriente_cliente"
-Cohesion: 0.09
-Nodes (22): crear_venta(), Crea una venta completa con items, actualiza stock y registra movimiento.     it, get_ventas_pendientes_cc debe devolver ventas a crédito con saldo pendiente., get_ventas_pendientes_cc debe reflejar pagos parciales aplicados a una venta., registrar_pago_cc_con_ventas debe imputar el pago a las ventas indicadas., Verifica que crear_venta registre automáticamente un movimiento ingreso_venta en, Si no hay caja abierta, crear_venta no debe registrar movimiento de caja., Items vacios debe retornar error especifico. (+14 more)
+Cohesion: 0.50
+Nodes (4): [0.2.5] - 2026-07-21, Agregado, Cambiado, Corregido
 
 ### Community 43 - "get_detalle_compra"
-Cohesion: 0.15
-Nodes (17): add_categoria(), aumentar_precios_por_categoria(), Aumenta el precio_venta de los productos de un proveedor filtrados por categoría, aumentar_precios_proveedor debe actualizar precio_venta de productos del proveed, Solo los productos del proveedor Y categoria especificados deben actualizarse., Si el proveedor tiene varios productos en la categoria, todos se actualizan., test_add_categoria_duplicado_devuelve_false(), test_add_categoria_null() (+9 more)
-
-### Community 45 - "test_get_precios_para_lista_solo_activos_con_stock"
-Cohesion: 0.25
-Nodes (8): get_precios_para_lista(), Devuelve productos activos con stock > 0 para armar la lista de precios.      Re, Solo productos activos con stock > 0 deben aparecer en la lista de precios., La lista debe estar ordenada por proveedor y luego por nombre de producto., La lista debe incluir el precio de venta correcto., test_get_precios_para_lista_incluye_precio_venta(), test_get_precios_para_lista_ordenado_por_proveedor(), test_get_precios_para_lista_solo_activos_con_stock()
-
-### Community 46 - "get_reporte_ingresos_egresos"
 Cohesion: 0.50
-Nodes (4): get_reporte_ingresos_egresos(), Reporte de ingresos vs egresos.     Ingresos = total FROM ventas (incluye IVA) +, El reporte de egresos no debe contar 'Stock inicial' como egreso real., test_get_reporte_ingresos_egresos_no_cuenta_stock_inicial()
+Nodes (4): [0.5.0] - 2026-07-30, Agregado, Corregido, Removido
 
-### Community 62 - "test_get_movimientos_sin_movimientos"
-Cohesion: 0.17
-Nodes (15): get_movimientos(), _crear_producto_con_stock(), Helper para crear un producto con categoría, proveedor y stock inicial, Debe devolver una lista vacía cuando no hay movimientos, Debe devolver movimientos ordenados por fecha descendente y aplicar límite, Debe agregar una compra exitosamente y aumentar el stock, Debe agregar una venta exitosamente y disminuir el stock, Debe fallar cuando no hay suficiente stock para una salida (+7 more)
+### Community 49 - "get_reporte_ventas"
+Cohesion: 0.67
+Nodes (3): [0.2.0] - 2026-07-17, Agregado, Corregido
+
+### Community 52 - "update_producto"
+Cohesion: 0.67
+Nodes (3): [0.2.1] - 2026-07-17, Agregado, Corregido
+
+### Community 53 - "update_vehiculo"
+Cohesion: 0.67
+Nodes (3): [0.2.6] - 2026-07-21, Cambiado, Corregido
+
+### Community 54 - "test_add_movimiento_uso_interno"
+Cohesion: 0.67
+Nodes (3): [0.2.7] - 2026-07-21, Agregado, Corregido
+
+### Community 55 - "test_add_movimiento_tipo_invalido"
+Cohesion: 0.67
+Nodes (3): [0.4.4] - 2026-07-28, Agregado, Corregido
 
 ## Knowledge Gaps
-- **137 isolated node(s):** `Descripción`, `Estado del Proyecto`, `Estructura Técnica`, `Próximos Pasos`, `Actualizaciones Remotas` (+132 more)
+- **142 isolated node(s):** `Agregado`, `Corregido`, `Removido`, `Corregido`, `Agregado` (+137 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **82 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_connection()` connect `get_connection` to `get_movimientos`, `_crear_producto_con_stock`, `database.py`, `crear_venta`, `get_venta_completa`, `init_db`, `crear_ajuste_stock`, `get_movimientos_cuenta_corriente`, `get_reporte_ventas`, `get_reporte_ventas_detallado`, `get_ventas`, `update_categoria`, `update_proveedor`, `update_servicio`, `7_Ventas.py`, `anular_compra`, `backup_db`, `get_cuenta_corriente_cliente`, `get_detalle_compra`, `get_reporte_ventas`, `test_get_precios_para_lista_solo_activos_con_stock`, `get_reporte_ingresos_egresos`, `get_ajustes_stock`, `get_clientes_con_deuda`, `get_ultimo_numero_comprobante`, `get_ventas_pendientes_cc`, `update_producto`, `update_servicio`, `update_categoria`, `update_proveedor`, `test_get_movimientos_sin_movimientos`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
-- **Why does `add_producto()` connect `update_servicio` to `get_connection`, `database.py`, `get_cuenta_corriente_cliente`, `get_detalle_compra`, `init_db`, `crear_ajuste_stock`, `test_get_precios_para_lista_solo_activos_con_stock`, `get_movimientos_cuenta_corriente`, `test_get_movimientos_sin_movimientos`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `crear_venta()` connect `get_cuenta_corriente_cliente` to `get_connection`, `get_movimientos`, `crear_venta`, `init_db`, `crear_ajuste_stock`, `get_movimientos_cuenta_corriente`, `update_servicio`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **What connects `Descripción`, `Estado del Proyecto`, `Estructura Técnica` to the rest of the system?**
-  _137 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `get_connection()` connect `get_connection` to `database.py`, `crear_venta`, `get_venta_completa`, `get_movimientos_cuenta_corriente`, `get_reporte_ventas`, `get_reporte_ventas_detallado`, `update_categoria`, `update_proveedor`, `update_producto`, `update_cliente`, `update_vehiculo`, `7_Ventas.py`, `anular_compra`, `get_reporte_ventas`, `get_ultimo_numero_comprobante`, `get_reporte_ingresos_egresos`, `update_cliente`, `get_movimientos_cuenta_corriente`, `get_ventas`, `get_ventas_pendientes_cc`, `test_add_movimiento_tipo_nulo`, `test_add_movimiento_fecha_personalizada`, `get_cuenta_corriente_cliente`, `update_servicio`, `update_categoria`, `get_ultimo_numero_comprobante`, `update_producto`, `update_vehiculo`, `registrar_movimiento_caja`, `reactivar_cliente`, `update_proveedor`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `Changelog - Lubricentro Winter` connect `add_movimiento` to `get_cuenta_corriente_cliente`, `get_detalle_compra`, `init_db`, `crear_ajuste_stock`, `get_reporte_ventas`, `update_producto`, `get_reporte_inventario`, `get_reporte_ingresos_egresos`, `update_vehiculo`, `get_ventas`, `test_add_movimiento_uso_interno`, `test_add_movimiento_tipo_invalido`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **What connects `Agregado`, `Corregido`, `Removido` to the rest of the system?**
+  _142 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `updater.py` be split into smaller, more focused modules?**
   _Cohesion score 0.07823613086770982 - nodes in this community are weakly interconnected._
 - **Should `get_connection` be split into smaller, more focused modules?**
-  _Cohesion score 0.11692307692307692 - nodes in this community are weakly interconnected._
-- **Should `add_movimiento` be split into smaller, more focused modules?**
-  _Cohesion score 0.0425531914893617 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
+- **Should `get_movimientos` be split into smaller, more focused modules?**
+  _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
+- **Should `_crear_producto_con_stock` be split into smaller, more focused modules?**
+  _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
