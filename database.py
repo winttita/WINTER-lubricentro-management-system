@@ -1116,6 +1116,71 @@ def aumentar_precios_por_categoria(proveedor_id, porcentaje, categoria_id):
         conn.close()
 
 
+def aumentar_precios_por_lista(producto_ids, porcentaje):
+    """Aumenta precio_venta de productos especificos.
+
+    Args:
+        producto_ids: lista de IDs de productos
+        porcentaje: porcentaje de aumento (ej: 10.0 = +10%)
+
+    Returns:
+        int: cantidad de productos actualizados, o 0 si error
+    """
+    if not producto_ids:
+        return 0
+    try:
+        porcentaje = float(porcentaje)
+    except (ValueError, TypeError):
+        return 0
+    if porcentaje < 0:
+        return 0
+
+    conn = get_connection()
+    try:
+        placeholders = ','.join('?' * len(producto_ids))
+        factor = 1 + (porcentaje / 100.0)
+        cursor = conn.execute(
+            f"UPDATE productos SET precio_venta = ROUND(precio_venta * ?, 2) "
+            f"WHERE id IN ({placeholders}) AND activo = 1",
+            (factor, *producto_ids)
+        )
+        conn.commit()
+        return cursor.rowcount
+    except Exception:
+        conn.rollback()
+        return 0
+    finally:
+        conn.close()
+
+
+def get_productos_por_proveedor(proveedor_id, busqueda=None):
+    """Devuelve productos activos de un proveedor, opcionalmente filtrados.
+
+    Args:
+        proveedor_id: ID del proveedor
+        busqueda: texto para filtrar por nombre (opcional)
+
+    Returns:
+        lista de tuplas (id, nombre, precio_venta, stock_actual)
+    """
+    conn = get_connection()
+    try:
+        query = """
+            SELECT id, nombre, precio_venta, stock_actual
+            FROM productos
+            WHERE proveedor_id = ? AND activo = 1
+        """
+        params = [proveedor_id]
+        if busqueda:
+            query += " AND (nombre LIKE ? OR codigo_barras LIKE ?)"
+            params.extend([f"%{busqueda}%", f"%{busqueda}%"])
+        query += " ORDER BY nombre"
+        rows = conn.execute(query, params).fetchall()
+        return rows
+    finally:
+        conn.close()
+
+
 def get_precios_para_lista():
     """Devuelve productos activos con stock > 0 para armar la lista de precios.
 
