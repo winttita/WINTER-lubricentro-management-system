@@ -23,6 +23,19 @@ Finalizada la Fase 1 (Infraestructura), Fase 2 (Gestión de Inventario: Producto
     - `app.py`: Dashboard principal con métricas y navegación.
   - `update_worker.py`: Watchdog de actualización en Python que maneja la extracción segura del ZIP y el relanzamiento del launcher (sin ventanas visibles).
 
+## Release v0.5.0
+
+- Aumento de precios por proveedor (general y parcial con filtro)
+- Corrección de corte de ticket e impresión en ventas
+- Carritos de venta y compra inician vacíos
+- Escáner de código de barras en ventas
+- Autocompletado de precio de venta al seleccionar producto
+- Preview de producto en compras (precio, stock, proveedor, código)
+- Selector de periodo reemplazado por deslizador
+- Eliminación del campo código interno de productos
+- Manejo de errores IntegrityError y DB locked
+- Límite de descarga aumentado a 500 MB
+
 ## Próximos Pasos
 - Mejoras futuras y feedback de usuarios.
 

@@ -53,7 +53,7 @@ UPDATE_LOCK = os.path.join(UPDATE_DIR, "pending_update")
 
 # Máximo tamaño de descarga permitido (bytes) - 300 MB.
 # El release .zip con runtime empaquetado puede pesar ~150 MB.
-MAX_DOWNLOAD_BYTES = 300 * 1024 * 1024
+MAX_DOWNLOAD_BYTES = 500 * 1024 * 1024
 
 # --- Excepciones -----------------------------------------------------------
 
