@@ -1,7 +1,10 @@
+import logging
 import streamlit as st
 import database as db
 import tickets as tk
 from style import inject_global_css
+
+logging.basicConfig(level=logging.DEBUG, filename='impresora.log')
 
 st.set_page_config(page_title="Ventas", layout="wide")
 inject_global_css()
@@ -195,8 +198,6 @@ with st.form("venta_form"):
 
 def imprimir_venta(venta_id, tipo_comp, cliente_id):
     """Genera e imprime el comprobante de una venta."""
-    import logging
-    logging.basicConfig(level=logging.DEBUG, filename='impresora.log')
     try:
         vc = db.get_venta_completa(venta_id)
         if not vc:

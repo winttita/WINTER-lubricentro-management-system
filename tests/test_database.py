@@ -1101,6 +1101,91 @@ def test_aumentar_precios_proveedor_porcentaje_negativo(temp_db):
     assert ok is False
 
 
+# --- Aumento % por lista de IDs ---
+
+def test_aumentar_precios_por_lista_happy_path(temp_db):
+    """aumentar_precios_por_lista debe actualizar el precio de los productos indicados."""
+    from database import (add_categoria, add_proveedor, add_producto,
+                          get_productos, aumentar_precios_por_lista)
+    add_categoria("Cat")
+    add_proveedor("Prov", "C", "0", "Contado")
+    add_producto("001", "P1", "", 1, 1, "Entero", 0, 10.0, 100.0, 10)
+    add_producto("002", "P2", "", 1, 1, "Entero", 0, 10.0, 200.0, 10)
+    result = aumentar_precios_por_lista([1, 2], 10.0)
+    assert result == 2
+    prods = get_productos()
+    assert prods[0][10] == 110.0
+    assert prods[1][10] == 220.0
+
+
+def test_aumentar_precios_por_lista_lista_vacia(temp_db):
+    """aumentar_precios_por_lista con lista vacia debe devolver 0."""
+    result = database.aumentar_precios_por_lista([], 10.0)
+    assert result == 0
+
+
+def test_aumentar_precios_por_lista_porcentaje_negativo(temp_db):
+    """aumentar_precios_por_lista con porcentaje negativo debe devolver 0."""
+    from database import add_categoria, add_proveedor, add_producto
+    add_categoria("Cat")
+    add_proveedor("Prov", "C", "0", "Contado")
+    add_producto("001", "P1", "", 1, 1, "Entero", 0, 10.0, 100.0, 10)
+    result = database.aumentar_precios_por_lista([1], -10.0)
+    assert result == 0
+
+
+def test_aumentar_precios_por_lista_ids_inexistentes(temp_db):
+    """aumentar_precios_por_lista con IDs que no existen debe devolver 0."""
+    result = database.aumentar_precios_por_lista([999, 888], 10.0)
+    assert result == 0
+
+
+# --- Productos por proveedor ---
+
+def test_get_productos_por_proveedor_happy_path(temp_db):
+    """get_productos_por_proveedor debe devolver solo los productos del proveedor indicado."""
+    database.add_categoria("Cat")
+    database.add_proveedor("ProvA", "C", "0", "Contado")
+    database.add_proveedor("ProvB", "C", "1", "Contado")
+    database.add_producto("001", "ProdA1", "", 1, 1, "Entero", 0, 10.0, 100.0, 10)
+    database.add_producto("002", "ProdA2", "", 1, 1, "Entero", 0, 10.0, 200.0, 10)
+    database.add_producto("003", "ProdB1", "", 1, 2, "Entero", 0, 10.0, 300.0, 10)
+    prods = database.get_productos_por_proveedor(1)
+    assert len(prods) == 2
+    assert all(p[1] in ("ProdA1", "ProdA2") for p in prods)
+
+
+def test_get_productos_por_proveedor_con_busqueda(temp_db):
+    """get_productos_por_proveedor con busqueda debe filtrar por nombre."""
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", "C", "0", "Contado")
+    database.add_producto("001", "Aceite Motor", "", 1, 1, "Entero", 0, 10.0, 100.0, 10)
+    database.add_producto("002", "Filtro Aceite", "", 1, 1, "Entero", 0, 10.0, 200.0, 10)
+    database.add_producto("003", "Bujia", "", 1, 1, "Entero", 0, 10.0, 300.0, 10)
+    prods = database.get_productos_por_proveedor(1, busqueda="Filtro")
+    assert len(prods) == 1
+    assert prods[0][1] == "Filtro Aceite"
+
+
+def test_get_productos_por_proveedor_proveedor_inexistente(temp_db):
+    """get_productos_por_proveedor con proveedor inexistente debe devolver lista vacia."""
+    prods = database.get_productos_por_proveedor(9999)
+    assert prods == []
+
+
+def test_get_productos_por_proveedor_sin_busqueda(temp_db):
+    """get_productos_por_proveedor sin busqueda debe devolver todos los productos del proveedor."""
+    database.add_categoria("Cat")
+    database.add_proveedor("Prov", "C", "0", "Contado")
+    database.add_producto("001", "Prod1", "", 1, 1, "Entero", 0, 10.0, 100.0, 10)
+    database.add_producto("002", "Prod2", "", 1, 1, "Entero", 0, 10.0, 200.0, 10)
+    prods = database.get_productos_por_proveedor(1)
+    assert len(prods) == 2
+    names = [p[1] for p in prods]
+    assert "Prod1" in names
+    assert "Prod2" in names
+
+
 # --- Cuenta Corriente: Selección de tickets a pagar ---
 
 def test_get_ventas_pendientes_cc(temp_db):

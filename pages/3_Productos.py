@@ -104,12 +104,12 @@ if categorias and proveedores:
                  st.error("❌ El nombre es obligatorio.")
              else:
                  try:
-                      db.add_producto(codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=stock_inicial)
+                     db.add_producto(codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=stock_inicial)
                      st.session_state.clear_scanner = True
                      st.success("✅ Producto agregado correctamente")
                      st.rerun()
                  except sqlite3.IntegrityError:
-                     st.error("❌ Error: código interno o de barras duplicado.")
+                     st.error("❌ Error: código de barras duplicado.")
 
 st.divider()
 
