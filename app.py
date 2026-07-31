@@ -3,7 +3,7 @@ import os
 import time
 import database as db
 from updater import APP_VERSION, check_for_update
-from style import inject_global_css
+import style
 
 st.set_page_config(
     page_title="Centro Automotor WINTER",
@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-inject_global_css()
+style.inject_global_css()
 
 db.init_db()
 
@@ -47,10 +47,13 @@ def cerrar_sesion():
 
 init_session()
 
+logo = style.get_logo_path()
+
 
 # --- Pantalla de Login ---
 if not st.session_state.logged_in:
-    st.image("centro_automotor.png", width=250)
+    if logo:
+        st.image(logo, width=250)
     st.markdown("## Centro Automotor WINTER")
     st.markdown("### Iniciar sesión")
     st.divider()
@@ -81,7 +84,8 @@ if not st.session_state.logged_in:
 
 
 # --- App principal (solo si estás logueado) ---
-st.image("centro_automotor.png", width=300)
+if logo:
+    st.image(logo, width=300)
 st.title("Centro Automotor WINTER")
 st.markdown(f"Bienvenido, **{st.session_state.user_nombre}**")
 st.markdown("Sistema de gestión de stock y punto de venta")
