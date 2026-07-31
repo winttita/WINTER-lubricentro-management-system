@@ -5,10 +5,12 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
-## [Unreleased]
+## [0.5.4] - 2026-07-31
 
 ### Corregido
-- Logo `centro_automotor.png` ahora se incluye en el ZIP de release y su ruta se resuelve de forma robusta (dev y empaquetado); la lista de precios genera el PDF sin logo si el archivo no se encuentra
+- Logo `centro_automotor.png` incluido en el ZIP de release y verificado en CI (`.github/workflows/release.yml`)
+- Ruta del logo resuelta de forma robusta en dev y empaquetado mediante `style.py:get_logo_path`; la app omite la imagen si el archivo no existe (`app.py`)
+- Lista de precios genera el PDF sin logo si el archivo no se encuentra (`lista_precios_pdf.py:generar_pdf`); modulo extraido de `10_ListaPrecios.py`
 
 ## [0.5.3] - 2026-07-30
 
