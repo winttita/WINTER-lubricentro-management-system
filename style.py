@@ -1,4 +1,24 @@
+import os
+
 import streamlit as st
+
+LOGO_FILENAME = "centro_automotor.png"
+
+
+def get_logo_path():
+    """Devuelve la ruta absoluta del logo si existe, o None.
+
+    Busca en el directorio de trabajo actual y en el directorio de este
+    modulo (cubre el layout empaquetado donde el png queda junto al exe).
+    """
+    candidates = [
+        os.path.join(os.getcwd(), LOGO_FILENAME),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), LOGO_FILENAME),
+    ]
+    for candidate in candidates:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
 
 
 def inject_global_css():
