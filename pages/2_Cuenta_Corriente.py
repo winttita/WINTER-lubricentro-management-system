@@ -84,18 +84,19 @@ col_sel, col_saldo = st.columns([3, 1])
 with col_sel:
     cliente_sel = st.selectbox("Seleccionar cliente", list(cliente_ops.keys()))
 with col_saldo:
-    if cliente_sel:
-        saldo = db.get_cuenta_corriente_cliente(cliente_ops[cliente_sel])
+    cli_id = cliente_ops.get(cliente_sel)
+    if cli_id is None:
+        st.warning("⚠️ Cliente no encontrado. Seleccioná nuevamente.")
+        st.rerun()
+    else:
+        saldo = db.get_cuenta_corriente_cliente(cli_id)
         if saldo > 0:
             st.metric("Saldo actual", f"${saldo:,.2f}")
         else:
             st.metric("Saldo actual", "$0.00")
 
-if cliente_sel:
-    cli_id = cliente_ops[cliente_sel]
-
-    # --- Registrar pago ---
-    with st.expander("💸 Registrar pago", expanded=(saldo > 0 if cliente_sel else False)):
+# --- Registrar pago ---
+with st.expander("💸 Registrar pago", expanded=(saldo > 0)):
         # Mostrar tickets pendientes del cliente
         tickets_pendientes = db.get_ventas_pendientes_cc(cli_id) if saldo > 0 else []
         ventas_sel_ids = []
@@ -154,45 +155,45 @@ if cliente_sel:
                     else:
                         st.error("❌ Error al registrar el pago.")
 
-    # --- Movimientos del cliente ---
-    st.markdown("#### Movimientos")
-    movimientos = db.get_movimientos_cuenta_corriente(cli_id)
-    if movimientos:
-        mov_data = []
-        for m in movimientos:
-            # m: (id, venta_id, monto, saldo_anterior, saldo_nuevo, creado_en,
-            #     tipo_comprobante, punto_venta, numero_comprobante,
-            #     tipo_movimiento, metodo_pago, observacion)
-            fecha = m[5]
-            if fecha:
-                try:
-                    fecha_str = fecha.strftime("%d/%m/%Y %H:%M") if hasattr(fecha, 'strftime') else str(fecha)
-                except Exception:
-                    fecha_str = str(fecha)
-            else:
-                fecha_str = "-"
+# --- Movimientos del cliente ---
+st.markdown("#### Movimientos")
+movimientos = db.get_movimientos_cuenta_corriente(cli_id)
+if movimientos:
+    mov_data = []
+    for m in movimientos:
+        # m: (id, venta_id, monto, saldo_anterior, saldo_nuevo, creado_en,
+        #     tipo_comprobante, punto_venta, numero_comprobante,
+        #     tipo_movimiento, metodo_pago, observacion)
+        fecha = m[5]
+        if fecha:
+            try:
+                fecha_str = fecha.strftime("%d/%m/%Y %H:%M") if hasattr(fecha, 'strftime') else str(fecha)
+            except Exception:
+                fecha_str = str(fecha)
+        else:
+            fecha_str = "-"
 
-            tipo_mov = m[9] if len(m) > 9 else 'venta'
-            monto = m[2]
-            if tipo_mov == 'venta':
-                desc = f"Venta #{m[1]}" if m[1] else "Venta"
-                comp = f"{m[6].upper()} {m[7]}-{m[8]:08d}" if m[6] else f"#{m[1]}"
-                desc = comp
-                monto_str = f"+${monto:,.2f}"
-            else:
-                desc = "Pago"
-                monto_str = f"-${abs(monto):,.2f}"
+        tipo_mov = m[9] if len(m) > 9 else 'venta'
+        monto = m[2]
+        if tipo_mov == 'venta':
+            desc = f"Venta #{m[1]}" if m[1] else "Venta"
+            comp = f"{m[6].upper()} {m[7]}-{m[8]:08d}" if m[6] else f"#{m[1]}"
+            desc = comp
+            monto_str = f"+${monto:,.2f}"
+        else:
+            desc = "Pago"
+            monto_str = f"-${abs(monto):,.2f}"
 
-            mov_data.append({
-                "Fecha": fecha_str,
-                "Tipo": tipo_mov.capitalize(),
-                "Descripción": desc,
-                "Monto": monto_str,
-                "Saldo anterior": f"${m[3]:,.2f}",
-                "Saldo nuevo": f"${m[4]:,.2f}",
-                "Método": (m[10] or "-") if len(m) > 10 else "-",
-                "Observación": (m[11] or "-") if len(m) > 11 else "-",
-            })
-        st.dataframe(mov_data, use_container_width=True, hide_index=True)
-    else:
-        st.info("Este cliente no tiene movimientos en cuenta corriente.")
+        mov_data.append({
+            "Fecha": fecha_str,
+            "Tipo": tipo_mov.capitalize(),
+            "Descripción": desc,
+            "Monto": monto_str,
+            "Saldo anterior": f"${m[3]:,.2f}",
+            "Saldo nuevo": f"${m[4]:,.2f}",
+            "Método": (m[10] or "-") if len(m) > 10 else "-",
+            "Observación": (m[11] or "-") if len(m) > 11 else "-",
+        })
+    st.dataframe(mov_data, use_container_width=True, hide_index=True)
+else:
+    st.info("Este cliente no tiene movimientos en cuenta corriente.")

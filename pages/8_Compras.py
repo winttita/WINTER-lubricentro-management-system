@@ -23,8 +23,9 @@ if not productos:
 
 if proveedores and productos:
     prov_dict = {p[1]: p[0] for p in proveedores}
-    prod_opts = {f"{p[2]} - Stock: {p[7]}": p[0] for p in productos if p[11]}
+    prod_opts = {p[0]: f"{p[2]} - Stock: {p[7]}" for p in productos if p[11]}
     prod_lookup = {p[0]: p for p in productos}
+    prod_ids = list(prod_opts.keys())
 
     if 'compra_items' not in st.session_state:
         st.session_state.compra_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
@@ -47,19 +48,20 @@ if proveedores and productos:
     for idx, item in enumerate(st.session_state.compra_items):
         col_prod, col_cant, col_precio, col_del = st.columns([3, 1, 1, 0.5])
         with col_prod:
-            prod_label = st.selectbox(
+            pid = st.selectbox(
                 f"Producto {idx+1}",
-                [""] + list(prod_opts.keys()),
+                [""] + prod_ids,
+                format_func=lambda pid_: prod_opts.get(pid_, "(seleccionar)") if pid_ else "",
                 index=0 if item['producto'] is None else (
-                    list(prod_opts.keys()).index(item['producto']) + 1
-                    if item['producto'] in prod_opts else 0
+                    prod_ids.index(item['producto']) + 1
+                    if item['producto'] in prod_ids else 0
                 ),
                 key=f"compra_prod_{idx}"
             )
-            item['producto'] = prod_label
+            item['producto'] = pid
 
-            if prod_label and prod_label in prod_opts:
-                p = prod_lookup[prod_opts[prod_label]]
+            if pid and pid in prod_ids:
+                p = prod_lookup[pid]
                 st.info(
                     f"Precio costo: ${p[9]:.2f} | "
                     f"Stock: {p[7]:.0f} | "
@@ -97,7 +99,7 @@ if proveedores and productos:
         for item in st.session_state.compra_items:
             if item['producto'] and item['cantidad'] > 0 and item['precio'] > 0:
                 items.append({
-                    'producto_id': prod_opts[item['producto']],
+                    'producto_id': item['producto'],
                     'cantidad': item['cantidad'],
                     'precio_unitario': item['precio']
                 })

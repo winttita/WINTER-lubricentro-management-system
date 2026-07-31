@@ -1,13 +1,12 @@
 import streamlit as st
 import os
-import subprocess
 import time
 import database as db
 from updater import APP_VERSION, check_for_update
 from style import inject_global_css
 
 st.set_page_config(
-    page_title="Lubricentro Winter",
+    page_title="Centro Automotor WINTER",
     page_icon="🔧",
     layout="wide"
 )
@@ -51,7 +50,8 @@ init_session()
 
 # --- Pantalla de Login ---
 if not st.session_state.logged_in:
-    st.markdown("## 🔧 Lubricentro Winter")
+    st.image("centro_automotor.png", width=250)
+    st.markdown("## Centro Automotor WINTER")
     st.markdown("### Iniciar sesión")
     st.divider()
 
@@ -76,12 +76,13 @@ if not st.session_state.logged_in:
                         st.session_state.user_rol = user["rol"]
                         st.rerun()
 
-    st.caption("Usuario por defecto: **admin** | Contraseña: **winter1234**")
+    # st.caption("Usuario por defecto: **admin** | Contraseña: **winter1234**")
     st.stop()
 
 
 # --- App principal (solo si estás logueado) ---
-st.title("🔧 Lubricentro Winter")
+st.image("centro_automotor.png", width=300)
+st.title("Centro Automotor WINTER")
 st.markdown(f"Bienvenido, **{st.session_state.user_nombre}**")
 st.markdown("Sistema de gestión de stock y punto de venta")
 
@@ -95,7 +96,6 @@ with st.sidebar:
 
     st.divider()
     st.caption(f"Versión {APP_VERSION}")
-    st.caption(f"DB: {db.DB_NAME}")
     update_info = None
     try:
         update_info = check_for_update()
@@ -172,11 +172,11 @@ with col1:
     st.metric("Productos Activos", len(productos))
 
 with col2:
-    valor_inventario = sum(p[10] * p[8] for p in productos)  # precio_venta * stock_actual
+    valor_inventario = sum(p[10] * p[7] for p in productos)  # precio_venta * stock_actual
     st.metric("Valor Inventario (Precio Venta)", f"${valor_inventario:,.2f}")
 
 with col3:
-    stock_critico = sum(1 for p in productos if p[8] <= p[9])  # stock_actual <= stock_minimo
+    stock_critico = sum(1 for p in productos if p[7] <= p[8])  # stock_actual <= stock_minimo
     st.metric("Productos en Stock Crítico", stock_critico)
 
 st.divider()
@@ -192,8 +192,25 @@ if movimientos_recientes:
         fecha_raw = m[4]
         if fecha_raw:
             try:
-                fecha_str = fecha_raw.strftime("%d/%m/%y %H:%M")
-            except AttributeError:
+                # Try to parse as datetime object first (if SQLite returned datetime)
+                if hasattr(fecha_raw, 'strftime'):
+                    fecha_str = fecha_raw.strftime("%d/%m/%y %H:%M")
+                else:
+                    # Parse ISO format string from SQLite
+                    from datetime import datetime
+                    if isinstance(fecha_raw, str):
+                        # Handle possible formats: "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DD HH:MM:SS.ssssss"
+                        try:
+                            dt = datetime.strptime(fecha_raw, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            try:
+                                dt = datetime.strptime(fecha_raw, "%Y-%m-%d %H:%M:%S.%f")
+                            except ValueError:
+                                dt = datetime.strptime(fecha_raw, "%Y-%m-%d")
+                        fecha_str = dt.strftime("%d/%m/%y %H:%M")
+                    else:
+                        fecha_str = str(fecha_raw)
+            except Exception:
                 fecha_str = str(fecha_raw)
         else:
             fecha_str = ""

@@ -2,7 +2,6 @@ import streamlit as st
 import database as db
 import pandas as pd
 from datetime import datetime
-from io import BytesIO
 from fpdf import FPDF
 from style import inject_global_css
 
@@ -42,10 +41,12 @@ def generar_pdf(productos):
 
     # Encabezado
     pdf.add_page()
+    pdf.image("centro_automotor.png", x=(210 - 50) / 2, w=50)
+    pdf.ln(2)
     pdf.set_font("Helvetica", "B", 16)
     pdf.cell(0, 10, "LISTA DE PRECIOS", ln=True, align="C")
     pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 7, "Lubricentro Winter", ln=True, align="C")
+    pdf.cell(0, 7, "Centro Automotor WINTER", ln=True, align="C")
     pdf.set_font("Helvetica", "", 9)
     fecha_str = datetime.now().strftime("%d/%m/%Y")
     pdf.cell(0, 6, f"Fecha de emision: {fecha_str}", ln=True, align="C")
@@ -75,7 +76,7 @@ def generar_pdf(productos):
             codigo = (p[2] or "-")[:25]
             nombre = (p[1] or "-")[:50]
             categoria = (p[5] or "-")[:22]
-            precio = f"${p[3]:,.2f}"
+            precio = f"${p[3] or 0:,.2f}"
 
             pdf.cell(25, 6, codigo, border=1)
             pdf.cell(85, 6, nombre, border=1)
@@ -91,6 +92,8 @@ def generar_pdf(productos):
     pdf.cell(0, 5, "Precios sujetos a cambio sin previo aviso.", ln=True, align="C")
 
     out = pdf.output()
+    if isinstance(out, str):
+        return out.encode('latin-1')
     return bytes(out)
 
 

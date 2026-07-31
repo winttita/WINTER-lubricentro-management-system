@@ -307,8 +307,7 @@ if st.button("Buscar", key="hist_btn"):
 
     if ventas:
         for v in ventas:
-            estado_label = "Anulada" if len(v) > 13 and v[13] == 'anulada' else "Confirmada"
-            with st.expander(f"#{v[0]} - {v[11] or 'Consumidor Final'} - {v[3]}-{v[4]:08d} - ${v[7]:.2f} - {estado_label}"):
+            with st.expander(f"#{v[0]} - {v[11] or 'Consumidor Final'} - {v[3]}-{v[4]:08d} - ${v[7]:.2f} - Confirmada"):
                 st.write(f"**Fecha:** {v[10]}")
                 st.write(f"**Tipo:** {v[2].upper()} {v[3]}-{v[4]:08d}")
                 st.write(f"**Método pago:** {v[8]}")

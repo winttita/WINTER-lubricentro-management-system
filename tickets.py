@@ -24,7 +24,7 @@ def generar_ticket_texto(venta, items, cliente=None):
     
     # Encabezado
     lineas.append("=" * ancho)
-    lineas.append("    LUBRICENTRO WINTER".center(ancho))
+    lineas.append("    Centro Automotor WINTER".center(ancho))
     lineas.append("=" * ancho)
     lineas.append(f"Ticket #{venta['tipo_comprobante'].upper()} {venta['punto_venta']}-{venta['numero_comprobante']:08d}")
     lineas.append(f"Fecha: {venta['creado_en']}")
@@ -59,8 +59,7 @@ def generar_ticket_texto(venta, items, cliente=None):
     # Método de pago
     metodo_pago_nombre = {
         'efectivo': 'Efectivo',
-        'tarjeta_debito': 'Tarjeta Débito',
-        'tarjeta_credito': 'Tarjeta Crédito',
+        'tarjeta': 'Tarjeta',
         'transferencia': 'Transferencia',
         'cuenta_corriente': 'Cuenta Corriente'
     }.get(venta['metodo_pago'], venta['metodo_pago'])
@@ -88,7 +87,7 @@ def generar_factura_a_texto(venta, items, cliente):
     
     lineas.append("=" * ancho)
     lineas.append("    FACTURA A".center(ancho))
-    lineas.append("    LUBRICENTRO WINTER".center(ancho))
+    lineas.append("    Centro Automotor WINTER".center(ancho))
     lineas.append("=" * ancho)
     lineas.append(f"Punto de Venta: {venta['punto_venta']}  Comp. Nro: {venta['numero_comprobante']:08d}")
     lineas.append(f"Fecha: {venta['creado_en']}")
@@ -136,8 +135,7 @@ def generar_factura_c_texto(venta, items, cliente):
 def metodo_pago_nombre(metodo):
     return {
         'efectivo': 'Efectivo',
-        'tarjeta_debito': 'Tarjeta Débito',
-        'tarjeta_credito': 'Tarjeta Crédito',
+        'tarjeta': 'Tarjeta',
         'transferencia': 'Transferencia',
         'cuenta_corriente': 'Cuenta Corriente'
     }.get(metodo, metodo)
@@ -204,8 +202,9 @@ def imprimir_comprobante(texto):
                 pass
 
         return False
-    except Exception:
-        return False
+except Exception as e:
+            print(f"Error al imprimir en Windows: {e}")
+            return False
 
 
 def imprimir_prueba():
@@ -213,7 +212,7 @@ def imprimir_prueba():
     from datetime import datetime
     lineas = []
     lineas.append("=" * 40)
-    lineas.append("  LUBRICENTRO WINTER".center(40))
+    lineas.append("  Centro Automotor WINTER".center(40))
     lineas.append("=" * 40)
     lineas.append("  PRUEBA DE IMPRESION".center(40))
     lineas.append("-" * 40)
@@ -257,6 +256,7 @@ def abrir_cajon():
             proc = subprocess.Popen(['lp', '-d', PRINTER_NAME or 'default'], stdin=subprocess.PIPE)
             proc.communicate(input=payload)
             return proc.returncode == 0
-        except Exception:
+        except Exception as e:
+            print(f"Error al imprimir en Linux: {e}")
             return False
     return False

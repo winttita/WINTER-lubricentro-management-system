@@ -128,7 +128,7 @@ with tab_cc:
         st.markdown("### Detalle de movimientos")
         cliente_sel = st.selectbox("Ver movimientos de:", ["Seleccionar..."] + [c[1] for c in clientes_deuda])
         if cliente_sel != "Seleccionar...":
-            cli_id = next(c[0] for c in clientes_deuda if c[1] == cliente_sel)
+            cli_id = next((c[0] for c in clientes_deuda if c[1] == cliente_sel), None)
             movs = db.get_movimientos_cuenta_corriente(cli_id)
             if movs:
                 df_m = pd.DataFrame(movs, columns=["ID", "Venta ID", "Monto", "Saldo Ant.", "Saldo Nvo.", "Fecha", "Tipo Comp.", "Punto Vta", "Número", "Tipo Mov.", "Método Pago", "Observación"])

@@ -10,13 +10,13 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1785276597.3318167,
-    "ast_hash": "81f354cf98958445210cb373168d52d8",
+    "mtime": 1785456715.1102176,
+    "ast_hash": "36b8b92365dd5e28fc870210c0906d43",
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1785422756.0504947,
-    "ast_hash": "8bdb2c1ed12e89763c3ebb5db85360d0",
+    "mtime": 1785457124.8399367,
+    "ast_hash": "860521a95c72aff8702990b28d9fe5ad",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "pages/9_Reportes.py": {
-    "mtime": 1785417609.057708,
-    "ast_hash": "a30099070fb7eab1a005156def4cf244",
+    "mtime": 1785452608.3482997,
+    "ast_hash": "ac6450f4c5387bcfd68ba7bf4054c128",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -35,8 +35,8 @@
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1785419286.4486754,
-    "ast_hash": "ff41d005024ec34554a1a07d653f1e40",
+    "mtime": 1785457779.0645347,
+    "ast_hash": "c06c0a0295c198a134d673efb7513502",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1785192404.9030359,
-    "ast_hash": "6e5cbfb8d35d53372583bdad69a19616",
+    "mtime": 1785442884.8157086,
+    "ast_hash": "6e67090868538e9bde6c05149d30de3d",
     "semantic_hash": ""
   },
   "requirements.txt": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1785419286.4486754,
-    "ast_hash": "2d5f2a257b2662e1701abdb3286778cb",
+    "mtime": 1785457788.7603047,
+    "ast_hash": "25cd6a240cd8c7fe0d8f1a8e71473dda",
     "semantic_hash": ""
   },
   "optimized-prompt.md": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "pages/7_Ventas.py": {
-    "mtime": 1785425187.2855775,
-    "ast_hash": "aa68dd25f76f7a52c622b3a045738d2d",
+    "mtime": 1785452203.576468,
+    "ast_hash": "85a292860017876050c6a5033e495857",
     "semantic_hash": ""
   },
   "tickets.py": {
-    "mtime": 1785418935.2042427,
-    "ast_hash": "e55cebadd497a2631756604732b9ee93",
+    "mtime": 1785456585.9843764,
+    "ast_hash": "07cbfb89ab5872f2913d344ceed983bf",
     "semantic_hash": ""
   },
   "prompt_optimizado.md": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "pages/8_Compras.py": {
-    "mtime": 1785429737.644422,
-    "ast_hash": "2a28049c42e7ee3b26082de88f74ca4a",
+    "mtime": 1785452366.1803982,
+    "ast_hash": "a4da13de64535fd983c5656b633460d9",
     "semantic_hash": ""
   },
   "CONVENTIONS.md": {
@@ -155,18 +155,18 @@
     "semantic_hash": ""
   },
   "pages/1_Stock.py": {
-    "mtime": 1785429745.548409,
-    "ast_hash": "70def2df7fb07eb69c7e1ca7af7f4ee0",
+    "mtime": 1785452396.7123857,
+    "ast_hash": "cff8db4cb61d97156fad785da2b701fe",
     "semantic_hash": ""
   },
   "pages/2_Cuenta_Corriente.py": {
-    "mtime": 1785425750.8816857,
-    "ast_hash": "1d8d66db21ec5994f7da9524b4f174a4",
+    "mtime": 1785452703.5122623,
+    "ast_hash": "99a3f43ba897e2de46ffa636303d54c1",
     "semantic_hash": ""
   },
   "pages/4_Ordenes.py": {
-    "mtime": 1785417431.4973435,
-    "ast_hash": "d1b85008f6a079caf55fb1937b957e0f",
+    "mtime": 1785452318.2404184,
+    "ast_hash": "ec09dbdbef55f2fd8613c42423e589d5",
     "semantic_hash": ""
   },
   "style.py": {
@@ -195,13 +195,13 @@
     "semantic_hash": ""
   },
   "pages/10_ListaPrecios.py": {
-    "mtime": 1785417411.2693572,
-    "ast_hash": "db36c391144f11d48adccaba8cc0c591",
+    "mtime": 1785457456.4906676,
+    "ast_hash": "f2b2befcf0ec852a681c6a3676f77e50",
     "semantic_hash": ""
   },
   "pages/8_Caja.py": {
-    "mtime": 1785425353.3640888,
-    "ast_hash": "acdc316f6e83b4714faa1b27b17d423f",
+    "mtime": 1785455847.0186071,
+    "ast_hash": "791d5fc92c1dfd5c31bcaa3a752f029a",
     "semantic_hash": ""
   },
   "docs/EDGE_CASES.md": {
@@ -232,6 +232,21 @@
   "seed_test_data.py": {
     "mtime": 1785431373.2003746,
     "ast_hash": "ecbc15a1180888ebe7a71daf82064b0d",
+    "semantic_hash": ""
+  },
+  ".opencode/plans/2026-07-30-compras-ux-fix.md": {
+    "mtime": 1785442245.4368155,
+    "ast_hash": "a893bd110472886eb5e6ce816871edf1",
+    "semantic_hash": ""
+  },
+  ".opencode/plans/2026-07-30-update-system-reliable.md": {
+    "mtime": 1785446591.4245164,
+    "ast_hash": "6aa861b78a6f9cf72115dae451020f1f",
+    "semantic_hash": ""
+  },
+  "centro_automotor.png": {
+    "mtime": 1785452277.2964358,
+    "ast_hash": "6da0e5a383b514ebafa68021f02a2690",
     "semantic_hash": ""
   }
 }

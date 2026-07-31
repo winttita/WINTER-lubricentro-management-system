@@ -1222,7 +1222,7 @@ def update_producto(id, codigo_barras, nombre, descripcion, categoria_id, provee
         precio_venta = float(precio_venta)
         if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
             return False
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     
     conn = get_connection()
@@ -1280,7 +1280,7 @@ def update_vehiculo(id, cliente_id, patente, marca, modelo, anio):
     if not patente or not patente.strip():
         return False
     try:
-        anio_int = int(anio) if anio else None
+        anio_int = int(anio)
         if anio_int and (anio_int < 1900 or anio_int > 2100):
             return False
     except ValueError:
@@ -1310,7 +1310,7 @@ def update_servicio(id, nombre, precio):
         precio_float = float(precio)
         if precio_float < 0:
             return False
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     
     conn = get_connection()
@@ -1327,6 +1327,8 @@ def update_servicio(id, nombre, precio):
         return False
     finally:
         conn.close()
+
+
 def get_reporte_ingresos_egresos(fecha_desde=None, fecha_hasta=None):
     """Reporte de ingresos vs egresos.
     Ingresos = total FROM ventas (incluye IVA) + total_final FROM ordenes_servicio.
@@ -1447,14 +1449,20 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             if precio_unit < 0:
                 return None, None, f"Precio inválido ({precio_unit}) para producto id={item['producto_id']}: no puede ser negativo"
 
-            row = conn.execute("SELECT stock_actual, nombre FROM productos WHERE id = ? AND activo = 1",
-                             (item['producto_id'],)).fetchone()
+            row = conn.execute("SELECT stock_actual, nombre, tipo_unidad FROM productos WHERE id = ? AND activo = 1",
+                               (item['producto_id'],)).fetchone()
             if not row:
                 return None, None, f"Producto inactivo o inexistente (id={item['producto_id']})"
             stock_actual = float(row[0])
             nombre = row[1]
+            tipo_unidad = row[2]
             if stock_actual < cantidad:
                 return None, None, f"Stock insuficiente de \"{nombre}\": solicitado {cantidad}, disponible {stock_actual}"
+            
+            # Validar que para productos 'Entero' la cantidad sea un número entero
+            if tipo_unidad == 'Entero':
+                if not float(cantidad).is_integer():
+                    return None, None, f"Cantidad debe ser un número entero para producto '{nombre}' (tipo unitario: {tipo_unidad})"
 
         # Calcular totales
         total = sum(float(item['cantidad']) * float(item['precio_unitario']) for item in items)
@@ -1933,7 +1941,7 @@ def registrar_pago_cc(cliente_id, monto, metodo_pago, observacion, usuario_id):
     
     Args:
         cliente_id: ID del cliente que paga
-        monto: Monto a pagar (debe ser positivo)
+        monto: Monto a pagar (debe ser positivo, se almacenará como negativo en cuenta corriente)
         metodo_pago: 'efectivo', 'tarjeta', 'transferencia'
         observacion: Notas del pago
         usuario_id: ID del usuario que registra el pago
@@ -1999,7 +2007,7 @@ def get_ventas_pendientes_cc(cliente_id):
         for v in ventas:
             venta_id, tipo, pv, num, total = v
             ya_pagado = 0.0
-            # Sumar todos los pagos que tengan esta venta en su ventas_imputadas
+# Sumar todos los pagos que tengan esta venta en su ventas_imputadas
             pagos = conn.execute("""
                 SELECT monto, ventas_imputadas FROM cuenta_corriente
                 WHERE cliente_id = ? AND tipo_movimiento = 'pago'
@@ -2009,7 +2017,10 @@ def get_ventas_pendientes_cc(cliente_id):
                     # ventas_imputadas es un CSV: "1,3,5"
                     ids_imp = [int(x.strip()) for x in p_imp.split(',') if x.strip().isdigit()]
                     if venta_id in ids_imp:
-                        ya_pagado += abs(p_monto)
+                        # Distribuir el pago proporcionalmente entre todas las facturas en el pago
+                        if len(ids_imp) > 0:
+                            proporción = 1.0 / len(ids_imp)
+                            ya_pagado += abs(p_monto) * proporción
             pendiente = max(0.0, float(total) - ya_pagado)
             resultado.append((venta_id, tipo, pv, num, float(total), ya_pagado, pendiente))
         # Filtrar solo las que tienen pendiente > 0
@@ -2167,9 +2178,10 @@ def cerrar_caja(caja_id, saldo_final, usuario_id):
         conn.execute("""
             UPDATE caja 
             SET fecha_cierre = CURRENT_TIMESTAMP, 
-                abierta = 0
+                abierta = 0,
+                saldo_actual = ?
             WHERE id = ?
-        """, (caja_id,))
+        """, (saldo_final, caja_id))
         
         # Registrar movimiento de cierre
         saldo_anterior = caja[1]  # saldo_actual actual
@@ -2217,9 +2229,9 @@ def get_caja_abierta(conn=None):
             conn.close()
 
 
-def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id):
+def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion=None, usuario_id=None, conn=None):
     """
-    Registra un movimiento en caja.
+    Registra un movimiento en caja y actualiza el saldo de la caja.
     
     Args:
         caja_id (int): ID de la caja
@@ -2229,24 +2241,46 @@ def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo,
         saldo_nuevo (float): Saldo después del movimiento
         observacion (str): Observaciones sobre el movimiento
         usuario_id (int): ID del usuario que registra el movimiento
+        conn (sqlite3.Connection, optional): Conexión existente para usar en transacciones
         
     Returns:
         bool: True si se registró correctamente, False en caso de error
     """
+    if caja_id is None or tipo is None or monto is None or saldo_anterior is None or saldo_nuevo is None:
+        return False
+        
     if tipo not in ('apertura', 'cierre', 'ajuste', 'ingreso_venta'):
         return False
         
-    conn = get_connection()
+    try:
+        monto = float(monto)
+        saldo_anterior = float(saldo_anterior)
+        saldo_nuevo = float(saldo_nuevo)
+    except (ValueError, TypeError):
+        return False
+
+    own_conn = conn is None
+    if own_conn:
+        conn = get_connection()
     try:
         cursor = conn.execute("""
             INSERT INTO movimientos_caja 
             (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id))
-        conn.commit()
+        
+        # Actualizar el saldo actual de la caja
+        conn.execute("""
+            UPDATE caja SET saldo_actual = ? WHERE id = ?
+        """, (saldo_nuevo, caja_id))
+        
+        if own_conn:
+            conn.commit()
         return True
     except Exception:
-        conn.rollback()
+        if own_conn:
+            conn.rollback()
         return False
     finally:
-        conn.close()
+        if own_conn:
+            conn.close()

@@ -158,10 +158,11 @@ with tab_adj:
     if st.session_state.get('user_rol') not in ('admin', 'supervisor'):
         st.error("❌ No tenés permisos para hacer ajustes de stock.")
     else:
-        prod_opts_adj = {f"{p[2]} - Stock: {p[7]}": p[0] for p in productos}
+        prod_opts_adj = {p[0]: f"{p[2]} - Stock: {p[7]}" for p in productos}
+        prod_ids_adj = list(prod_opts_adj.keys())
 
-        prod_sel = st.selectbox("Producto", list(prod_opts_adj.keys()), key="adj_prod")
-        producto_id = prod_opts_adj[prod_sel]
+        prod_sel = st.selectbox("Producto", options=prod_ids_adj, format_func=lambda pid: prod_opts_adj[pid], key="adj_prod")
+        producto_id = prod_sel
         prod_info = next((p for p in productos if p[0] == producto_id), None)
         stock_actual = float(prod_info[7]) if prod_info else 0.0
         st.info(f"Stock actual: **{stock_actual}**")
@@ -198,12 +199,12 @@ with tab_adj:
     with col_f2:
         fh = st.date_input("Hasta", value=None, key="adj_fh")
     with col_f3:
-        prod_filtro = st.selectbox("Filtrar producto", ["Todos"] + list(prod_opts_adj.keys()), key="adj_filtro_prod")
+        prod_filtro = st.selectbox("Filtrar producto", ["Todos"] + prod_ids_adj, format_func=lambda pid: prod_opts_adj.get(pid, "Todos") if pid != "Todos" else "Todos", key="adj_filtro_prod")
 
     if st.button("Buscar ajustes", key="adj_btn"):
         fd_str = fd.strftime("%Y-%m-%d") if fd else None
         fh_str = fh.strftime("%Y-%m-%d") if fh else None
-        pid = prod_opts_adj.get(prod_filtro) if prod_filtro != "Todos" else None
+        pid = prod_filtro if prod_filtro != "Todos" else None
 
         ajustes = db.get_ajustes_stock(limit=100, fecha_desde=fd_str, fecha_hasta=fh_str, producto_id=pid)
 

@@ -5,6 +5,23 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.5.3] - 2026-07-30
+
+### Corregido
+- Errores runtime en ventas, ordenes, compras, stock, CC, reportes y dashboard: todos los crashes de patron stale label (selectbox con stock/precio en etiqueta por rendering condicional) erradicados en 7 archivos
+- `2_Cuenta_Corriente.py`: KeyError por lookup de cliente inexistente en `cliente_ops`
+- `9_Reportes.py`: StopIteration en `next()` cuando cliente sale de deuda entre renders
+- `app.py`: import `subprocess` no usado eliminado, credenciales expuestas ocultas, formato de fecha robusto, info leak de ruta DB eliminado
+- `tickets.py`: mapping de metodos de pago obsoletos corregido, exceptions ahora loguean a stderr en lugar de `pass` silencioso
+- `database.py` (9 bugs): `TypeError` no capturado en `update_producto`/`update_servicio`, signo incorrecto en devolucion de `anular_compra`, imputacion proporcional en `get_ventas_pendientes_cc`, `registrar_movimiento_caja` no actualizaba `saldo_actual`, `cerrar_caja` no actualizaba `saldo_actual`, validacion de tipo `Entero` en `crear_venta`, año 0 convertido a None en `update_vehiculo`, linea en blanco PEP 8, docstring aclarada
+- `8_Caja.py`: TypeError en formateo de montos/saldos NULL
+- `10_ListaPrecios.py`: TypeError si `precio_venta` es NULL, `pdf.output()` + `bytes()` fragil segun version fpdf2, `BytesIO` no usado eliminado
+- `database.py` (3 ubicaciones): indentaciones rotas corregidas
+
+### Modificado
+- Nombre del local actualizado de "LUBRICENTRO WINTER" a "Centro Automotor WINTER" en tickets, app, PDF lista de precios y titulo de pestana del navegador
+- Logo `centro_automotor.png` agregado en pantalla de login, app principal y PDF de lista de precios
+
 ## [0.5.1] - 2026-07-30
 
 ### Corregido

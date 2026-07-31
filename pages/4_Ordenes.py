@@ -62,8 +62,9 @@ with col_veh:
 st.markdown("#### Servicios")
 
 if servicios:
-    serv_opts = {f"{s[1]} - ${s[2]:.2f}": s[0] for s in servicios}
+    serv_opts = {s[0]: f"{s[1]} - ${s[2]:.2f}" for s in servicios}
     serv_lookup = {s[0]: s for s in servicios}
+    serv_ids = list(serv_opts.keys())
 
     # Tabla dinámica de servicios
     def agregar_servicio():
@@ -80,14 +81,14 @@ if servicios:
     for idx, item in enumerate(st.session_state.orden_servicios):
         col_s, col_c, col_sub, col_del = st.columns([3, 1, 1, 0.5])
         with col_s:
-            serv_label = st.selectbox(
+            serv_id = st.selectbox(
                 f"Servicio {idx+1}",
-                list(serv_opts.keys()),
-                index=list(serv_opts.keys()).index(item['servicio']) if item['servicio'] in serv_opts else 0,
+                options=serv_ids,
+                format_func=lambda sid: serv_opts[sid],
+                index=serv_ids.index(item['servicio']) if item['servicio'] in serv_ids else 0,
                 key=f"ord_serv_{idx}"
             )
-            item['servicio'] = serv_label
-            serv_id = serv_opts[serv_label]
+            item['servicio'] = serv_id
             precio_serv = float(serv_lookup[serv_id][2])
         with col_c:
             item['cantidad'] = st.number_input("Cant.", min_value=1, step=1, value=int(item['cantidad']), key=f"ord_sc_{idx}")
@@ -107,7 +108,7 @@ if servicios:
             st.rerun()
 
     total_servicios = sum(
-        item['cantidad'] * float(serv_lookup[serv_opts[item['servicio']]][2])
+        item['cantidad'] * float(serv_lookup[item['servicio']][2])
         for item in st.session_state.orden_servicios
         if item['servicio']
     )
@@ -123,8 +124,9 @@ st.markdown("#### Productos")
 if productos:
     prod_activos = [p for p in productos if p[11] and p[7] > 0]
     if prod_activos:
-        prod_opts = {f"{p[2]} - Stock: {p[7]} - ${p[9]:.2f}": p[0] for p in prod_activos}
+        prod_opts = {p[0]: f"{p[2]} - Stock: {p[7]} - ${p[10]:.2f}" for p in prod_activos}
         prod_lookup = {p[0]: p for p in prod_activos}
+        prod_ids = list(prod_opts.keys())
 
         def agregar_producto():
             st.session_state.orden_productos.append({'producto': None, 'cantidad': 1.0})
@@ -140,17 +142,16 @@ if productos:
         for idx, item in enumerate(st.session_state.orden_productos):
             col_p, col_c, col_pre, col_sub, col_del = st.columns([3, 1, 1, 1, 0.5])
             with col_p:
-                prod_label = st.selectbox(
+                pid = st.selectbox(
                     f"Producto {idx+1}",
-                    list(prod_opts.keys()),
-                    index=list(prod_opts.keys()).index(item['producto']) if item['producto'] in prod_opts else 0,
+                    options=prod_ids,
+                    format_func=lambda pid_: prod_opts.get(pid_, ""),
+                    index=prod_ids.index(item['producto']) if item['producto'] in prod_ids else 0,
                     key=f"ord_prod_{idx}"
                 )
-                item['producto'] = prod_label
-                pid = prod_opts[prod_label] if prod_label else None
-                # Auto-fill precio
+                item['producto'] = pid
                 if pid and not item.get('precio'):
-                    item['precio'] = float(prod_lookup[pid][9])
+                    item['precio'] = float(prod_lookup[pid][10])
             with col_c:
                 item['cantidad'] = st.number_input("Cant.", min_value=0.0, step=1.0, value=item['cantidad'], key=f"ord_pc_{idx}")
             with col_pre:
@@ -202,7 +203,7 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
         stock_ok = True
         for item in st.session_state.orden_productos:
             if item['producto'] and item['cantidad'] > 0:
-                pid = prod_opts[item['producto']]
+                pid = item['producto']
                 p = prod_lookup[pid]
                 tipo_unidad = p[6] if len(p) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
@@ -223,7 +224,7 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
                 # Agregar servicios
                 for item in st.session_state.orden_servicios:
                     if item['servicio'] and item['cantidad'] > 0:
-                        sid = serv_opts[item['servicio']]
+                        sid = item['servicio']
                         if not db.add_orden_detalle(orden_id, servicio_id=sid, cantidad=item['cantidad']):
                             ok_all = False
                             st.error(f"❌ Error al agregar servicio #{sid}")
@@ -232,7 +233,7 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
                 if ok_all:
                     for item in st.session_state.orden_productos:
                         if item['producto'] and item['cantidad'] > 0 and item.get('precio', 0) > 0:
-                            pid = prod_opts[item['producto']]
+                pid = item['producto']
                             if not db.add_orden_detalle(orden_id, producto_id=pid, cantidad=item['cantidad'], precio_unitario=item['precio']):
                                 ok_all = False
                                 st.error(f"❌ Error al agregar producto #{pid}")

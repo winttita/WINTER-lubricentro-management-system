@@ -175,9 +175,9 @@ if movimientos:
             "Fecha": fecha_str,
             "Caja #": m[1],
             "Tipo": m[2],
-            "Monto": f"{signo}${m[3]:,.2f}",
-            "Saldo Anterior": f"${m[4]:,.2f}",
-            "Saldo Nuevo": f"${m[5]:,.2f}",
+            "Monto": f"{signo}${m[3] or 0:,.2f}",
+            "Saldo Anterior": f"${m[4] or 0:,.2f}",
+            "Saldo Nuevo": f"${m[5] or 0:,.2f}",
             "Usuario": m[8] or "-",
             "Observación": m[6] or "-",
         })
