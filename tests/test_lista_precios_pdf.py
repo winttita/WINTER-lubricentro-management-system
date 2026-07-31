@@ -26,3 +26,13 @@ def test_generar_pdf_sin_logo_no_falla():
 def test_generar_pdf_con_logo_inexistente_no_falla(tmp_path):
     out = generar_pdf(PRODUCTOS, logo_path=str(tmp_path / "no-existe.png"))
     assert out[:5] == b"%PDF-"
+
+
+def test_generar_pdf_sin_productos():
+    out = generar_pdf([])
+    assert out[:5] == b"%PDF-"
+
+
+def test_generar_pdf_con_campos_none_no_falla():
+    out = generar_pdf([("Proveedor A", None, None, None, 0, None)])
+    assert out[:5] == b"%PDF-"

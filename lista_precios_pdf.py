@@ -4,7 +4,7 @@ from datetime import datetime
 from fpdf import FPDF
 
 
-def generar_pdf(productos, logo_path=None):
+def generar_pdf(productos: list, logo_path: str | None = None) -> bytes:
     """Genera un PDF de la lista de precios agrupada por proveedor.
 
     Maneja acentos y eñes usando latin-1 explicito en cada string.
