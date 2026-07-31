@@ -5,6 +5,11 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Corregido
+- Logo `centro_automotor.png` ahora se incluye en el ZIP de release y su ruta se resuelve de forma robusta (dev y empaquetado); la lista de precios genera el PDF sin logo si el archivo no se encuentra
+
 ## [0.5.3] - 2026-07-30
 
 ### Corregido
