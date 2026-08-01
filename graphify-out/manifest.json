@@ -35,8 +35,8 @@
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1785544282.8502665,
-    "ast_hash": "959f49772b4bb5bd5b2961d807b0b781",
+    "mtime": 1785545823.3701396,
+    "ast_hash": "3d696add68ecb7416ab977cc44563c72",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "docker/test_updater.py": {
-    "mtime": 1785542380.804804,
-    "ast_hash": "ca96e1997ba9b08b9061a2bd213ae1ba",
+    "mtime": 1785545838.294138,
+    "ast_hash": "04f64df29fd0247b5d0f763bc7c5127a",
     "semantic_hash": ""
   },
   "pages/10_ListaPrecios.py": {

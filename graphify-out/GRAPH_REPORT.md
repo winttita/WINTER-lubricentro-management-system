@@ -1,16 +1,16 @@
 # Graph Report - Lubricentro  (2026-07-31)
 
 ## Corpus Check
-- 48 files · ~97,573 words
+- 48 files · ~97,382 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 813 nodes · 1013 edges · 123 communities (50 shown, 73 thin omitted)
+- 811 nodes · 1017 edges · 122 communities (49 shown, 73 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0eddbfe9`
+- Built from commit: `9ee51537`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -23,7 +23,6 @@
 - get_movimientos
 - _crear_producto_con_stock
 - tickets.py
-- database.py
 - crear_venta
 - graphify.js
 - get_venta_completa
@@ -149,6 +148,8 @@
 10. `stock_de()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `test_compare_versions_basic()` --calls--> `compare_versions()`  [EXTRACTED]
+  docker/test_updater.py → updater.py
 - `test_generar_pdf_con_campos_none_no_falla()` --calls--> `generar_pdf()`  [EXTRACTED]
   tests/test_lista_precios_pdf.py → lista_precios_pdf.py
 - `test_generar_pdf_con_logo()` --calls--> `generar_pdf()`  [EXTRACTED]
@@ -157,17 +158,15 @@
   tests/test_lista_precios_pdf.py → lista_precios_pdf.py
 - `test_generar_pdf_sin_logo_no_falla()` --calls--> `generar_pdf()`  [EXTRACTED]
   tests/test_lista_precios_pdf.py → lista_precios_pdf.py
-- `test_generar_pdf_sin_productos()` --calls--> `generar_pdf()`  [EXTRACTED]
-  tests/test_lista_precios_pdf.py → lista_precios_pdf.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (123 total, 73 thin omitted)
+## Communities (122 total, 73 thin omitted)
 
 ### Community 0 - "updater.py"
-Cohesion: 0.09
-Nodes (32): Exception, apply_update(), check_for_update(), clear_update_dir(), compare_versions(), download_asset(), _extract_zip_safe(), find_asset() (+24 more)
+Cohesion: 0.06
+Nodes (49): _count_products(), _make_db_with_products(), Tests del sistema de actualizaciones (updater + preservación de DB).  Corren en, Una DB con 10 productos debe seguir teniendo 10 después de:     1. init_db() col, Si hay una DB legacy en el dir de database.py y la nueva DB no existe,     init_, backup_db debe crear un archivo .db en BACKUP_DIR y cleanup_old_backups     debe, _extract_zip_safe debe rechazar zips con entradas absolutas o con .., _extract_zip_safe debe rechazar también rutas windows (backslash) que     escape (+41 more)
 
 ### Community 1 - "test_database.py"
 Cohesion: 0.15
@@ -188,10 +187,6 @@ Nodes (46): _crear_producto_con_stock(), Helper para crear un producto con categ
 ### Community 7 - "tickets.py"
 Cohesion: 0.09
 Nodes (25): calcular_totales(), imprimir_venta(), Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada, Genera e imprime el comprobante de una venta., abrir_cajon(), formatear_monto(), generar_factura_a_texto(), generar_factura_b_texto() (+17 more)
-
-### Community 8 - "database.py"
-Cohesion: 0.13
-Nodes (18): _count_products(), _make_db_with_products(), Tests del sistema de actualizaciones (updater + preservación de DB).  Corren en, Una DB con 10 productos debe seguir teniendo 10 después de:     1. init_db() col, Si hay una DB legacy en el dir de database.py y la nueva DB no existe,     init_, backup_db debe crear un archivo .db en BACKUP_DIR y cleanup_old_backups     debe, _extract_zip_safe debe rechazar zips con entradas absolutas o con .., El _sanitize_filename activo (línea 216, el segundo) debe rechazar     nombres c (+10 more)
 
 ### Community 9 - "crear_venta"
 Cohesion: 0.09
@@ -368,10 +363,10 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `Corregido`, `Removido`, `Agregado` to the rest of the system?**
   _192 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `updater.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.08901515151515152 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0596078431372549 - nodes in this community are weakly interconnected._
 - **Should `get_movimientos` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
 - **Should `tickets.py` be split into smaller, more focused modules?**
   _Cohesion score 0.09116809116809117 - nodes in this community are weakly interconnected._
-- **Should `database.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.12631578947368421 - nodes in this community are weakly interconnected._
+- **Should `crear_venta` be split into smaller, more focused modules?**
+  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
