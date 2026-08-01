@@ -51,7 +51,7 @@ if proveedores and productos:
     with col_scan:
         codigo_scan = st.text_input(
             "Codigo de barras (escanear)",
-            placeholder="Escane el codigo para rellenar el producto",
+            placeholder="Escanee el codigo para rellenar el producto",
             key="compra_codigo_scan"
         )
     with col_scan_info:

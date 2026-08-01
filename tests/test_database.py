@@ -1837,6 +1837,17 @@ def test_resolver_producto_por_codigo_o_nombre(temp_db):
     assert database.resolver_producto("zzz inexistente") is None
 
 
+def test_resolver_producto_termino_vacio_devuelve_none(temp_db):
+    assert database.resolver_producto("") is None
+
+
+def test_resolver_producto_nombre_duplicado_devuelve_none(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("7793001", "Aceite generico", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("7793002", "Aceite generico", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    assert database.resolver_producto("Aceite generico") is None
+
+
 # --- Código autogenerado F-XXXX para productos fraccionados ---
 def test_proximo_codigo_fraccionado_primero_es_F0001(temp_db):
     cat_id, prov_id = _crear_dependencias()
@@ -1853,6 +1864,20 @@ def test_proximo_codigo_fraccionado_incrementa(temp_db):
 def test_proximo_codigo_fraccionado_ignora_codigos_no_F(temp_db):
     cat_id, prov_id = _crear_dependencias()
     database.add_producto("7794001", "Aceite 20L", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    assert database.proximo_codigo_fraccionado() == "F0001"
+
+
+def test_proximo_codigo_fraccionado_rollover_4_digitos(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("F0009", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    database.add_producto("F0010", "Aceite suelto 2", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    assert database.proximo_codigo_fraccionado() == "F0011"
+
+
+def test_proximo_codigo_fraccionado_ignora_prefijos_F_no_numericos(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("F12X", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    database.add_producto("FAB", "Aceite suelto 2", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
     assert database.proximo_codigo_fraccionado() == "F0001"
 
 
