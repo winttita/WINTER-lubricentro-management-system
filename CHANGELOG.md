@@ -5,6 +5,24 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.5.6] - 2026-08-01
+
+### Agregado
+- Ventas: campo unificado de busqueda que resuelve codigo de barras escaneado o nombre y agrega el producto al carrito con un boton (`pages/7_Ventas.py`, `database.py:resolver_producto`)
+- Compras: campo de escaneo de codigo de barras que rellena el producto de la fila y autocompleta el precio costo (`pages/8_Compras.py`)
+- Productos: boton "Generar codigo F" que asigna un codigo autoincremental F0001, F0002... a productos sin codigo de barras fisico, evitando colisiones con codigos EAN/UPC reales (`database.py:proximo_codigo_fraccionado`)
+- Ventas: checkbox "Imprimir ticket" por venta (marcado por defecto) para no imprimir cuando el dueño no lo desea (`pages/7_Ventas.py`)
+- Busqueda de productos por codigo de barras y por nombre en database (`database.py:buscar_producto_por_codigo`, `database.py:buscar_productos_por_nombre`)
+
+### Corregido
+- Tickets: el ticket de venta imprimia la fecha cruda UTC de la DB con formato distinto al de prueba; ahora todas las fechas se normalizan a hora local con formato DD/MM/AAAA HH:MM como el ticket de prueba (`tickets.py`, `fechas.py`)
+- Fechas: unificacion del formato de fecha y hora en Ventas, Compras, Cuenta Corriente, Stock, Caja y Ordenes (`fechas.py:formatear_fecha_hora`)
+- Carteles: los mensajes de exito/error dentro de formularios desaparecian tras el submit de Streamlit; ahora se muestran de forma persistente (flash en session_state + toast para exitos) en todas las acciones mutadoras (`style.py`)
+- Mensajes de la interfaz sin emojis
+
+### Removido
+- Ventas: campo informativo "Codigo de barras" que solo mostraba nombre y stock, y selectbox "Seleccionar producto" que no vinculaba el codigo escaneado (reemplazados por el campo unificado)
+
 ## [0.5.5] - 2026-07-31
 
 ### Corregido
