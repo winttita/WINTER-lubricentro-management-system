@@ -98,13 +98,48 @@ with st.sidebar:
         cerrar_sesion()
         st.rerun()
 
+    # --- Cambiar contraseña ---
+    with st.expander("Cambiar contraseña"):
+        with st.form("change_password_form"):
+            current_pw = st.text_input("Contraseña actual", type="password", key="curr_pw")
+            new_pw = st.text_input("Nueva contraseña", type="password", key="new_pw")
+            confirm_pw = st.text_input("Confirmar nueva contraseña", type="password", key="conf_pw")
+            submitted = st.form_submit_button("Cambiar", use_container_width=True)
+            if submitted:
+                if not current_pw or not new_pw or not confirm_pw:
+                    st.error("Completá todos los campos.")
+                elif new_pw != confirm_pw:
+                    st.error("Las contraseñas nuevas no coinciden.")
+                elif len(new_pw) < 4:
+                    st.error("La nueva contraseña debe tener al menos 4 caracteres.")
+                else:
+                    user = db.verificar_login(st.session_state.user_nombre, current_pw)
+                    if user is None:
+                        st.error("La contraseña actual es incorrecta.")
+                    else:
+                        ok = db.cambiar_password(st.session_state.user_id, new_pw)
+                        if ok:
+                            st.success("Contraseña actualizada correctamente.")
+                        else:
+                            st.error("Error al actualizar la contraseña.")
+
     st.divider()
     st.caption(f"Versión {APP_VERSION}")
     update_info = None
-    try:
-        update_info = check_for_update()
-    except Exception as e:
-        st.caption(f"⚠️ No se pudo verificar actualizaciones: {e}")
+    # Cache de check_for_update: solo verificar cada 1 hora para evitar congelamiento UI
+    import time as _time
+    cache_key = "_update_check_cache"
+    cache_ttl = 3600  # 1 hora en segundos
+    now = _time.time()
+    if cache_key not in st.session_state or (now - st.session_state[cache_key]["timestamp"]) > cache_ttl:
+        try:
+            update_info = check_for_update()
+            st.session_state[cache_key] = {"info": update_info, "timestamp": now}
+        except Exception as e:
+            st.caption(f"⚠️ No se pudo verificar actualizaciones: {e}")
+            st.session_state[cache_key] = {"info": None, "timestamp": now}
+    else:
+        update_info = st.session_state[cache_key]["info"]
     if update_info:
         st.warning(f"⬆️ Actualización disponible: **v{update_info['latest_version']}**")
         if st.button("Descargar e instalar actualización", use_container_width=True):
@@ -176,11 +211,11 @@ with col1:
     st.metric("Productos Activos", len(productos))
 
 with col2:
-    valor_inventario = sum(p[10] * p[7] for p in productos)  # precio_venta * stock_actual
+    valor_inventario = sum((p[10] or 0) * (p[7] or 0) for p in productos)  # precio_venta * stock_actual
     st.metric("Valor Inventario (Precio Venta)", f"${valor_inventario:,.2f}")
 
 with col3:
-    stock_critico = sum(1 for p in productos if p[7] <= p[8])  # stock_actual <= stock_minimo
+    stock_critico = sum(1 for p in productos if (p[7] or 0) <= (p[8] or 0))  # stock_actual <= stock_minimo
     st.metric("Productos en Stock Crítico", stock_critico)
 
 st.divider()
