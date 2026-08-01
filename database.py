@@ -2,9 +2,11 @@ import sqlite3
 import os
 import sys
 import logging
+import math
 from datetime import datetime
 import shutil
 import hashlib
+import secrets
 
 # Adapter for datetime -> ISO 8081 string to avoid deprecation warning in Python 3.12+
 sqlite3.register_adapter(datetime, lambda val: val.isoformat())
@@ -92,6 +94,13 @@ TIPOS_COMPROBANTE_VALIDOS = {'factura_a', 'factura_b', 'factura_c', 'ticket'}
 # Métodos de pago válidos.
 METODOS_PAGO_VALIDOS = {'efectivo', 'tarjeta', 'transferencia', 'cuenta_corriente'}
 
+def _num_finito(valor):
+    """Valida que valor sea un numero finito (rechaza NaN, Inf y no numericos)."""
+    try:
+        return math.isfinite(float(valor))
+    except (ValueError, TypeError):
+        return False
+
 def get_connection():
     conn = sqlite3.connect(DB_NAME)
     # Enable foreign key constraints
@@ -151,10 +160,41 @@ def init_db():
     """)
     
     # Migracion: eliminar codigo_interno de productos (v0.5.0)
-    try:
-        cursor.execute("ALTER TABLE productos DROP COLUMN codigo_interno")
-    except sqlite3.OperationalError:
-        pass  # Ya migrado
+    # SQLite no permite DROP COLUMN en columnas con restricciones UNIQUE.
+    # Recreamos la tabla sin la columna.
+    cursor.execute("PRAGMA table_info(productos)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if 'codigo_interno' in columns:
+        cursor.execute("PRAGMA foreign_keys = OFF")
+        cursor.execute("""
+            CREATE TABLE productos_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                codigo_barras TEXT UNIQUE,
+                nombre TEXT NOT NULL,
+                descripcion TEXT,
+                categoria_id INTEGER,
+                proveedor_id INTEGER,
+                tipo_unidad TEXT CHECK(tipo_unidad IN ('Entero', 'Fraccionable')),
+                stock_actual REAL DEFAULT 0,
+                stock_minimo REAL DEFAULT 0,
+                precio_costo REAL DEFAULT 0,
+                precio_venta REAL DEFAULT 0,
+                activo INTEGER DEFAULT 1,
+                FOREIGN KEY (categoria_id) REFERENCES categorias(id),
+                FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+            )
+        """)
+        cursor.execute("""
+            INSERT INTO productos_new (id, codigo_barras, nombre, descripcion, categoria_id, proveedor_id,
+                                       tipo_unidad, stock_actual, stock_minimo, precio_costo, precio_venta, activo)
+            SELECT id, codigo_barras, nombre, descripcion, categoria_id, proveedor_id,
+                   tipo_unidad, stock_actual, stock_minimo, precio_costo, precio_venta, activo
+            FROM productos
+        """)
+        cursor.execute("DROP TABLE productos")
+        cursor.execute("ALTER TABLE productos_new RENAME TO productos")
+        cursor.execute("PRAGMA foreign_keys = ON")
+        conn.commit()
 
     # 4. Catalogo Proveedor
     cursor.execute("""
@@ -454,7 +494,16 @@ def backup_db():
     if os.path.exists(DB_NAME):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = os.path.join(BACKUP_DIR, f"lubricentro_backup_{timestamp}.db")
-        shutil.copy2(DB_NAME, backup_path)
+        # Usar la API de backup de SQLite para evitar copia de DB viva
+        try:
+            src = sqlite3.connect(DB_NAME)
+            dst = sqlite3.connect(backup_path)
+            src.backup(dst)
+            dst.close()
+            src.close()
+        except Exception:
+            # Fallback a shutil.copy2 si la API de backup falla
+            shutil.copy2(DB_NAME, backup_path)
         return backup_path
     return None
 
@@ -478,8 +527,37 @@ def cleanup_old_backups(max_backups=10):
 # --- Autenticación ---
 
 def hash_password(password: str) -> str:
-    """Genera un hash SHA-256 de la contraseña."""
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    """Genera un hash scrypt con salt de la contraseña.
+    
+    Formato: scrypt$N$r$p$salt$hash (hex)
+    """
+    import secrets
+    salt = secrets.token_bytes(16)
+    # scrypt params: N=16384, r=8, p=1 (memory ~16MB)
+    hash_bytes = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1, dklen=32)
+    return f"scrypt$16384$8$1${salt.hex()}${hash_bytes.hex()}"
+
+
+def _verify_password(password: str, stored_hash: str) -> bool:
+    """Verifica una contraseña contra un hash almacenado.
+    
+    Soporta:
+    - scrypt$N$r$p$salt$hash (nuevo formato)
+    - SHA-256 hex (formato legacy, sin salt)
+    """
+    if stored_hash.startswith("scrypt$"):
+        try:
+            _, n_str, r_str, p_str, salt_hex, hash_hex = stored_hash.split("$")
+            n, r, p = int(n_str), int(r_str), int(p_str)
+            salt = bytes.fromhex(salt_hex)
+            expected_hash = bytes.fromhex(hash_hex)
+            computed = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=n, r=r, p=p, dklen=len(expected_hash))
+            return secrets.compare_digest(computed, expected_hash)
+        except (ValueError, IndexError):
+            return False
+    else:
+        # Legacy SHA-256 sin salt
+        return hashlib.sha256(password.encode("utf-8")).hexdigest() == stored_hash
 
 
 def verificar_login(username: str, password: str):
@@ -509,9 +587,19 @@ def verificar_login(username: str, password: str):
         # Contraseña no configurada: ninguna clave verifica
         return None
 
-    hashed_input = hash_password(password)
-    if hashed_input != stored_hash:
+    if not _verify_password(password, stored_hash):
         return None
+
+    # Si el hash es legacy (SHA-256 sin salt), migrar a scrypt automáticamente
+    if not stored_hash.startswith("scrypt$"):
+        try:
+            new_hash = hash_password(password)
+            conn = get_connection()
+            conn.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (new_hash, user_id))
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
 
     return {
         "user_id": user_id,
@@ -579,6 +667,8 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
         cantidad = float(cantidad)
     except (ValueError, TypeError):
         return False
+    if not math.isfinite(cantidad):
+        return False
 
     own_conn = conn is None
     if own_conn:
@@ -600,8 +690,8 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
             delta = cantidad  # cantidad puede ser positivo o negativo
 
         nuevo_stock = stock_actual + delta
-        if nuevo_stock < 0:
-            # No hay suficiente stock
+        if not math.isfinite(nuevo_stock) or nuevo_stock < 0:
+            # No hay suficiente stock o el resultado no es un numero valido
             return False
 
         # Insertar movimiento
@@ -715,7 +805,7 @@ def add_servicio(nombre, precio):
         return False
     try:
         precio = float(precio)
-        if precio < 0:
+        if not _num_finito(precio) or precio < 0:
             return False
     except (ValueError, TypeError):
         return False
@@ -759,7 +849,11 @@ def add_orden_servicio(cliente_id, vehiculo_id, fecha=None):
         conn.close()
 
 def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, precio_unitario=None):
-    if cantidad <= 0:
+    try:
+        cantidad = float(cantidad)
+    except (ValueError, TypeError):
+        return False
+    if not _num_finito(cantidad) or cantidad <= 0:
         return False
     conn = get_connection()
     try:
@@ -878,13 +972,15 @@ def get_productos():
 def add_producto(codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
     if not nombre or not nombre.strip():
         return False
-    if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
+    if not _num_finito(stock_minimo) or stock_minimo < 0 \
+            or not _num_finito(precio_costo) or precio_costo < 0 \
+            or not _num_finito(precio_venta) or precio_venta < 0:
         return False
     try:
         stock_inicial = float(stock_inicial)
     except (ValueError, TypeError):
         stock_inicial = 0.0
-    if stock_inicial < 0:
+    if not _num_finito(stock_inicial) or stock_inicial < 0:
         return False
     conn = get_connection()
     try:
@@ -1033,7 +1129,7 @@ def aumentar_precios_proveedor(proveedor_id, porcentaje):
         porcentaje = float(porcentaje)
     except (ValueError, TypeError):
         return False
-    if porcentaje < 0:
+    if not _num_finito(porcentaje) or porcentaje < 0:
         return False
 
     conn = get_connection()
@@ -1092,7 +1188,7 @@ def aumentar_precios_por_categoria(proveedor_id, porcentaje, categoria_id):
         porcentaje = float(porcentaje)
     except (ValueError, TypeError):
         return 0
-    if porcentaje < 0:
+    if not _num_finito(porcentaje) or porcentaje < 0:
         return 0
 
     conn = get_connection()
@@ -1132,7 +1228,7 @@ def aumentar_precios_por_lista(producto_ids, porcentaje):
         porcentaje = float(porcentaje)
     except (ValueError, TypeError):
         return 0
-    if porcentaje < 0:
+    if not _num_finito(porcentaje) or porcentaje < 0:
         return 0
 
     conn = get_connection()
@@ -1220,7 +1316,9 @@ def update_producto(id, codigo_barras, nombre, descripcion, categoria_id, provee
         stock_minimo = float(stock_minimo)
         precio_costo = float(precio_costo)
         precio_venta = float(precio_venta)
-        if stock_minimo < 0 or precio_costo < 0 or precio_venta < 0:
+        if not _num_finito(stock_minimo) or stock_minimo < 0 \
+                or not _num_finito(precio_costo) or precio_costo < 0 \
+                or not _num_finito(precio_venta) or precio_venta < 0:
             return False
     except (ValueError, TypeError):
         return False
@@ -1308,7 +1406,7 @@ def update_servicio(id, nombre, precio):
         return False
     try:
         precio_float = float(precio)
-        if precio_float < 0:
+        if not _num_finito(precio_float) or precio_float < 0:
             return False
     except (ValueError, TypeError):
         return False
@@ -1444,9 +1542,9 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             except (ValueError, TypeError):
                 return None, None, f"Cantidad o precio inválido para producto id={item.get('producto_id')}"
 
-            if cantidad <= 0:
+            if not math.isfinite(cantidad) or cantidad <= 0:
                 return None, None, f"Cantidad inválida ({cantidad}) para producto id={item['producto_id']}: debe ser mayor a 0"
-            if precio_unit < 0:
+            if not math.isfinite(precio_unit) or precio_unit < 0:
                 return None, None, f"Precio inválido ({precio_unit}) para producto id={item['producto_id']}: no puede ser negativo"
 
             row = conn.execute("SELECT stock_actual, nombre, tipo_unidad FROM productos WHERE id = ? AND activo = 1",
@@ -1645,7 +1743,7 @@ def crear_ajuste_stock(producto_id, stock_nuevo, motivo, usuario_id):
         stock_nuevo = float(stock_nuevo)
     except (ValueError, TypeError):
         return False
-    if stock_nuevo < 0:
+    if not math.isfinite(stock_nuevo) or stock_nuevo < 0:
         return False
 
     conn = get_connection()
@@ -1736,7 +1834,8 @@ def crear_compra(proveedor_id, items, observaciones=""):
                 precio = float(item['precio_unitario'])
             except (ValueError, TypeError):
                 return None
-            if cantidad <= 0 or precio < 0:
+            if not _num_finito(cantidad) or cantidad <= 0 \
+                    or not _num_finito(precio) or precio < 0:
                 return None
             item['cantidad'] = cantidad
             item['precio_unitario'] = precio
@@ -1850,7 +1949,8 @@ def anular_compra(compra_id):
                 conn.rollback()
                 return False
             stock_actual = float(row[0])
-            if stock_actual - cantidad < 0:
+            stock_resultante = stock_actual - cantidad
+            if not _num_finito(stock_resultante) or stock_resultante < 0:
                 conn.rollback()
                 return False
 
@@ -1955,7 +2055,7 @@ def registrar_pago_cc(cliente_id, monto, metodo_pago, observacion, usuario_id):
         monto = float(monto)
     except (ValueError, TypeError):
         return False
-    if monto <= 0:
+    if not _num_finito(monto) or monto <= 0:
         return False
 
     conn = get_connection()
@@ -2049,7 +2149,7 @@ def registrar_pago_cc_con_ventas(cliente_id, monto, metodo_pago, observacion, us
         monto = float(monto)
     except (ValueError, TypeError):
         return False
-    if monto <= 0:
+    if not _num_finito(monto) or monto <= 0:
         return False
 
     conn = get_connection()
@@ -2121,7 +2221,11 @@ def abrir_caja(saldo_inicial, usuario_id):
     Returns:
         int: ID de la caja creada, o None si hubo un error
     """
-    if saldo_inicial < 0:
+    try:
+        saldo_inicial = float(saldo_inicial)
+    except (ValueError, TypeError):
+        return None
+    if not _num_finito(saldo_inicial) or saldo_inicial < 0:
         return None
 
     conn = get_connection()
