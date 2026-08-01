@@ -697,11 +697,10 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
         # Insertar movimiento
         if fecha is None:
             fecha = datetime.now()
-        cursor = conn.execute("""
+        conn.execute("""
             INSERT INTO movimientos_stock (producto_id, tipo, cantidad, fecha, motivo)
             VALUES (?, ?, ?, ?, ?)
         """, (producto_id, tipo, cantidad, fecha, motivo))
-        movimiento_id = cursor.lastrowid
 
         # Actualizar stock del producto
         conn.execute("UPDATE productos SET stock_actual = ? WHERE id = ?", (nuevo_stock, producto_id))
@@ -709,7 +708,7 @@ def add_movimiento(producto_id, tipo, cantidad, motivo, fecha=None, conn=None):
         if own_conn:
             conn.commit()
         return True
-    except Exception as e:
+    except Exception:
         # En caso de cualquier error, hacemos rollback (solo de nuestra propia conexion)
         conn.rollback()
         return False
@@ -892,7 +891,7 @@ def add_orden_detalle(orden_id, producto_id=None, servicio_id=None, cantidad=1, 
                          WHERE orden_id = ?) WHERE id = ?""", (orden_id, orden_id))
         conn.commit()
         return True
-    except Exception as e:
+    except Exception:
         conn.rollback()
         return False
     finally:
@@ -1008,7 +1007,7 @@ def buscar_productos_por_nombre(termino):
 
 def resolver_producto(termino):
     """Resuelve un termino de busqueda: primero codigo de barras exacto, luego nombre exacto."""
-    if not termino:
+    if not termino or not str(termino).strip():
         return None
     p = buscar_producto_por_codigo(termino)
     if p:
@@ -1597,7 +1596,10 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
         # Adquirir lock de escritura temprano para evitar TOCTOU en stock y comprobante
         conn.execute("BEGIN IMMEDIATE")
 
-        # Validar stock y validar cantidad/precio positivos para todos los items
+        # Validar stock y validar cantidad/precio positivos para todos los items.
+        # El mismo producto puede aparecer en varias filas: acumular por producto
+        # para validar el stock contra la cantidad total solicitada.
+        acumulado_stock = {}
         for item in items:
             if not isinstance(item, dict):
                 return None, None, "Cada item debe ser un diccionario"
@@ -1622,8 +1624,9 @@ def crear_venta(cliente_id, tipo_comprobante, items, metodo_pago, usuario_id):
             stock_actual = float(row[0])
             nombre = row[1]
             tipo_unidad = row[2]
-            if stock_actual < cantidad:
-                return None, None, f"Stock insuficiente de \"{nombre}\": solicitado {cantidad}, disponible {stock_actual}"
+            acumulado_stock[item['producto_id']] = acumulado_stock.get(item['producto_id'], 0.0) + cantidad
+            if stock_actual < acumulado_stock[item['producto_id']]:
+                return None, None, f"Stock insuficiente de \"{nombre}\": solicitado {acumulado_stock[item['producto_id']]}, disponible {stock_actual}"
             
             # Validar que para productos 'Entero' la cantidad sea un número entero
             if tipo_unidad == 'Entero':
@@ -2007,9 +2010,13 @@ def anular_compra(compra_id):
             return False
 
         # Revertir stock de cada producto y registrar movimiento
-        # Validar que el stock resultante no sea negativo
+        # Validar que el stock resultante no sea negativo (acumulando por producto,
+        # ya que una compra puede repetir el mismo producto en varias filas)
         now = datetime.now()
+        acumulado = {}
         for producto_id, cantidad in items:
+            acumulado[producto_id] = acumulado.get(producto_id, 0.0) + cantidad
+        for producto_id, total_restar in acumulado.items():
             row = conn.execute(
                 "SELECT stock_actual FROM productos WHERE id = ?", (producto_id,)
             ).fetchone()
@@ -2017,7 +2024,7 @@ def anular_compra(compra_id):
                 conn.rollback()
                 return False
             stock_actual = float(row[0])
-            stock_resultante = stock_actual - cantidad
+            stock_resultante = stock_actual - total_restar
             if not _num_finito(stock_resultante) or stock_resultante < 0:
                 conn.rollback()
                 return False
@@ -2435,7 +2442,7 @@ def registrar_movimiento_caja(caja_id, tipo, monto, saldo_anterior, saldo_nuevo,
     if own_conn:
         conn = get_connection()
     try:
-        cursor = conn.execute("""
+        conn.execute("""
             INSERT INTO movimientos_caja 
             (caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, usuario_id)
             VALUES (?, ?, ?, ?, ?, ?, ?)
