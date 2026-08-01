@@ -2,12 +2,19 @@ import os
 import time
 from datetime import datetime
 
+import pytest
+
 import fechas
 
 
 def _set_tz(tz):
     os.environ["TZ"] = tz
     time.tzset()
+
+
+needs_tzset = pytest.mark.skipif(
+    not hasattr(time, "tzset"), reason="time.tzset() solo disponible en Unix"
+)
 
 
 def test_none_vacio_devuelve_vacio():
@@ -24,12 +31,17 @@ def test_string_iso_con_T_se_formatea_directo():
     assert fechas.formatear_fecha_hora("2026-08-01T10:30:45.123456") == "01/08/2026 10:30"
 
 
+@needs_tzset
 def test_string_utc_sin_T_se_convierte_a_local():
+    tz_original = os.environ.get("TZ")
     _set_tz("America/Argentina/Buenos_Aires")
     try:
         assert fechas.formatear_fecha_hora("2026-08-01 14:30:45") == "01/08/2026 11:30"
     finally:
-        _set_tz("UTC")
+        if tz_original:
+            _set_tz(tz_original)
+        else:
+            os.environ.pop("TZ", None)
 
 
 def test_string_invalido_devuelve_crudo():
