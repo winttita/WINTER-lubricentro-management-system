@@ -1,6 +1,7 @@
 import sqlite3
 import streamlit as st
 import database as db
+import fechas
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Compras", layout="wide")
@@ -152,7 +153,7 @@ if compras:
         estado_label = "Anulada" if c[6] == "anulada" else "Confirmada"
         with st.expander(f"#{c[0]} - {c[2]} - ${c[4]:.2f} - {c[3]} - {estado_label}"):
             st.write(f"**Proveedor:** {c[2]}")
-            st.write(f"**Fecha:** {c[3]}")
+            st.write(f"**Fecha:** {fechas.formatear_fecha_hora(c[3])}")
             st.write(f"**Total:** ${c[4]:.2f}")
             st.write(f"**Estado:** {estado_label}")
             if c[5]:

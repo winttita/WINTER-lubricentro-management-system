@@ -1,5 +1,6 @@
 import streamlit as st
 import database as db
+import fechas
 from style import inject_global_css
 
 st.set_page_config(page_title="Órdenes de Servicio", layout="wide")
@@ -260,13 +261,7 @@ if ordenes:
     for o in ordenes:
         # o: (id, fecha, total_productos, total_servicios, total_final, cliente_nombre, vehiculo_patente)
         fecha_raw = o[1]
-        if fecha_raw:
-            try:
-                fecha_str = fecha_raw.strftime("%d/%m/%Y %H:%M") if hasattr(fecha_raw, 'strftime') else str(fecha_raw)
-            except Exception:
-                fecha_str = str(fecha_raw)
-        else:
-            fecha_str = "-"
+        fecha_str = fechas.formatear_fecha_hora(fecha_raw) if fecha_raw else "-"
         data.append({
             "ID": o[0],
             "Fecha": fecha_str,

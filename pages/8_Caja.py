@@ -1,6 +1,7 @@
 import sqlite3
 import streamlit as st
 import database as db
+import fechas
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Caja", layout="wide")
@@ -32,10 +33,7 @@ if caja:
     with col2:
         st.metric("Saldo Actual", f"${saldo_actual:,.2f}")
     with col3:
-        try:
-            fecha_str = fecha_apertura.strftime("%d/%m/%Y %H:%M")
-        except AttributeError:
-            fecha_str = str(fecha_apertura) if fecha_apertura else "-"
+        fecha_str = fechas.formatear_fecha_hora(fecha_apertura) if fecha_apertura else "-"
         st.metric("Apertura", fecha_str)
 
     st.divider()
@@ -167,10 +165,7 @@ if movimientos:
     for m in movimientos:
         # m: (id, caja_id, tipo, monto, saldo_anterior, saldo_nuevo, observacion, creado_en, usuario_nombre)
         created = m[7]
-        try:
-            fecha_str = created.strftime("%d/%m/%Y %H:%M")
-        except AttributeError:
-            fecha_str = str(created) if created else "-"
+        fecha_str = fechas.formatear_fecha_hora(created) if created else "-"
         signo = "+" if (m[3] or 0) >= 0 else ""
         data.append({
             "Fecha": fecha_str,

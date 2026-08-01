@@ -3,6 +3,7 @@ import sqlite3
 import streamlit as st
 import database as db
 import tickets as tk
+import fechas
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 logging.basicConfig(level=logging.DEBUG, filename='impresora.log')
@@ -314,7 +315,7 @@ if st.button("Buscar", key="hist_btn"):
     if ventas:
         for v in ventas:
             with st.expander(f"#{v[0]} - {v[11] or 'Consumidor Final'} - {v[3]}-{v[4]:08d} - ${v[7]:.2f} - Confirmada"):
-                st.write(f"**Fecha:** {v[10]}")
+                st.write(f"**Fecha:** {fechas.formatear_fecha_hora(v[10])}")
                 st.write(f"**Tipo:** {v[2].upper()} {v[3]}-{v[4]:08d}")
                 st.write(f"**Método pago:** {v[8]}")
                 st.write(f"**Usuario:** {v[12]}")

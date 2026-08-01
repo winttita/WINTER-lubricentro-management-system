@@ -1,6 +1,7 @@
 import sqlite3
 import streamlit as st
 import database as db
+import fechas
 from datetime import datetime
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
@@ -40,10 +41,7 @@ if deudores:
         antiguedad = d[5] if len(d) > 5 else 0
         ultimo = d[6] if len(d) > 6 else None
         if ultimo:
-            try:
-                ultimo_str = ultimo.strftime("%d/%m/%Y %H:%M") if hasattr(ultimo, 'strftime') else str(ultimo)
-            except Exception:
-                ultimo_str = str(ultimo)
+            ultimo_str = fechas.formatear_fecha_hora(ultimo)
         else:
             ultimo_str = "-"
 
@@ -167,10 +165,7 @@ if movimientos:
         #     tipo_movimiento, metodo_pago, observacion)
         fecha = m[5]
         if fecha:
-            try:
-                fecha_str = fecha.strftime("%d/%m/%Y %H:%M") if hasattr(fecha, 'strftime') else str(fecha)
-            except Exception:
-                fecha_str = str(fecha)
+            fecha_str = fechas.formatear_fecha_hora(fecha)
         else:
             fecha_str = "-"
 

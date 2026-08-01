@@ -1,6 +1,7 @@
 import sqlite3
 import streamlit as st
 import database as db
+import fechas
 from datetime import date
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
@@ -131,10 +132,7 @@ with tab_mov:
         data = []
         for m in movimientos:
             if m[4]:
-                try:
-                    fecha_str = m[4].strftime("%d/%m/%Y %H:%M")
-                except AttributeError:
-                    fecha_str = str(m[4])
+                fecha_str = fechas.formatear_fecha_hora(m[4])
             else:
                 fecha_str = ""
             data.append({
@@ -212,7 +210,7 @@ with tab_adj:
         if ajustes:
             data = []
             for a in ajustes:
-                fecha_str = a[7].strftime("%d/%m/%Y %H:%M") if a[7] else ""
+                fecha_str = fechas.formatear_fecha_hora(a[7]) if a[7] else ""
                 data.append({
                     "Fecha": fecha_str,
                     "Producto": a[8],
