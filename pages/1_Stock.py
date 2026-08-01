@@ -179,7 +179,7 @@ with tab_adj:
                 else:
                     diff = stock_nuevo - stock_actual
                     if diff == 0:
-                        st.warning("⚠️ El stock no cambió.")
+                        flash_error("El stock no cambio.")
                     else:
                         try:
                             ok = db.crear_ajuste_stock(producto_id, stock_nuevo, motivo.strip(), st.session_state.user_id)

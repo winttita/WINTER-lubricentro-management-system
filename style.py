@@ -40,8 +40,9 @@ def flash_exito(mensaje):
 
 
 def flash_error(mensaje):
-    """Guarda un mensaje de error para mostrar en el proximo render."""
+    """Guarda un mensaje de error y fuerza el rerun para mostrarlo."""
     st.session_state["flash"] = ("error", mensaje)
+    st.rerun()
 
 
 def mostrar_flash():

@@ -259,7 +259,7 @@ if proveedores:
                                 flash_exito(f"{actualizados} productos actualizados un {pct_cat}% correctamente")
                                 st.rerun()
                             else:
-                                st.warning("⚠️ No se actualizo ningun producto (verifique categoria/proveedor)")
+                                flash_error("No se actualizo ningun producto (verifique categoria/proveedor)")
 
 st.divider()
 
