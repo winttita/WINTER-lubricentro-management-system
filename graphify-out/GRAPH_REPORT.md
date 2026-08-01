@@ -1,16 +1,16 @@
 # Graph Report - Lubricentro  (2026-08-01)
 
 ## Corpus Check
-- 51 files · ~103,012 words
+- 51 files · ~103,693 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 848 nodes · 1520 edges · 71 communities (66 shown, 5 thin omitted)
+- 860 nodes · 1096 edges · 128 communities (56 shown, 72 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `78836be7`
+- Built from commit: `4991a988`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -57,7 +57,6 @@
 - crear_compra
 - get_cuenta_corriente_cliente
 - get_detalle_compra
-- get_reporte_ventas
 - get_ultimo_numero_comprobante
 - get_reporte_ingresos_egresos
 - update_cliente
@@ -76,55 +75,111 @@
 - [0.5.3] - 2026-07-30
 - get_ultimo_numero_comprobante
 - update_producto
+- update_cliente
 - registrar_movimiento_caja
+- reactivar_cliente
+- test_registrar_pago_cc_cliente_inexistente_devuelve_false
+- test_registrar_pago_cc_registra_tipo_movimiento_pago
+- test_crear_venta_cuenta_corriente_registra_tipo_venta
 - test_registrar_pago_cc_cliente_inexistente_devuelve_false
 - test_get_movimientos_cuenta_corriente_incluye_tipo_y_metodo
+- test_get_clientes_con_deuda_incluye_antiguedad
+- test_get_movimientos_cuenta_corriente_incluye_tipo_y_metodo
+- test_aumentar_precios_proveedor
+- test_aumentar_precios_proveedor_proveedor_inexistente
+- test_aumentar_precios_por_lista_happy_path
+- test_aumentar_precios_por_lista_porcentaje_negativo
+- test_aumentar_precios_por_lista_ids_inexistentes
 - test_get_productos_por_proveedor_happy_path
+- test_get_productos_por_proveedor_happy_path
+- test_get_productos_por_proveedor_con_busqueda
+- test_get_productos_por_proveedor_proveedor_inexistente
+- test_get_productos_por_proveedor_sin_busqueda
+- test_get_ventas_pendientes_cc
 - temp_db
+- test_get_ventas_pendientes_cc_tras_pago_parcial
+- test_registrar_pago_cc_con_ventas_imputa_pago
+- test_registrar_pago_cc_con_ventas_monto_negativo_devuelve_false
+- test_reporte_inventario_con_datos
+- test_reporte_inventario_excluye_productos_inactivos
+- test_crear_venta_con_caja_abierta_registra_ingreso
+- test_crear_venta_sin_caja_abierta_no_registra_ingreso
 - test_get_precios_para_lista_solo_activos_con_stock
+- test_get_precios_para_lista_ordenado_por_proveedor
+- test_get_precios_para_lista_solo_activos_con_stock
+- test_get_precios_para_lista_incluye_precio_venta
+- test_aumentar_precios_por_categoria
+- test_aumentar_precios_por_categoria_multiples_productos
+- test_get_movimientos_sin_movimientos
+- test_add_movimiento_producto_inexistente
+- test_add_movimiento_producto_id_nulo
 - test_add_producto_con_stock_inicial
+- test_add_producto_con_stock_inicial
+- test_add_producto_sin_stock_inicial
+- test_crear_ajuste_stock_con_movimiento
+- test_crear_y_get_compras
+- test_anular_compra
+- test_crear_venta_items_vacios_retorna_error
+- test_init_db_admin_no_password_vacio
+- test_get_connection_tiene_busy_timeout
+- test_hash_password_con_salt_aleatorio
+- test_verify_password_soporta_hash_legacy_sha256
+- test_hash_password_diferente_para_distintas_entradas
+- test_init_db_crea_usuario_admin_por_defecto
+- test_verificar_login_admin_correcto
+- test_verificar_login_password_incorrecta
+- test_verificar_login_usuario_inexistente
+- test_verificar_login_usuario_inactivo
+- test_cambiar_password_actualiza_hash
+- test_cambiar_password_usuario_inexistente
 - [0.5.1] - 2026-07-30
+- test_registrar_pago_cc_reduce_deuda
+- test_registrar_pago_cc_pago_total_saldando
+- test_fechas.py
+- formatear_fecha_hora
+- get_logo_path
+- 7_Ventas.py
 
 ## God Nodes (most connected - your core abstractions)
-1. `get_connection()` - 90 edges
-2. `add_producto()` - 64 edges
-3. `add_proveedor()` - 47 edges
-4. `add_categoria()` - 44 edges
-5. `get_productos()` - 34 edges
-6. `_crear_dependencias()` - 32 edges
-7. `_crear_producto_con_stock()` - 30 edges
-8. `crear_venta()` - 29 edges
-9. `add_cliente()` - 23 edges
-10. `add_movimiento()` - 22 edges
+1. `get_connection()` - 64 edges
+2. `_crear_dependencias()` - 34 edges
+3. `_crear_producto_con_stock()` - 24 edges
+4. `Changelog - Lubricentro Winter` - 21 edges
+5. `crear_producto_id()` - 18 edges
+6. `_num_finito()` - 15 edges
+7. `Guía de Firma Digital (Code Signing) para Lubricentro Winter` - 13 edges
+8. `Global Constraints` - 13 edges
+9. `Convenciones del proyecto — Lubricentro Winter` - 12 edges
+10. `stock_de()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `generar_factura_a_texto()` --calls--> `formatear_fecha_hora()`  [EXTRACTED]
+  tickets.py → fechas.py
+- `generar_ticket_texto()` --calls--> `formatear_fecha_hora()`  [EXTRACTED]
+  tickets.py → fechas.py
 - `test_compare_versions_basic()` --calls--> `compare_versions()`  [EXTRACTED]
   docker/test_updater.py → updater.py
-- `test_find_asset_accepts_versioned_name_for_compatibility()` --calls--> `find_asset()`  [EXTRACTED]
-  docker/test_updater.py → updater.py
-- `test_find_asset_matches_ci_name()` --calls--> `find_asset()`  [EXTRACTED]
-  docker/test_updater.py → updater.py
-- `test_db_survives_simulated_update()` --calls--> `apply_update()`  [EXTRACTED]
-  docker/test_updater.py → updater.py
 - `test_get_logo_path_busca_tambien_junto_al_modulo()` --calls--> `get_logo_path()`  [EXTRACTED]
+  tests/test_logo.py → style.py
+- `test_get_logo_path_devuelve_none_si_no_hay_logo()` --calls--> `get_logo_path()`  [EXTRACTED]
   tests/test_logo.py → style.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (71 total, 5 thin omitted)
+## Communities (128 total, 72 thin omitted)
 
 ### Community 0 - "updater.py"
-Cohesion: 0.15
-Nodes (17): apply_update(), clear_update_dir(), download_asset(), find_asset(), _main(), Sistema de actualizaciones automáticas vía GitHub Releases.  Flujo:   1. get_lat, Verifica SHA256 del archivo contra el hash esperado (hex lowercase)., Verifica que un ZIP sea íntegro via CRC (testzip()) sin cargarlo en memoria. (+9 more)
+Cohesion: 0.05
+Nodes (53): cerrar_sesion(), init_session(), Inicializa flags de sesión si no existen., Limpia el estado de sesión., _count_products(), _make_db_with_products(), Tests del sistema de actualizaciones (updater + preservación de DB).  Corren en, Una DB con 10 productos debe seguir teniendo 10 después de:     1. init_db() col (+45 more)
 
 ### Community 1 - "test_database.py"
 Cohesion: 0.15
 Nodes (12): 10. Actualización de este documento, 11. Uso de este documento, 1. Propósito y alcance, 2. Tono y estilo, 3. Prohibición de emojis, 4. Versionado (SemVer), 5. Releases y CHANGELOG, 6. Conventional Commits (+4 more)
 
 ### Community 2 - "get_connection"
-Cohesion: 0.18
-Nodes (14): _count_products(), _make_db_with_products(), Tests del sistema de actualizaciones (updater + preservación de DB).  Corren en, Una DB con 10 productos debe seguir teniendo 10 después de:     1. init_db() col, Si hay una DB legacy en el dir de database.py y la nueva DB no existe,     init_, backup_db debe crear un archivo .db en BACKUP_DIR y cleanup_old_backups     debe, Crea una DB con n productos usando el esquema real de database.init_db., El CI sube un asset llamado LubricentroWinter.zip (corregido en v0.3.0).     fin (+6 more)
+Cohesion: 0.33
+Nodes (6): buscar_producto_por_codigo(), buscar_productos_por_nombre(), Resuelve un termino de busqueda: primero codigo de barras exacto, luego nombre e, Busca un producto activo por codigo de barras exacto (sin distinguir mayusculas), Busca productos activos cuyo nombre contiene el termino (sin distinguir mayuscul, resolver_producto()
 
 ### Community 3 - "database.py"
 Cohesion: 0.29
@@ -135,8 +190,8 @@ Cohesion: 0.18
 Nodes (10): [0.1.0] - 2026-07-16, [0.2.1] - 2026-07-17, [0.5.4] - 2026-07-31, Agregado, Agregado, Changelog - Lubricentro Winter, Convenciones de commits, Corregido (+2 more)
 
 ### Community 5 - "get_movimientos"
-Cohesion: 0.05
-Nodes (58): add_movimiento(), get_movimientos(), get_productos(), Registra un movimiento de stock y actualiza el stock_actual del producto.     Re, _crear_producto_con_stock(), aumentar_precios_proveedor debe actualizar precio_venta de productos del proveed, Helper para crear un producto con categoría, proveedor y stock inicial, Debe devolver una lista vacía cuando no hay movimientos (+50 more)
+Cohesion: 0.04
+Nodes (46): _crear_producto_con_stock(), Helper para crear un producto con categoría, proveedor y stock inicial, Debe devolver movimientos ordenados por fecha descendente y aplicar límite, Debe agregar una compra exitosamente y aumentar el stock, Debe agregar una venta exitosamente y disminuir el stock, Debe manejar un ajuste positivo correctamente, Debe manejar un ajuste negativo correctamente, Debe manejar una devolución como entrada de stock (+38 more)
 
 ### Community 6 - "_crear_producto_con_stock"
 Cohesion: 0.46
@@ -149,10 +204,6 @@ Nodes (17): abrir_cajon(), formatear_monto(), generar_factura_a_texto(), generar
 ### Community 8 - "formatear_fecha_hora"
 Cohesion: 0.24
 Nodes (10): FPDF, generar_pdf(), Registra la fuente DejaVu Sans Unicode y devuelve el nombre de familia., Genera un PDF de la lista de precios agrupada por proveedor.      Usa fuente Uni, _register_unicode_font(), test_generar_pdf_con_campos_none_no_falla(), test_generar_pdf_con_logo(), test_generar_pdf_con_logo_inexistente_no_falla() (+2 more)
-
-### Community 9 - "crear_venta"
-Cohesion: 0.08
-Nodes (44): add_categoria(), add_proveedor(), get_categorias(), get_proveedores(), aumentar_precios_proveedor no debe aceptar porcentaje negativo., aumentar_precios_por_lista debe actualizar el precio de los productos indicados., aumentar_precios_por_lista con porcentaje negativo debe devolver 0., get_productos_por_proveedor debe devolver solo los productos del proveedor indic (+36 more)
 
 ### Community 11 - "get_venta_completa"
 Cohesion: 0.50
@@ -199,24 +250,16 @@ Cohesion: 0.07
 Nodes (51): buscar_producto(), contar_movimientos(), crear_cliente_id(), crear_producto_id(), crear_proveedor_id(), nombre_unico(), Tests basados en propiedades (Hypothesis) para database.py.  Verifican invariant, Hipotesis: stock_actual == stock_inicial + suma(signo * cantidad)     para cualq (+43 more)
 
 ### Community 23 - "get_reporte_ventas_detallado"
-Cohesion: 0.08
-Nodes (26): cambiar_password(), hash_password(), Genera un hash scrypt con salt de la contraseña.          Formato: scrypt$N$r$p$, Verifica una contraseña contra un hash almacenado.          Soporta:     - scryp, Verifica credenciales de usuario.          Devuelve un dict con user_id, nombre,, Actualiza la contraseña de un usuario.          Devuelve True si se actualizó co, verificar_login(), _verify_password() (+18 more)
+Cohesion: 0.13
+Nodes (15): cambiar_password(), hash_password(), init_db(), _migrate_legacy_db_location(), Devuelve el directorio de datos de usuario (absoluto) por SO.      Windows: %APP, Calcula DB_NAME y BACKUP_DIR absolutos. Crea el dir si no existe.     Devuelve (, Genera un hash scrypt con salt de la contraseña.          Formato: scrypt$N$r$p$, Verifica una contraseña contra un hash almacenado.          Soporta:     - scryp (+7 more)
 
 ### Community 24 - "get_ventas"
 Cohesion: 0.50
 Nodes (4): [0.2.4] - 2026-07-20, Agregado, Cambiado, Corregido
 
-### Community 25 - "update_categoria"
-Cohesion: 0.40
-Nodes (5): add_servicio(), get_servicios(), test_add_servicio_nombre_vacio(), test_add_servicio_precio_invalido(), test_add_servicio_precio_negativo()
-
 ### Community 26 - "update_proveedor"
 Cohesion: 0.15
 Nodes (12): Global Constraints, Release v0.5.0 - Correcciones y mejoras - Plan de Implementacion, Task 10: Verificacion final y release, Task 1: B04 - Corregir precio_venta en Ventas, Task 2: B06 - Migrar BD: eliminar columna codigo_interno, Task 3: B06 - Actualizar indices en UI y tests, Task 4: B05 - Cambiar selectbox a select_slider en Reportes, Task 5: B07 - Carrito vacio en Compras (+4 more)
-
-### Community 27 - "update_producto"
-Cohesion: 0.33
-Nodes (6): aumentar_precios_por_lista(), Aumenta precio_venta de productos especificos.      Args:         producto_ids:, aumentar_precios_por_lista con lista vacia debe devolver 0., aumentar_precios_por_lista con IDs que no existen debe devolver 0., test_aumentar_precios_por_lista_ids_inexistentes(), test_aumentar_precios_por_lista_lista_vacia()
 
 ### Community 28 - "update_cliente"
 Cohesion: 0.18
@@ -227,8 +270,8 @@ Cohesion: 0.22
 Nodes (8): Change, Commit, git diff, Notas adicionales, Status: DONE, Summary, Task 1 Report — B04: Corregir precio_venta index en Ventas, Verificación de índices
 
 ### Community 30 - "update_servicio"
-Cohesion: 0.10
-Nodes (35): buscar_producto_por_codigo(), buscar_productos_por_nombre(), crear_compra(), get_categorias_por_proveedor(), proximo_codigo_fraccionado(), Resuelve un termino de busqueda: primero codigo de barras exacto, luego nombre e, Devuelve el siguiente codigo F-XXXX libre para productos sin codigo de barras fi, Devuelve las categorías que tienen productos activos para un proveedor dado. (+27 more)
+Cohesion: 0.05
+Nodes (43): _crear_dependencias(), El mismo producto en 2 filas: la suma no debe superar el stock., Compra con el mismo producto en 2 filas: anular debe validar la suma., Compra con el mismo producto en 2 filas: anular con stock suficiente funciona., Stock insuficiente debe retornar mensaje especifico, no (None, None)., Factura A: precio_venta ya incluye IVA. Total = subtotal_neto + iva = precio_fin, Ticket: sin IVA, subtotal = total = precio_venta., Producto inactivo debe retornar error especifico. (+35 more)
 
 ### Community 33 - "get_compras"
 Cohesion: 0.06
@@ -237,18 +280,6 @@ Nodes (32): 1. Manejo de caja (simple), 2. IntegrityError faltantes (rápido), 3
 ### Community 34 - "Documentar Código"
 Cohesion: 0.22
 Nodes (8): Adaptación a otros lenguajes, Buenas prácticas generales, Checklist antes de hacer commit, Con pdoc (más simple), Con Sphinx (recomendado para Python), Documentar Código, Generar documentación automática, Pasos para documentar un módulo (ejemplo en Python)
-
-### Community 35 - "7_Ventas.py"
-Cohesion: 0.33
-Nodes (4): cerrar_sesion(), init_session(), Inicializa flags de sesión si no existen., Limpia el estado de sesión.
-
-### Community 36 - "8_Compras.py"
-Cohesion: 0.29
-Nodes (8): flash_error(), flash_exito(), inject_global_css(), mostrar_flash(), Inyecta CSS para ocultar el mensaje 'Press Enter to submit form' de Streamlit., Guarda un mensaje de exito para mostrar en el proximo render., Guarda un mensaje de error y fuerza el rerun para mostrarlo., Muestra el mensaje flash pendiente (exito/error) y lo limpia.
-
-### Community 37 - "get_logo_path"
-Cohesion: 0.47
-Nodes (5): get_logo_path(), Devuelve la ruta absoluta del logo si existe, o None.      Busca en el directori, test_get_logo_path_busca_tambien_junto_al_modulo(), test_get_logo_path_devuelve_none_si_no_hay_logo(), test_get_logo_path_encuentra_logo_en_cwd()
 
 ### Community 38 - "Sistema de Gestión para LUBRICENTRO WINTER"
 Cohesion: 0.15
@@ -259,8 +290,8 @@ Cohesion: 0.40
 Nodes (4): Agente de Testing, Flujo de trabajo típico, Idioma, Responsabilidades
 
 ### Community 40 - "test_get_ventas_pendientes_cc_tras_pago_parcial"
-Cohesion: 0.16
-Nodes (18): abrir_caja(), cerrar_caja(), get_caja_abierta(), Abre una nueva caja.          Args:         saldo_inicial (float): Saldo inicial, Cierra una caja abierta.          Args:         caja_id (int): ID de la caja a c, Obtiene la caja actualmente abierta.          Args:         conn: conexión opcio, Registra un movimiento en caja y actualiza el saldo de la caja.          Args:, registrar_movimiento_caja() (+10 more)
+Cohesion: 0.08
+Nodes (25): add_categoria(), add_cliente(), cerrar_caja(), crear_ajuste_stock(), get_categorias_por_proveedor(), get_clientes(), get_connection(), get_movimientos() (+17 more)
 
 ### Community 42 - "get_cuenta_corriente_cliente"
 Cohesion: 0.50
@@ -270,21 +301,9 @@ Nodes (4): [0.2.5] - 2026-07-21, Agregado, Cambiado, Corregido
 Cohesion: 0.50
 Nodes (4): [0.5.0] - 2026-07-30, Agregado, Corregido, Removido
 
-### Community 44 - "get_reporte_ventas"
-Cohesion: 0.14
-Nodes (24): add_cliente(), add_orden_detalle(), add_orden_servicio(), add_vehiculo(), desactivar_cliente(), get_clientes(), Marca un cliente como inactivo (soft delete)., Reactivar un cliente inactivo. (+16 more)
-
-### Community 45 - "get_ultimo_numero_comprobante"
-Cohesion: 0.18
-Nodes (12): test_compare_versions_basic(), Exception, check_for_update(), compare_versions(), get_latest_release(), _normalize_version(), Consulta la API de GitHub y devuelve el JSON de la última release publicada., Chequea si hay una actualización disponible.      Devuelve un dict con la info d (+4 more)
-
 ### Community 46 - "get_reporte_ingresos_egresos"
 Cohesion: 0.33
 Nodes (5): get_all_python_files(), Test that all Python files in the project compile without syntax errors., Test that a Python file compiles without syntax errors., Collect all .py files in the project (excluding __pycache__ and virtual envs)., test_python_file_compiles()
-
-### Community 47 - "update_cliente"
-Cohesion: 0.32
-Nodes (3): _set_tz(), test_string_utc_sin_T_se_convierte_a_local(), test_ticket_venta_formatea_fecha_utc_a_local()
 
 ### Community 48 - "check_for_update"
 Cohesion: 0.33
@@ -294,13 +313,9 @@ Nodes (5): Test that the legacy DB migration (removing codigo_interno) works cor
 Cohesion: 0.67
 Nodes (3): [0.2.0] - 2026-07-17, Agregado, Corregido
 
-### Community 50 - "get_ventas"
-Cohesion: 0.33
-Nodes (6): _extract_zip_safe debe rechazar zips con entradas absolutas o con .., _extract_zip_safe debe rechazar también rutas windows (backslash) que     escape, test_extract_zip_safe_rejects_backslash_traversal(), test_extract_zip_safe_rejects_path_traversal(), _extract_zip_safe(), Extrae un ZIP validando cada entrada contra path traversal.     Lanza UpdateErro
-
-### Community 52 - "update_producto"
-Cohesion: 0.40
-Nodes (4): calcular_totales(), imprimir_venta(), Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada, Genera e imprime el comprobante de una venta.
+### Community 51 - "find_asset"
+Cohesion: 0.12
+Nodes (8): flash_error(), flash_exito(), inject_global_css(), mostrar_flash(), Inyecta CSS para ocultar el mensaje 'Press Enter to submit form' de Streamlit., Guarda un mensaje de exito para mostrar en el proximo render., Guarda un mensaje de error y fuerza el rerun para mostrarlo., Muestra el mensaje flash pendiente (exito/error) y lo limpia.
 
 ### Community 53 - "update_vehiculo"
 Cohesion: 0.67
@@ -318,25 +333,13 @@ Nodes (3): [0.4.4] - 2026-07-28, Agregado, Corregido
 Cohesion: 0.50
 Nodes (4): [0.5.5] - 2026-07-31, Agregado, Corregido, Removido
 
-### Community 57 - "backup_db"
-Cohesion: 0.50
-Nodes (4): imprimir_comprobante(), imprimir_prueba(), Imprime en impresora térmica usando comandos ESC/POS.     En Windows usa win32pr, Imprime un ticket de prueba.
-
-### Community 58 - "test_registrar_pago_cc_con_ventas_imputa_pago"
-Cohesion: 0.33
-Nodes (6): get_reporte_inventario(), Reporte de inventario actual: productos con stock y valorizacion., Cuando no hay productos activos, el reporte de inventario debe estar vacío., Productos desactivados (activo=0) no deben aparecer en el reporte., test_reporte_inventario_excluye_productos_inactivos(), test_reporte_inventario_vacio()
-
-### Community 59 - "imprimir_venta"
-Cohesion: 0.67
-Nodes (3): backup_db(), test_backup_db_crea_archivo(), test_backup_db_no_existe()
-
 ### Community 60 - "[0.5.3] - 2026-07-30"
 Cohesion: 0.67
 Nodes (3): [0.5.3] - 2026-07-30, Corregido, Modificado
 
 ### Community 61 - "get_ultimo_numero_comprobante"
-Cohesion: 0.14
-Nodes (14): anular_compra(), aumentar_precios_proveedor(), _num_finito(), Aumenta el precio_venta de todos los productos de un proveedor en un porcentaje, Actualiza los datos de un producto existente., Actualiza los datos de un servicio existente., Anula una compra revirtiendo el stock de cada producto.     Retorna True si se a, Registra un pago de cuenta corriente imputándolo a ventas específicas. (+6 more)
+Cohesion: 0.08
+Nodes (24): abrir_caja(), add_producto(), add_servicio(), anular_compra(), aumentar_precios_por_categoria(), aumentar_precios_por_lista(), aumentar_precios_proveedor(), crear_compra() (+16 more)
 
 ### Community 62 - "update_producto"
 Cohesion: 0.50
@@ -346,49 +349,53 @@ Nodes (3): Global Constraints, Refactor UX de Compras (fila inicial + preview pr
 Cohesion: 0.67
 Nodes (3): [0.5.1] - 2026-07-30, Corregido, Removido
 
-### Community 69 - "test_registrar_pago_cc_cliente_inexistente_devuelve_false"
-Cohesion: 0.14
-Nodes (14): Registra un pago (abono) de cuenta corriente.          Inserta un movimiento con, registrar_pago_cc(), registrar_pago_cc no debe aceptar montos negativos., registrar_pago_cc debe devolver False si el cliente no existe., El movimiento de pago debe tener tipo_movimiento='pago'., get_movimientos_cuenta_corriente debe incluir tipo_movimiento y metodo_pago., registrar_pago_cc debe insertar un movimiento negativo y reducir el saldo., registrar_pago_cc con monto = deuda total debe dejar saldo en 0. (+6 more)
-
-### Community 79 - "test_get_productos_por_proveedor_happy_path"
-Cohesion: 0.50
-Nodes (4): get_productos_por_proveedor(), Devuelve productos activos de un proveedor, opcionalmente filtrados.      Args:, get_productos_por_proveedor con proveedor inexistente debe devolver lista vacia., test_get_productos_por_proveedor_proveedor_inexistente()
-
-### Community 84 - "temp_db"
-Cohesion: 0.22
-Nodes (9): init_db(), _migrate_legacy_db_location(), Devuelve el directorio de datos de usuario (absoluto) por SO.      Windows: %APP, Calcula DB_NAME y BACKUP_DIR absolutos. Crea el dir si no existe.     Devuelve (, Mueve lubricantro.db (y backups/) desde el directorio del script/app     (legacy, _resolve_data_paths(), _user_data_dir(), Apunta database.DB_NAME a un archivo temporal y lo inicializa limpio. (+1 more)
-
 ### Community 94 - "test_get_precios_para_lista_solo_activos_con_stock"
-Cohesion: 0.07
-Nodes (42): add_producto(), aumentar_precios_por_categoria(), crear_venta(), Aumenta el precio_venta de los productos de un proveedor filtrados por categoría, Crea una venta completa con items, actualiza stock y registra movimiento.     it, crear_venta a cuenta corriente debe registrar tipo_movimiento='venta'., get_clientes_con_deuda debe incluir antigüedad en días., get_ventas_pendientes_cc debe devolver ventas a crédito con saldo pendiente. (+34 more)
+Cohesion: 0.29
+Nodes (7): add_movimiento(), add_orden_detalle(), crear_venta(), get_caja_abierta(), Crea una venta completa con items, actualiza stock y registra movimiento.     it, Obtiene la caja actualmente abierta.          Args:         conn: conexión opcio, Registra un movimiento de stock y actualiza el stock_actual del producto.     Re
 
 ### Community 101 - "test_add_producto_con_stock_inicial"
-Cohesion: 0.05
-Nodes (49): cleanup_old_backups(), crear_ajuste_stock(), get_ajustes_stock(), get_clientes_con_deuda(), get_compras(), get_connection(), get_cuenta_corriente_cliente(), get_detalle_compra() (+41 more)
+Cohesion: 0.09
+Nodes (18): add_orden_servicio(), add_proveedor(), add_vehiculo(), cleanup_old_backups(), get_categorias(), get_compras(), get_cuenta_corriente_cliente(), get_ventas_pendientes_cc() (+10 more)
 
 ### Community 120 - "[0.5.1] - 2026-07-30"
 Cohesion: 0.50
 Nodes (4): [0.5.6] - 2026-08-01, Agregado, Corregido, Removido
 
+### Community 123 - "test_fechas.py"
+Cohesion: 0.31
+Nodes (4): _set_tz(), test_string_utc_con_microsegundos_se_convierte_a_local(), test_string_utc_sin_T_se_convierte_a_local(), test_ticket_venta_formatea_fecha_utc_a_local()
+
+### Community 124 - "formatear_fecha_hora"
+Cohesion: 0.33
+Nodes (6): formatear_fecha_hora(), Normaliza una fecha (datetime o string de la DB) a hora local y la formatea., imprimir_comprobante(), imprimir_prueba(), Imprime en impresora térmica usando comandos ESC/POS.     En Windows usa win32pr, Imprime un ticket de prueba.
+
+### Community 125 - "get_logo_path"
+Cohesion: 0.47
+Nodes (5): get_logo_path(), Devuelve la ruta absoluta del logo si existe, o None.      Busca en el directori, test_get_logo_path_busca_tambien_junto_al_modulo(), test_get_logo_path_devuelve_none_si_no_hay_logo(), test_get_logo_path_encuentra_logo_en_cwd()
+
+### Community 127 - "7_Ventas.py"
+Cohesion: 0.40
+Nodes (4): calcular_totales(), imprimir_venta(), Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada, Genera e imprime el comprobante de una venta usando sus datos almacenados.
+
 ## Knowledge Gaps
 - **195 isolated node(s):** `Agregado`, `Corregido`, `Removido`, `Corregido`, `Removido` (+190 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **72 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_connection()` connect `test_add_producto_con_stock_inicial` to `get_movimientos`, `test_registrar_pago_cc_cliente_inexistente_devuelve_false`, `test_get_ventas_pendientes_cc_tras_pago_parcial`, `crear_venta`, `get_venta_completa`, `get_reporte_ventas`, `test_get_productos_por_proveedor_happy_path`, `get_reporte_ventas_detallado`, `temp_db`, `update_servicio`, `update_categoria`, `test_registrar_pago_cc_con_ventas_imputa_pago`, `update_producto`, `get_ultimo_numero_comprobante`, `test_get_precios_para_lista_solo_activos_con_stock`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
-- **Why does `add_producto()` connect `test_get_precios_para_lista_solo_activos_con_stock` to `get_movimientos`, `test_add_producto_con_stock_inicial`, `test_registrar_pago_cc_cliente_inexistente_devuelve_false`, `crear_venta`, `get_reporte_ventas`, `test_registrar_pago_cc_con_ventas_imputa_pago`, `get_ultimo_numero_comprobante`, `update_servicio`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `add_proveedor()` connect `crear_venta` to `get_movimientos`, `test_registrar_pago_cc_cliente_inexistente_devuelve_false`, `test_add_producto_con_stock_inicial`, `update_servicio`, `test_registrar_pago_cc_con_ventas_imputa_pago`, `test_get_precios_para_lista_solo_activos_con_stock`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `get_connection()` connect `test_get_ventas_pendientes_cc_tras_pago_parcial` to `get_connection`, `get_venta_completa`, `get_reporte_ventas_detallado`, `update_categoria`, `7_Ventas.py`, `8_Compras.py`, `get_logo_path`, `get_ultimo_numero_comprobante`, `update_cliente`, `get_ventas`, `update_producto`, `backup_db`, `imprimir_venta`, `get_ultimo_numero_comprobante`, `update_cliente`, `reactivar_cliente`, `test_get_productos_por_proveedor_happy_path`, `test_get_precios_para_lista_solo_activos_con_stock`, `test_add_producto_con_stock_inicial`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Why does `Changelog - Lubricentro Winter` connect `add_movimiento` to `registrar_movimiento_caja`, `get_cuenta_corriente_cliente`, `get_detalle_compra`, `init_db`, `crear_ajuste_stock`, `[0.5.1] - 2026-07-30`, `get_reporte_ventas`, `get_reporte_ingresos_egresos`, `get_reporte_inventario`, `update_vehiculo`, `test_add_movimiento_uso_interno`, `get_ventas`, `test_add_movimiento_tipo_invalido`, `test_add_movimiento_tipo_nulo`, `[0.5.3] - 2026-07-30`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `Agregado`, `Corregido`, `Removido` to the rest of the system?**
   _195 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `updater.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.05137844611528822 - nodes in this community are weakly interconnected._
 - **Should `get_movimientos` be split into smaller, more focused modules?**
-  _Cohesion score 0.05263157894736842 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
 - **Should `tickets.py` be split into smaller, more focused modules?**
   _Cohesion score 0.1437908496732026 - nodes in this community are weakly interconnected._
-- **Should `crear_venta` be split into smaller, more focused modules?**
-  _Cohesion score 0.07822410147991543 - nodes in this community are weakly interconnected._
+- **Should `get_ajustes_stock` be split into smaller, more focused modules?**
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._

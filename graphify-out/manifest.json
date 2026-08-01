@@ -10,18 +10,18 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1785543991.9901602,
-    "ast_hash": "8df399855d553c9aac2d541cc529d6e0",
+    "mtime": 1785617868.6799948,
+    "ast_hash": "77f20313466d7d0796ed5c1823fdc018",
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1785612747.8241475,
-    "ast_hash": "22399bbda2c9c86d2112e775edfe2bc0",
+    "mtime": 1785618304.7906027,
+    "ast_hash": "02e54c1bd0337ee737231f182c4459e4",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
-    "mtime": 1785613318.7700193,
-    "ast_hash": "d2191ba309f16f804750692eca208acb",
+    "mtime": 1785617809.1094298,
+    "ast_hash": "52855097f38356a1ec3df9fa7b9c2ed5",
     "semantic_hash": ""
   },
   "pages/9_Reportes.py": {
@@ -30,13 +30,13 @@
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1785612737.5441096,
-    "ast_hash": "993f773c613a2f138aa2f37890c74a0f",
+    "mtime": 1785618319.0949898,
+    "ast_hash": "7b477e99a4c68c0ab269005bdff53bf0",
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1785614649.0857527,
-    "ast_hash": "dfa4d7e8c6d2ad49e6a049fc0e20875c",
+    "mtime": 1785618226.6301386,
+    "ast_hash": "9723d62d703524aba66cc4cd0e812e34",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "pages/7_Ventas.py": {
-    "mtime": 1785614245.0606244,
-    "ast_hash": "f038d0a814312f4ccdf112be4a6def09",
+    "mtime": 1785617982.0802507,
+    "ast_hash": "7b7bca308b81b4f7e1bbaafba8582320",
     "semantic_hash": ""
   },
   "tickets.py": {
-    "mtime": 1785609512.9623754,
-    "ast_hash": "f72d313ce9ffcd41ad435821b6bce22b",
+    "mtime": 1785618288.986069,
+    "ast_hash": "5b5db2e6352fdf89f62891f572eeb53b",
     "semantic_hash": ""
   },
   "prompt_optimizado.md": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "pages/8_Compras.py": {
-    "mtime": 1785614526.6413996,
-    "ast_hash": "12e305c76267a7a16b32fb891a825589",
+    "mtime": 1785617820.4494603,
+    "ast_hash": "30c60a15d22a84b72952a5eb5a4b2f0b",
     "semantic_hash": ""
   },
   "CONVENTIONS.md": {
@@ -145,18 +145,18 @@
     "semantic_hash": ""
   },
   "pages/0_Gestion.py": {
-    "mtime": 1785613795.2273896,
-    "ast_hash": "219dc49da7d8f928365b5b9a5a600ee5",
+    "mtime": 1785618260.8407416,
+    "ast_hash": "afa1283abf147b45037521bc64bb4b80",
     "semantic_hash": ""
   },
   "pages/1_Stock.py": {
-    "mtime": 1785614256.8486562,
-    "ast_hash": "7aeb10859a26fab069cdb60438930657",
+    "mtime": 1785618192.5577497,
+    "ast_hash": "7f06dc51ccb6f695585bda00391fa678",
     "semantic_hash": ""
   },
   "pages/2_Cuenta_Corriente.py": {
-    "mtime": 1785614251.5206418,
-    "ast_hash": "6e1f3106d07d2229284ed6ab11640d72",
+    "mtime": 1785618193.2018561,
+    "ast_hash": "4c8824e71852f290a14e8e6303a5b132",
     "semantic_hash": ""
   },
   "pages/4_Ordenes.py": {
@@ -200,8 +200,8 @@
     "semantic_hash": ""
   },
   "seed_data.py": {
-    "mtime": 1785273302.3900578,
-    "ast_hash": "3fd741d6bb5f2bf705c0b0fd46cd799b",
+    "mtime": 1785618239.5312831,
+    "ast_hash": "ec5d6818a6a56834a247f3c12c0e7c78",
     "semantic_hash": ""
   },
   ".opencode/plans/2026-07-29-release-correcciones-diseno.md": {
@@ -220,8 +220,8 @@
     "semantic_hash": ""
   },
   "seed_test_data.py": {
-    "mtime": 1785431373.2003746,
-    "ast_hash": "ecbc15a1180888ebe7a71daf82064b0d",
+    "mtime": 1785618239.915314,
+    "ast_hash": "091a0e9f1f33246954ecfdcb5c3658a7",
     "semantic_hash": ""
   },
   ".opencode/plans/2026-07-30-compras-ux-fix.md": {
@@ -270,28 +270,28 @@
     "semantic_hash": ""
   },
   "tests/test_migration_legacy.py": {
-    "mtime": 1785542322.6286478,
-    "ast_hash": "d007b507b825e4b94c5bba059d8c1e22",
+    "mtime": 1785618259.6966748,
+    "ast_hash": "cd0f9d5528e114647158a35297753910",
     "semantic_hash": ""
   },
   "tests/test_property_based.py": {
-    "mtime": 1785533682.372602,
-    "ast_hash": "6cfb2ea1e04c63c9f3f44555e84960fb",
+    "mtime": 1785618260.1407008,
+    "ast_hash": "94e5b2ba066d182c07872a795aa7793d",
     "semantic_hash": ""
   },
   "fechas.py": {
-    "mtime": 1785609327.9648786,
-    "ast_hash": "5e8b6401137a0a054ab3c4fea5309362",
+    "mtime": 1785617936.9283726,
+    "ast_hash": "bdaa0487c5b927d0e68aabfc5fc21c84",
     "semantic_hash": ""
   },
   "tests/test_fechas.py": {
-    "mtime": 1785609713.8274436,
-    "ast_hash": "dedb02edac17c7a854afe4c3fc817b7d",
+    "mtime": 1785618066.7405467,
+    "ast_hash": "2921d22c52f62d50f2ffb165313aa7c3",
     "semantic_hash": ""
   },
   ".opencode/plans/2026-08-01-release-v0.5.6.md": {
-    "mtime": 1785614496.8813128,
-    "ast_hash": "b58663a725e9df80742d5b442678a8f1",
+    "mtime": 1785616334.7174628,
+    "ast_hash": "8de9f08d7ce0ab27e9de6765430a5dad",
     "semantic_hash": ""
   }
 }
