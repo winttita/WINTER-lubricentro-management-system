@@ -969,6 +969,42 @@ def get_productos():
     conn.close()
     return productos
 
+def buscar_producto_por_codigo(codigo):
+    """Busca un producto activo por codigo de barras exacto (sin distinguir mayusculas)."""
+    if not codigo:
+        return None
+    codigo = str(codigo).strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute("""
+            SELECT p.*, c.nombre as categoria_nombre, prov.nombre as proveedor_nombre
+            FROM productos p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN proveedores prov ON p.proveedor_id = prov.id
+            WHERE p.activo = 1 AND LOWER(p.codigo_barras) = ?
+        """, (codigo,)).fetchone()
+        return row
+    finally:
+        conn.close()
+
+
+def buscar_productos_por_nombre(termino):
+    """Busca productos activos cuyo nombre contiene el termino (sin distinguir mayusculas)."""
+    if not termino:
+        return []
+    conn = get_connection()
+    try:
+        return conn.execute("""
+            SELECT p.*, c.nombre as categoria_nombre, prov.nombre as proveedor_nombre
+            FROM productos p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN proveedores prov ON p.proveedor_id = prov.id
+            WHERE p.activo = 1 AND p.nombre LIKE ? COLLATE NOCASE
+            ORDER BY p.nombre
+        """, (f"%{termino.strip()}%",)).fetchall()
+    finally:
+        conn.close()
+
 def add_producto(codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
     if not nombre or not nombre.strip():
         return False

@@ -1789,5 +1789,42 @@ def test_crear_venta_rechaza_cantidad_cero(temp_db):
     assert msg is not None
 
 
+# --- Búsqueda de productos por código / nombre ---
+def test_buscar_producto_por_codigo_happy_path(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("7791001", "Aceite 20W50", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("F0001", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    p = database.buscar_producto_por_codigo("f0001")
+    assert p is not None
+    assert p[2] == "Aceite suelto"
+
+
+def test_buscar_producto_por_codigo_inexistente_devuelve_none(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    assert database.buscar_producto_por_codigo("9999999") is None
+
+
+def test_buscar_productos_por_nombre_filtra_y_ordena(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("1", "Aceite hidraulico 20L", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("2", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    database.add_producto("3", "Filtro de aire", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    res = database.buscar_productos_por_nombre("aceite")
+    assert len(res) == 2
+    assert res[0][2] == "Aceite hidraulico 20L"
+
+
+def test_buscar_productos_por_nombre_excluye_inactivos(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("1", "Activo", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("2", "Inactivo", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    conn = database.get_connection()
+    conn.execute("UPDATE productos SET activo = 0 WHERE codigo_barras = '2'")
+    conn.commit()
+    conn.close()
+    res = database.buscar_productos_por_nombre("vo")
+    assert [p[2] for p in res] == ["Activo"]
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
