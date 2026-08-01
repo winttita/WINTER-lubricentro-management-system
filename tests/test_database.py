@@ -1826,5 +1826,16 @@ def test_buscar_productos_por_nombre_excluye_inactivos(temp_db):
     assert [p[2] for p in res] == ["Activo"]
 
 
+def test_resolver_producto_por_codigo_o_nombre(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("7792001", "Aceite 20L", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    database.add_producto("F0001", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    by_code = database.resolver_producto("F0001")
+    assert by_code is not None and by_code[2] == "Aceite suelto"
+    by_name = database.resolver_producto("aceite 20l")
+    assert by_name is not None and by_name[2] == "Aceite 20L"
+    assert database.resolver_producto("zzz inexistente") is None
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -1005,6 +1005,20 @@ def buscar_productos_por_nombre(termino):
     finally:
         conn.close()
 
+
+def resolver_producto(termino):
+    """Resuelve un termino de busqueda: primero codigo de barras exacto, luego nombre exacto."""
+    if not termino:
+        return None
+    p = buscar_producto_por_codigo(termino)
+    if p:
+        return p
+    coincidencias = buscar_productos_por_nombre(termino)
+    if len(coincidencias) == 1:
+        return coincidencias[0]
+    return None
+
+
 def add_producto(codigo_barras, nombre, descripcion, categoria_id, proveedor_id, tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=0):
     if not nombre or not nombre.strip():
         return False

@@ -136,52 +136,41 @@ with col_mp:
 
 st.markdown("#### Productos")
 
-# Busqueda por codigo de barras
-codigo_barras_input = st.text_input(
-    "Codigo de barras",
-    placeholder="Escanee o escriba el codigo de barras",
-    key="barcode_input"
-)
-producto_encontrado = None
-if codigo_barras_input:
-    for p in productos_activos:
-        if p[1] and str(p[1]).strip() == codigo_barras_input.strip():
-            producto_encontrado = p
-            break
-    if producto_encontrado:
-        st.success(f"Producto: {producto_encontrado[2]} - Stock: {producto_encontrado[7]} - Precio: ${producto_encontrado[10]:.2f}")
-    else:
-        st.warning("Producto no encontrado con ese codigo de barras.")
-
-# Fuera del form: selector de producto + cantidad + boton agregar
-col_prod, col_cant, col_add = st.columns([3, 1, 1])
-with col_prod:
-    prod_opts = {p[2]: p for p in productos_activos}
-    prod_sel = st.selectbox(
-        "Seleccionar producto",
-        [""] + list(prod_opts.keys()),
-        key="venta_prod_sel"
+# Busqueda unificada: escanear codigo de barras o escribir nombre
+col_busq, col_agregar = st.columns([3, 1])
+with col_busq:
+    termino = st.text_input(
+        "Buscar producto (escanee codigo de barras o escriba nombre)",
+        placeholder="Escanee el codigo o escriba el nombre",
+        key="venta_busqueda"
     )
-with col_cant:
-    cant_agregar = st.number_input("Cantidad", min_value=0.0, step=1.0, value=1.0, key="venta_cant_agregar")
-with col_add:
+with col_agregar:
     st.write("")
-    if st.button("Agregar al carrito", use_container_width=True):
-        if prod_sel and cant_agregar > 0:
-            p = prod_opts[prod_sel]
-            st.session_state.venta_items.append({
-                'producto_id': p[0],
-                'nombre': p[2],
-                'cantidad': float(cant_agregar),
-                'precio': float(p[10]),
-                'stock': float(p[7])
-            })
-            st.rerun()
+    agregar_click = st.button("Agregar al carrito", use_container_width=True, key="venta_agregar_btn")
 
-# Mostrar precio del producto seleccionado (autofill inmediato)
-if prod_sel:
-    p = prod_opts[prod_sel]
-    st.info(f"Precio: ${float(p[10]):.2f} | Stock disponible: {float(p[7]):.0f}")
+if termino:
+    producto_encontrado = db.resolver_producto(termino)
+    if producto_encontrado:
+        p = producto_encontrado
+        st.info(f"**{p[2]}** | Stock: {p[7]:.0f} | Precio: ${float(p[10]):.2f} | Cod: {p[1]}")
+        if agregar_click:
+            if p[7] <= 0:
+                st.error("Producto sin stock disponible.")
+            else:
+                st.session_state.venta_items.append({
+                    'producto_id': p[0],
+                    'nombre': p[2],
+                    'cantidad': 1.0,
+                    'precio': float(p[10]),
+                    'stock': float(p[7])
+                })
+                st.rerun()
+    else:
+        coincidencias = db.buscar_productos_por_nombre(termino)
+        if coincidencias:
+            st.warning(f"Hay {len(coincidencias)} productos con ese nombre. Escriba el nombre completo.")
+        else:
+            st.warning("Producto no encontrado con ese codigo o nombre.")
 
 st.markdown("#### Carrito")
 with st.form("venta_form"):
