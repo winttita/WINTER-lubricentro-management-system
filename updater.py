@@ -34,7 +34,7 @@ from typing import Optional, Tuple
 GITHUB_REPO = os.environ.get("LUBRICENTRO_REPO", "winttita/WINTER-lubricentro-management-system")
 
 # Versión actual de la aplicación. Se compara contra el tag de la última release.
-APP_VERSION = "0.5.4"
+APP_VERSION = "0.5.5"
 
 # Nombre esperado del asset (el .exe) dentro de la release. Si se cambia, basta
 # con editar esta constante. Se busca por substring (ej: "LubricentroWinter.exe"
@@ -220,32 +220,7 @@ def find_asset(release: dict, hint: str = ASSET_NAME_HINT) -> Optional[dict]:
     return None
 
 
-def find_asset_with_checksum(release: dict, hint: str = ASSET_NAME_HINT,
-                              expected_sha256: Optional[str] = None) -> Optional[dict]:
-    """
-    Igual que find_asset pero verifica el checksum SHA256 del asset si se provee.
-    El checksum debe obtenerse de un asset hermano .sha256 o del body de la release.
-    """
-    asset = find_asset(release, hint)
-    if not asset:
-        return None
-    if expected_sha256:
-        # El checksum se verificará tras la descarga en download_asset
-        return asset
-    return asset
-
-
 # --- Descarga --------------------------------------------------------------
-
-def _sanitize_filename(name: str) -> str:
-    """Sanitiza un nombre de archivo para prevenir path traversal."""
-    # Mantener solo el basename, rechazar path traversal
-    base = os.path.basename(name)
-    # Rechazar nombres con .. o separadores de path
-    if '..' in base or os.path.isabs(base) or base != os.path.normpath(base):
-        raise UpdateError(f"Nombre de archivo inválido (path traversal): {name!r}")
-    return base
-
 
 def download_asset(asset: dict, dest_dir: str = UPDATE_DIR,
                    progress_callback=None) -> str:
@@ -342,10 +317,6 @@ def apply_update(downloaded_path: str, expected_sha256: Optional[str] = None) ->
     return UPDATE_LOCK
 
 
-def _spawn_update_worker(root: str, zip_path: str) -> None:
-    pass
-
-
 def _extract_zip_safe(zip_path: str, dest_dir: str) -> None:
     """
     Extrae un ZIP validando cada entrada contra path traversal.
@@ -380,14 +351,11 @@ set ZIP_PATH={zip_abs}
 set LAUNCHER={launcher_name}
 
 if exist "%ROOT%\.updates\pending_update" del "%ROOT%\.updates\pending_update" 2>nul
-if exist "%ROOT%\.updates\update_retry" del "%ROOT%\.updates\update_retry" 2>nul
 
 echo [UPDATE] Cerrando LubricentroWinter...
 taskkill /F /IM "%LAUNCHER%" >nul 2>&1
-taskkill /F /IM "pythonw.exe" >nul 2>&1
-taskkill /F /IM "streamlit.exe" >nul 2>&1
 
-timeout /t 3 /nobreak >nul
+timeout /t 3 /nobreak >nul 2>&1 <nul
 
 echo [UPDATE] Respaldando binario actual...
 if exist "%ROOT%\%LAUNCHER%" (
