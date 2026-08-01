@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import tempfile
+import hashlib
 import pytest
 
 import database
@@ -875,13 +876,22 @@ def test_get_connection_tiene_busy_timeout(temp_db):
 
 # --- Autenticación (Login) ---
 
-def test_hash_password_es_deterministico(temp_db):
-    """hash_password debe devolver el mismo hash para la misma entrada."""
+def test_hash_password_con_salt_aleatorio(temp_db):
+    """hash_password usa scrypt con salt aleatorio: no determinista y verificable."""
     h1 = database.hash_password("winter1234")
     h2 = database.hash_password("winter1234")
-    assert h1 == h2
+    assert h1 != h2  # salt aleatorio: mismo password, hashes distintos
+    assert h1.startswith("scrypt$16384$8$1$")
     assert h1 != "winter1234"  # no debe ser texto plano
-    assert len(h1) == 64  # SHA-256 hex
+    assert database._verify_password("winter1234", h1)
+    assert not database._verify_password("clave_incorrecta", h1)
+
+
+def test_verify_password_soporta_hash_legacy_sha256(temp_db):
+    """_verify_password debe validar hashes SHA-256 legacy (sin salt)."""
+    legacy = hashlib.sha256(b"winter1234").hexdigest()
+    assert database._verify_password("winter1234", legacy)
+    assert not database._verify_password("otra", legacy)
 
 
 def test_hash_password_diferente_para_distintas_entradas(temp_db):

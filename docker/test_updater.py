@@ -93,14 +93,17 @@ def test_find_asset_matches_ci_name():
     assert asset["name"] == "LubricentroWinter.zip"
 
 
-def test_find_asset_rejects_versioned_name():
-    """Sanity: si el CI usara LubricentroWinter_v0.3.0.zip (viejo nombre),
-    find_asset NO debería encontrarlo. Valida que el fix de CI es necesario."""
+def test_find_asset_accepts_versioned_name_for_compatibility():
+    """Compatibilidad: releases antiguas usan nombres como LubricentroWinter_v0.3.0.zip.
+    El fallback de compatibilidad (paso 3) SÍ debe encontrarlos para no romper
+    actualizaciones de usuarios con releases viejas."""
     release = {
         "assets": [{"name": "LubricentroWinter_v0.3.0.zip",
                     "browser_download_url": "x"}]
     }
-    assert updater.find_asset(release) is None
+    asset = updater.find_asset(release)
+    assert asset is not None
+    assert asset["name"] == "LubricentroWinter_v0.3.0.zip"
 
 
 def test_db_survives_simulated_update(tmp_path):
