@@ -612,14 +612,6 @@ if __name__ == "__main__":
 
 # --- Tests nuevos para crear_venta v0.2.5 (firma extendida y correcciones) ---
 
-def _crear_dependencias():
-    database.add_categoria("Aceites")
-    database.add_proveedor("YPF", "Juan", "123", "Contado")
-    cat_id = database.get_categorias()[0][0]
-    prov_id = database.get_proveedores()[0][0]
-    return cat_id, prov_id
-
-
 def test_crear_venta_stock_insuficiente_retorna_mensaje_especifico(temp_db):
     """Stock insuficiente debe retornar mensaje especifico, no (None, None)."""
     from database import crear_venta, add_producto
@@ -752,7 +744,7 @@ def test_init_db_admin_no_password_vacio(temp_db):
 
 def test_crear_venta_rechaza_cantidad_negativa(temp_db):
     """crear_venta debe rechazar cantidades negativas o cero."""
-    from database import crear_venta, add_producto
+    from database import crear_venta
     cat_id, prov_id = _crear_producto_con_stock()
     items = [{"producto_id": 1, "cantidad": -5, "precio_unitario": 100.0}]
     venta_id, numero, error = crear_venta(None, "factura_c", items, "efectivo", 1)
@@ -1879,6 +1871,66 @@ def test_proximo_codigo_fraccionado_ignora_prefijos_F_no_numericos(temp_db):
     database.add_producto("F12X", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
     database.add_producto("FAB", "Aceite suelto 2", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
     assert database.proximo_codigo_fraccionado() == "F0001"
+
+
+def test_resolver_producto_solo_espacios_devuelve_none(temp_db):
+    assert database.resolver_producto("   ") is None
+
+
+def test_crear_venta_stock_acumulativo_mismo_producto_en_varias_filas(temp_db):
+    """El mismo producto en 2 filas: la suma no debe superar el stock."""
+    from database import crear_venta, add_producto
+    cat_id, prov_id = _crear_dependencias()
+    add_producto("CB999", "Filtro", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 5)
+    items = [
+        {"producto_id": 1, "cantidad": 3, "precio_unitario": 100.0},
+        {"producto_id": 1, "cantidad": 3, "precio_unitario": 100.0},
+    ]
+    venta_id, numero, error = crear_venta(None, "ticket", items, "efectivo", 1)
+    assert venta_id is None
+    assert error is not None
+    assert "Stock insuficiente" in error
+    assert "solicitado 6" in error
+
+
+def test_anular_compra_con_producto_repetido_no_deja_stock_negativo(temp_db):
+    """Compra con el mismo producto en 2 filas: anular debe validar la suma."""
+    from database import crear_compra, anular_compra, add_movimiento
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("CB888", "Aceite", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 20)
+    items = [
+        {"producto_id": 1, "cantidad": 10, "precio_unitario": 10.0},
+        {"producto_id": 1, "cantidad": 10, "precio_unitario": 10.0},
+    ]
+    compra_id = crear_compra(prov_id, items)
+    assert compra_id is not None
+    # Stock = 40. Vender 37 -> quedan 3. Anular la compra (20) -> -17 (rechazar).
+    add_movimiento(1, 'venta', 37, 'Venta test')
+    assert anular_compra(compra_id) is False
+    conn = database.get_connection()
+    stock = conn.execute("SELECT stock_actual FROM productos WHERE id = 1").fetchone()[0]
+    conn.close()
+    assert stock == 3.0, f"El stock no debe quedar negativo: {stock}"
+
+
+def test_anular_compra_con_producto_repetido_correcto(temp_db):
+    """Compra con el mismo producto en 2 filas: anular con stock suficiente funciona."""
+    from database import crear_compra, anular_compra
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("CB777", "Aceite", "", cat_id, prov_id, "Entero", 0, 10.0, 100.0, 20)
+    items = [
+        {"producto_id": 1, "cantidad": 5, "precio_unitario": 10.0},
+        {"producto_id": 1, "cantidad": 5, "precio_unitario": 10.0},
+    ]
+    compra_id = crear_compra(prov_id, items)
+    assert compra_id is not None
+    assert anular_compra(compra_id) is True
+    conn = database.get_connection()
+    stock = conn.execute("SELECT stock_actual FROM productos WHERE id = 1").fetchone()[0]
+    estado = conn.execute("SELECT estado FROM compras WHERE id = ?", (compra_id,)).fetchone()[0]
+    conn.close()
+    assert stock == 20.0
+    assert estado == "anulada"
 
 
 if __name__ == "__main__":

@@ -45,6 +45,19 @@ def test_string_utc_sin_T_se_convierte_a_local():
             os.environ.pop("TZ", None)
 
 
+@needs_tzset
+def test_string_utc_con_microsegundos_se_convierte_a_local():
+    tz_original = os.environ.get("TZ")
+    _set_tz("America/Argentina/Buenos_Aires")
+    try:
+        assert fechas.formatear_fecha_hora("2026-08-01 14:30:45.123456") == "01/08/2026 11:30"
+    finally:
+        if tz_original:
+            _set_tz(tz_original)
+        else:
+            os.environ.pop("TZ", None)
+
+
 def test_string_invalido_devuelve_crudo():
     assert fechas.formatear_fecha_hora("no-es-fecha") == "no-es-fecha"
 

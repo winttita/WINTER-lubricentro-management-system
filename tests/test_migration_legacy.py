@@ -2,7 +2,6 @@
 import sqlite3
 import tempfile
 import os
-import pytest
 
 
 def test_migration_legacy_db_removes_codigo_interno():

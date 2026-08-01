@@ -15,7 +15,6 @@ Hipotesis cubiertas:
 8. Reportes: consistencia entre get_reporte_inventario y get_productos.
 """
 import os
-import sqlite3
 import tempfile
 import uuid
 
