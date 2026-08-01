@@ -194,6 +194,8 @@ with st.form("venta_form"):
                     st.session_state.venta_items.pop(idx)
                     st.rerun()
 
+        imprimir_ticket = st.checkbox("Imprimir ticket", value=True, key="venta_imprimir")
+
         col_submit = st.columns([1])
         with col_submit[0]:
             submitted = st.form_submit_button("Confirmar Venta", type="primary", use_container_width=True)
@@ -249,12 +251,13 @@ with st.form("venta_form"):
                     flash_exito(f"Venta confirmada {etiqueta}")
                     st.session_state.venta_items = []
 
-                    ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
-                    if ok_print:
-                        st.info("ℹ️ Comprobante enviado a la impresora.")
-                    else:
-                        st.warning("⚠️ No se pudo imprimir automáticamente. Botón de reintento abajo.")
-                        st.session_state.imprimir_ultima = venta_id
+                    if imprimir_ticket:
+                        ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
+                        if ok_print:
+                            st.info("Comprobante enviado a la impresora.")
+                        else:
+                            st.warning("No se pudo imprimir automaticamente. Boton de reintento abajo.")
+                            st.session_state.imprimir_ultima = venta_id
 
                     st.rerun()
                 else:
