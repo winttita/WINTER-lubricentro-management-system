@@ -151,7 +151,7 @@ compras = db.get_compras()
 if compras:
     for c in compras:
         estado_label = "Anulada" if c[6] == "anulada" else "Confirmada"
-        with st.expander(f"#{c[0]} - {c[2]} - ${c[4]:.2f} - {c[3]} - {estado_label}"):
+        with st.expander(f"#{c[0]} - {c[2]} - ${c[4]:.2f} - {fechas.formatear_fecha_hora(c[3])} - {estado_label}"):
             st.write(f"**Proveedor:** {c[2]}")
             st.write(f"**Fecha:** {fechas.formatear_fecha_hora(c[3])}")
             st.write(f"**Total:** ${c[4]:.2f}")
