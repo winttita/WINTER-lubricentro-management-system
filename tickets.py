@@ -3,6 +3,8 @@ import platform
 import subprocess
 from datetime import datetime
 
+import fechas
+
 PUNTO_VENTA = "0001"
 IVA_PORCENTAJE = 0.21
 
@@ -27,7 +29,7 @@ def generar_ticket_texto(venta, items, cliente=None):
     lineas.append("    Centro Automotor WINTER".center(ancho))
     lineas.append("=" * ancho)
     lineas.append(f"Ticket #{venta['tipo_comprobante'].upper()} {venta['punto_venta']}-{venta['numero_comprobante']:08d}")
-    lineas.append(f"Fecha: {venta['creado_en']}")
+    lineas.append(f"Fecha: {fechas.formatear_fecha_hora(venta['creado_en'])}")
     lineas.append("-" * ancho)
     
     # Cliente
@@ -90,7 +92,7 @@ def generar_factura_a_texto(venta, items, cliente):
     lineas.append("    Centro Automotor WINTER".center(ancho))
     lineas.append("=" * ancho)
     lineas.append(f"Punto de Venta: {venta['punto_venta']}  Comp. Nro: {venta['numero_comprobante']:08d}")
-    lineas.append(f"Fecha: {venta['creado_en']}")
+    lineas.append(f"Fecha: {fechas.formatear_fecha_hora(venta['creado_en'])}")
     lineas.append(f"CAE: NO DISPONIBLE (requiere integración AFIP)")
     lineas.append("-" * ancho)
     
@@ -227,7 +229,7 @@ def imprimir_prueba():
     lineas.append("=" * 40)
     lineas.append("  PRUEBA DE IMPRESION".center(40))
     lineas.append("-" * 40)
-    lineas.append(f"  Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    lineas.append(f"  Fecha: {fechas.formatear_fecha_hora(datetime.now())}")
     lineas.append(f"  Impresora: {PRINTER_NAME or 'Default'}")
     lineas.append("-" * 40)
     lineas.append("  Si ves este texto, la impresora")

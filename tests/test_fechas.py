@@ -46,3 +46,22 @@ def test_string_utc_sin_T_se_convierte_a_local():
 
 def test_string_invalido_devuelve_crudo():
     assert fechas.formatear_fecha_hora("no-es-fecha") == "no-es-fecha"
+
+
+import tickets
+
+
+def test_ticket_venta_formatea_fecha_utc_a_local():
+    venta = {
+        "tipo_comprobante": "ticket",
+        "punto_venta": "0001",
+        "numero_comprobante": 42,
+        "subtotal": 100.0,
+        "iva": 0.0,
+        "total": 100.0,
+        "metodo_pago": "efectivo",
+        "creado_en": "2026-08-01 14:30:45",
+    }
+    texto = tickets.generar_ticket_texto(venta, [], None)
+    assert "Fecha:" in texto
+    assert "2026-08-01 14:30:45" not in texto
