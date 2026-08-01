@@ -18,8 +18,10 @@ Esto elimina la duplicación de DOS .bat que se pisaban entre sí.
 from __future__ import annotations
 
 import os
-import sys
+import shutil
+import socket
 import subprocess
+import sys
 import time
 
 # --- Rutas base ------------------------------------------------------------
@@ -40,6 +42,10 @@ UPDATE_BAT = os.path.join(ROOT, "update.bat")
 UPDATE_RETRY = os.path.join(UPDATE_DIR, "update_retry")
 MAX_UPDATE_RETRIES = 3
 LAUNCHER_EXE = sys.executable if getattr(sys, "frozen", False) else __file__
+
+# Puerto de Streamlit (override con env LUBRICENTRO_PORT)
+STREAMLIT_PORT = int(os.environ.get("LUBRICENTRO_PORT", "8501"))
+BROWSER_WAIT_SECONDS = 30
 
 # --- Logging simple --------------------------------------------------------
 
@@ -101,6 +107,81 @@ def _cleanup_orphan_update_artifacts() -> None:
                     pass
 
 
+def _recover_interrupted_update() -> bool:
+    """
+    Detecta y recupera una actualización interrumpida.
+    
+    Returns:
+        True si se lanzó una recuperación (update.bat), False si no hay nada que hacer.
+    """
+    # Si hay lock pero no update.bat, verificar si hay zip para reintentar
+    if os.path.exists(UPDATE_LOCK) and not os.path.exists(UPDATE_BAT):
+        # Leer el path del zip desde pending_update
+        zip_path = None
+        try:
+            with open(UPDATE_LOCK, "r", encoding="utf-8") as f:
+                zip_path = f.read().strip()
+        except OSError:
+            pass
+        
+        if zip_path and os.path.exists(zip_path):
+            log(f"Actualización interrumpida detectada. Reintentando con {zip_path}...")
+            # Re-escribir update.bat usando el zip existente
+            try:
+                import updater
+                updater._write_update_batch_secure(ROOT, zip_path)
+            except Exception as e:
+                log(f"Error reescribiendo update.bat: {e}")
+                _clean_stale_update()
+                return False
+            # Ahora check_and_launch_update lo lanzará
+            return True
+        else:
+            # No hay zip, verificar si hay backup para restaurar
+            if os.path.exists(os.path.join(ROOT, "runtime.old")):
+                log("Sin zip de update, restaurando runtime.old...")
+                try:
+                    if os.path.exists(os.path.join(ROOT, "runtime")):
+                        shutil.rmtree(os.path.join(ROOT, "runtime"), ignore_errors=True)
+                    shutil.move(os.path.join(ROOT, "runtime.old"), os.path.join(ROOT, "runtime"))
+                except OSError as e:
+                    log(f"Error restaurando runtime.old: {e}")
+            if os.path.exists(os.path.join(ROOT, f"{os.path.basename(sys.executable)}.bak")):
+                try:
+                    bak = os.path.join(ROOT, f"{os.path.basename(sys.executable)}.bak")
+                    shutil.copy2(bak, sys.executable)
+                    os.remove(bak)
+                except OSError as e:
+                    log(f"Error restaurando launcher.bak: {e}")
+            _clean_stale_update()
+            return False
+    
+    # Si no hay lock pero hay residuos de update fallido (runtime.old, .bak)
+    if not os.path.exists(UPDATE_LOCK):
+        restored = False
+        if os.path.exists(os.path.join(ROOT, "runtime.old")):
+            log("Residuo runtime.old detectado sin lock de update. Restaurando...")
+            try:
+                if os.path.exists(os.path.join(ROOT, "runtime")):
+                    shutil.rmtree(os.path.join(ROOT, "runtime"), ignore_errors=True)
+                shutil.move(os.path.join(ROOT, "runtime.old"), os.path.join(ROOT, "runtime"))
+                restored = True
+            except OSError as e:
+                log(f"Error restaurando runtime.old: {e}")
+        if os.path.exists(os.path.join(ROOT, f"{os.path.basename(sys.executable)}.bak")):
+            try:
+                bak = os.path.join(ROOT, f"{os.path.basename(sys.executable)}.bak")
+                shutil.copy2(bak, sys.executable)
+                os.remove(bak)
+                restored = True
+            except OSError as e:
+                log(f"Error restaurando launcher.bak: {e}")
+        if restored:
+            _clean_stale_update()
+    
+    return False
+
+
 def check_and_launch_update() -> bool:
     if not os.path.exists(UPDATE_LOCK):
         _clean_stale_update()
@@ -149,9 +230,31 @@ def ensure_runtime() -> bool:
     return False
 
 
+def _dependencies_missing() -> list[str]:
+    """Devuelve las dependencias críticas ausentes (import fallido)."""
+    missing = []
+    for module in ["streamlit", "pandas"]:
+        try:
+            __import__(module)
+        except ImportError:
+            missing.append(module)
+    if sys.platform == "win32":
+        try:
+            __import__("win32print")
+        except ImportError:
+            missing.append("pywin32")
+    return missing
+
+
 def ensure_dependencies() -> None:
-    if not os.path.exists(REQUIREMENTS):
+    """Instala dependencias SOLO si falta alguna; evita pip en cada arranque."""
+    missing = _dependencies_missing()
+    if not missing:
         return
+    if not os.path.exists(REQUIREMENTS):
+        log(f"Faltan dependencias ({', '.join(missing)}) pero no hay requirements.txt.")
+        return
+    log(f"Dependencias faltantes: {', '.join(missing)}. Instalando desde requirements.txt...")
     try:
         subprocess.run(
             [PYTHON_EXE if os.path.exists(PYTHON_EXE) else sys.executable,
@@ -172,6 +275,18 @@ def python_executable() -> list[str]:
     return [sys.executable]
 
 
+def _wait_for_port(host: str, port: int, timeout: float = BROWSER_WAIT_SECONDS) -> bool:
+    """Espera a que el puerto acepte conexiones (polling, sin sleep fijo)."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return True
+        except OSError:
+            time.sleep(0.3)
+    return False
+
+
 def start_streamlit() -> int:
     entry = APP_ENTRY
     if not os.path.exists(entry):
@@ -182,13 +297,16 @@ def start_streamlit() -> int:
             log("No se encontró app.py ni en app/ ni en la raíz.")
             return 1
     cmd = python_executable() + ["-X", "utf8", "-m", "streamlit", "run", entry,
-                                 "--server.headless=true", "--browser.gatherUsageStats=false"]
+                                 "--server.headless=true", "--browser.gatherUsageStats=false",
+                                 "--server.port", str(STREAMLIT_PORT)]
     log("Iniciando: " + " ".join(cmd))
     proc = subprocess.Popen(cmd, cwd=ROOT)
-    time.sleep(1.5)
     try:
         import webbrowser
-        webbrowser.open("http://localhost:8501")
+        if _wait_for_port("127.0.0.1", STREAMLIT_PORT):
+            webbrowser.open(f"http://localhost:{STREAMLIT_PORT}")
+        else:
+            log(f"Streamlit no respondió en el puerto {STREAMLIT_PORT} tras {BROWSER_WAIT_SECONDS}s.")
     except Exception:
         pass
     proc.wait()
@@ -201,6 +319,11 @@ def main() -> int:
     log("=== Lubricentro Winter launcher ===")
 
     _cleanup_orphan_update_artifacts()
+
+    # 0. Recuperar actualización interrumpida si hay residuos
+    if _recover_interrupted_update():
+        # Si la recuperación lanzó update.bat, salir (el launcher se cede a update.bat)
+        return 0
 
     # 1. ¿Hay actualización pendiente al arrancar? Si sí, lanzar update.bat y salir.
     #    El .bat lo escribió updater.apply_update (corriendo dentro de app.py),
