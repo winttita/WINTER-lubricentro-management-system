@@ -1,0 +1,36 @@
+import os
+import time
+from datetime import datetime
+
+import fechas
+
+
+def _set_tz(tz):
+    os.environ["TZ"] = tz
+    time.tzset()
+
+
+def test_none_vacio_devuelve_vacio():
+    assert fechas.formatear_fecha_hora(None) == ""
+    assert fechas.formatear_fecha_hora("") == ""
+
+
+def test_datetime_local_se_formatea():
+    dt = datetime(2026, 8, 1, 10, 30, 0)
+    assert fechas.formatear_fecha_hora(dt) == "01/08/2026 10:30"
+
+
+def test_string_iso_con_T_se_formatea_directo():
+    assert fechas.formatear_fecha_hora("2026-08-01T10:30:45.123456") == "01/08/2026 10:30"
+
+
+def test_string_utc_sin_T_se_convierte_a_local():
+    _set_tz("America/Argentina/Buenos_Aires")
+    try:
+        assert fechas.formatear_fecha_hora("2026-08-01 14:30:45") == "01/08/2026 11:30"
+    finally:
+        _set_tz("UTC")
+
+
+def test_string_invalido_devuelve_crudo():
+    assert fechas.formatear_fecha_hora("no-es-fecha") == "no-es-fecha"
