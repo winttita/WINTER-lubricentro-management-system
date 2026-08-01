@@ -3,12 +3,13 @@ import sqlite3
 import streamlit as st
 import database as db
 import tickets as tk
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 logging.basicConfig(level=logging.DEBUG, filename='impresora.log')
 
 st.set_page_config(page_title="Ventas", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -205,12 +206,12 @@ with st.form("venta_form"):
                 # Usar prod_lookup (todos los productos) para validación de tipo_unidad
                 p_lookup = prod_lookup.get(item['producto_id'])
                 if not p_lookup:
-                    st.error(f"❌ Producto ID {item['producto_id']} no encontrado en la base de datos.")
+                    flash_error(f"Producto ID {item['producto_id']} no encontrado en la base de datos.")
                     error_fraccion = True
                     break
                 tipo_unidad = p_lookup[6] if len(p_lookup) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
-                    st.error(f"❌ No se puede vender \"{item['nombre']}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
+                    flash_error(f"No se puede vender \"{item['nombre']}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
                     error_fraccion = True
                     break
                 items.append({
@@ -222,7 +223,7 @@ with st.form("venta_form"):
         if error_fraccion:
             pass
         elif not items:
-            st.error("❌ Agregá al menos un producto con cantidad mayor a 0.")
+            flash_error("Agregá al menos un producto con cantidad mayor a 0.")
         else:
             stock_ok = True
             for it in items:
@@ -230,11 +231,11 @@ with st.form("venta_form"):
                 p = prod_lookup_activos.get(it['producto_id'])
                 if not p:
                     stock_ok = False
-                    st.error(f"❌ Producto no disponible o sin stock: ID {it['producto_id']}")
+                    flash_error(f"Producto no disponible o sin stock: ID {it['producto_id']}")
                     break
                 if it['cantidad'] > p[7]:
                     stock_ok = False
-                    st.error(f"❌ Stock insuficiente de \"{p[2]}\": solicitado {it['cantidad']}, disponible {p[7]}")
+                    flash_error(f"Stock insuficiente de \"{p[2]}\": solicitado {it['cantidad']}, disponible {p[7]}")
                     break
 
             if stock_ok:
@@ -245,7 +246,7 @@ with st.form("venta_form"):
                     venta_id, numero, error = None, None, "Error de integridad en la venta"
                 if venta_id:
                     etiqueta = f"{tipo_comp.upper()} {numero:08d}" if numero else f"#{venta_id}"
-                    st.success(f"✅ Venta confirmada! {etiqueta}")
+                    flash_exito(f"Venta confirmada {etiqueta}")
                     st.session_state.venta_items = []
 
                     ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
@@ -257,7 +258,7 @@ with st.form("venta_form"):
 
                     st.rerun()
                 else:
-                    st.error(f"❌ {error or 'Error al procesar la venta.'}")
+                    flash_error(f"{error or 'Error al procesar la venta.'}")
 
 
 # Totales calculados (visual)

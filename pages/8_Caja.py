@@ -1,10 +1,11 @@
 import sqlite3
 import streamlit as st
 import database as db
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Caja", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("Debe iniciar sesión para acceder a esta página.")
@@ -48,7 +49,7 @@ if caja:
             submitted = st.form_submit_button("Registrar ajuste")
             if submitted:
                 if monto <= 0:
-                    st.error("❌ El monto debe ser mayor a 0.")
+                    flash_error("El monto debe ser mayor a 0.")
                 else:
                     if ajuste_tipo == "Egreso":
                         monto = -monto
@@ -65,10 +66,10 @@ if caja:
                             conn.commit()
                         finally:
                             conn.close()
-                        st.success("✅ Ajuste registrado correctamente.")
+                        flash_exito("Ajuste registrado correctamente.")
                         st.rerun()
                     else:
-                        st.error("❌ Error al registrar el ajuste.")
+                        flash_error("Error al registrar el ajuste.")
 
     st.divider()
 
@@ -94,10 +95,10 @@ if caja:
             except sqlite3.IntegrityError:
                 ok = None
             if ok:
-                st.success("✅ Caja cerrada correctamente.")
+                flash_exito("Caja cerrada correctamente.")
                 st.rerun()
             else:
-                st.error("❌ No se pudo cerrar la caja.")
+                flash_error("No se pudo cerrar la caja.")
 
 else:
     st.warning("⛔ No hay caja abierta.")
@@ -113,17 +114,17 @@ else:
         abrir = st.form_submit_button("Abrir caja")
         if abrir:
             if saldo_inicial < 0:
-                st.error("❌ El saldo inicial no puede ser negativo.")
+                flash_error("El saldo inicial no puede ser negativo.")
             else:
                 try:
                     nuevo_id = db.abrir_caja(float(saldo_inicial), usuario_id)
                 except sqlite3.IntegrityError:
                     nuevo_id = None
                 if nuevo_id:
-                    st.success(f"✅ Caja #{nuevo_id} abierta correctamente.")
+                    flash_exito(f"Caja #{nuevo_id} abierta correctamente.")
                     st.rerun()
                 else:
-                    st.error("❌ No se pudo abrir la caja.")
+                    flash_error("No se pudo abrir la caja.")
 
 st.divider()
 

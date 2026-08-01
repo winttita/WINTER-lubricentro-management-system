@@ -2,10 +2,11 @@ import sqlite3
 import streamlit as st
 import database as db
 from datetime import datetime
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Cuenta Corriente", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -140,7 +141,7 @@ with st.expander("💸 Registrar pago", expanded=(saldo > 0)):
 
             if st.form_submit_button("Registrar pago", type="primary"):
                 if monto_pago <= 0:
-                    st.error("❌ El monto debe ser mayor a 0.")
+                    flash_error("El monto debe ser mayor a 0.")
                 else:
                     try:
                         if ventas_sel_ids:
@@ -150,10 +151,10 @@ with st.expander("💸 Registrar pago", expanded=(saldo > 0)):
                     except sqlite3.IntegrityError:
                         ok = False
                     if ok:
-                        st.success(f"✅ Pago de ${monto_pago:.2f} registrado correctamente.")
+                        flash_exito(f"Pago de ${monto_pago:.2f} registrado correctamente.")
                         st.rerun()
                     else:
-                        st.error("❌ Error al registrar el pago.")
+                        flash_error("Error al registrar el pago.")
 
 # --- Movimientos del cliente ---
 st.markdown("#### Movimientos")

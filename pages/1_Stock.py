@@ -2,10 +2,11 @@ import sqlite3
 import streamlit as st
 import database as db
 from datetime import date
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Stock", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -174,7 +175,7 @@ with tab_adj:
             submitted = st.form_submit_button("Aplicar Ajuste", type="primary")
             if submitted:
                 if not motivo.strip():
-                    st.error("❌ El motivo es obligatorio.")
+                    flash_error("El motivo es obligatorio.")
                 else:
                     diff = stock_nuevo - stock_actual
                     if diff == 0:
@@ -185,10 +186,10 @@ with tab_adj:
                         except sqlite3.IntegrityError:
                             ok = None
                         if ok:
-                            st.success(f"✅ Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
+                            flash_exito(f"Ajuste aplicado correctamente: {stock_actual} → {stock_nuevo} ({diff:+.2f})")
                             st.rerun()
                         else:
-                            st.error("❌ Error al aplicar ajuste.")
+                            flash_error("Error al aplicar ajuste.")
 
     st.divider()
 
@@ -239,17 +240,17 @@ with tab_precios:
             porcentaje = st.number_input("Porcentaje de aumento (%)", min_value=0.0, step=0.5, format="%.1f", key="aum_pct_gen")
             if st.button("Aplicar a todos los productos", type="primary"):
                 if porcentaje <= 0:
-                    st.error("❌ Ingrese un porcentaje mayor a 0.")
+                    flash_error("Ingrese un porcentaje mayor a 0.")
                 else:
                     try:
                         ok = db.aumentar_precios_proveedor(prov_dict[prov_sel], porcentaje)
                     except sqlite3.IntegrityError:
                         ok = False
                     if ok:
-                        st.success(f"✅ Aumento del {porcentaje}% aplicado a todos los productos de {prov_sel}.")
+                        flash_exito(f"Aumento del {porcentaje}% aplicado a todos los productos de {prov_sel}.")
                         st.rerun()
                     else:
-                        st.error("❌ Error al aplicar aumento.")
+                        flash_error("Error al aplicar aumento.")
 
         else:
             busqueda = st.text_input("Buscar productos", placeholder="Ej: elaion, aceite, filtro...", key="aum_busqueda")
@@ -269,16 +270,16 @@ with tab_precios:
                 porcentaje = st.number_input("Porcentaje de aumento (%)", min_value=0.0, step=0.5, format="%.1f", key="aum_pct_par")
                 if st.button("Aplicar a seleccionados", type="primary"):
                     if not seleccionados:
-                        st.error("❌ Seleccione al menos un producto.")
+                        flash_error("Seleccione al menos un producto.")
                     elif porcentaje <= 0:
-                        st.error("❌ Ingrese un porcentaje mayor a 0.")
+                        flash_error("Ingrese un porcentaje mayor a 0.")
                     else:
                         try:
                             cant = db.aumentar_precios_por_lista(seleccionados, porcentaje)
                         except sqlite3.IntegrityError:
                             cant = 0
                         if cant > 0:
-                            st.success(f"✅ Aumento del {porcentaje}% aplicado a {cant} producto(s).")
+                            flash_exito(f"Aumento del {porcentaje}% aplicado a {cant} producto(s).")
                             st.rerun()
                         else:
-                            st.error("❌ Error al aplicar aumento.")
+                            flash_error("Error al aplicar aumento.")

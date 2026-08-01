@@ -1,10 +1,11 @@
 import sqlite3
 import streamlit as st
 import database as db
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Gestión", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -28,21 +29,21 @@ with st.form("add_cli"):
         cli_email = st.text_input("Email (opcional)")
     if st.form_submit_button("Agregar Cliente"):
         if not cli_nombre.strip():
-            st.error("❌ El nombre es obligatorio.")
+            flash_error("El nombre es obligatorio.")
         else:
             cli_tel = cli_tel if cli_tel else ""
             cli_email = cli_email if cli_email else ""
             if db.add_cliente(cli_nombre.strip(), cli_tel, cli_email):
-                st.success("✅ Cliente agregado correctamente")
+                flash_exito("Cliente agregado correctamente")
                 st.rerun()
             else:
                 conn = db.get_connection()
                 ya_existe = conn.execute("SELECT id FROM clientes WHERE nombre = ?", (cli_nombre.strip(),)).fetchone()
                 conn.close()
                 if ya_existe:
-                    st.error("❌ Cliente existente")
+                    flash_error("Cliente existente")
                 else:
-                    st.error("❌ Error al crear cliente")
+                    flash_error("Error al crear cliente")
 
 if clientes:
     for c in clientes:
@@ -62,25 +63,25 @@ if clientes:
             with col_b1:
                 if st.button("💾 Guardar", key=f"csave_{c[0]}"):
                     if db.update_cliente(c[0], new_nom, new_tel, new_em):
-                        st.success("✅ Actualizado correctamente")
+                        flash_exito("Actualizado correctamente")
                         st.rerun()
                     else:
-                        st.error("❌ Error al actualizar")
+                        flash_error("Error al actualizar")
             with col_b2:
                 if activo:
                     if st.button("🗑️ Desactivar", key=f"cdel_{c[0]}"):
                         if db.desactivar_cliente(c[0]):
-                            st.success("✅ Cliente desactivado correctamente")
+                            flash_exito("Cliente desactivado correctamente")
                             st.rerun()
                         else:
-                            st.error("❌ Error al desactivar cliente")
+                            flash_error("Error al desactivar cliente")
                 else:
                     if st.button("🔄 Reactivar", key=f"creact_{c[0]}"):
                         if db.reactivar_cliente(c[0]):
-                            st.success("✅ Cliente reactivado correctamente")
+                            flash_exito("Cliente reactivado correctamente")
                             st.rerun()
                         else:
-                            st.error("❌ Error al reactivar cliente")
+                            flash_error("Error al reactivar cliente")
 
 st.divider()
 
@@ -105,12 +106,12 @@ with st.form("nuevo_vehiculo"):
         if v_patente and v_cliente:
             cliente_id = cliente_options.get(v_cliente)
             if db.add_vehiculo(cliente_id, v_patente, v_marca, v_modelo, v_anio):
-                st.success("✅ Vehículo agregado correctamente")
+                flash_exito("Vehículo agregado correctamente")
                 st.rerun()
             else:
-                st.error("❌ Error: patente duplicada")
+                flash_error("Error: patente duplicada")
         else:
-            st.error("❌ Patente y cliente son obligatorios")
+            flash_error("Patente y cliente son obligatorios")
 
 vehiculos = db.get_vehiculos()
 if vehiculos:
@@ -134,22 +135,22 @@ if vehiculos:
             with c1:
                 if st.button("💾 Guardar", key=f"vs_{vid}"):
                     if db.update_vehiculo(vid, cliente_options[new_cliente], new_patente, new_marca, new_modelo, new_anio):
-                        st.success("✅ Actualizado correctamente")
+                        flash_exito("Actualizado correctamente")
                         st.rerun()
                     else:
-                        st.error("❌ Error: patente duplicada")
+                        flash_error("Error: patente duplicada")
             with c2:
                 if st.button("🗑️ Eliminar", key=f"vd_{vid}", type="secondary"):
                     try:
                         conn = db.get_connection()
                         conn.execute("DELETE FROM vehiculos WHERE id=?", (vid,))
                         conn.commit()
-                        st.success("✅ Vehículo eliminado correctamente")
+                        flash_exito("Vehículo eliminado correctamente")
                     except Exception as e:
                         if "FOREIGN KEY" in str(e) or "foreign key" in str(e).lower():
-                            st.error("❌ No se puede eliminar: hay órdenes de servicio asociadas")
+                            flash_error("No se puede eliminar: hay órdenes de servicio asociadas")
                         else:
-                            st.error(f"❌ Error: {e}")
+                            flash_error(f"Error: {e}")
                     finally:
                         conn.close()
                     st.rerun()
@@ -173,10 +174,10 @@ with st.form("add_prov"):
     if st.form_submit_button("Agregar Proveedor"):
         if prov_nombre:
             if db.add_proveedor(prov_nombre, prov_contacto, prov_telefono, prov_cond):
-                st.success("✅ Proveedor agregado correctamente")
+                flash_exito("Proveedor agregado correctamente")
                 st.rerun()
             else:
-                st.error("❌ Error: nombre duplicado")
+                flash_error("Error: nombre duplicado")
 
 if proveedores:
     for p in proveedores:
@@ -193,21 +194,21 @@ if proveedores:
             with c1:
                 if st.button("💾 Guardar", key=f"psave_{p[0]}"):
                     if db.update_proveedor(p[0], new_nom, new_con, new_tel, new_cond):
-                        st.success("✅ Actualizado correctamente")
+                        flash_exito("Actualizado correctamente")
                         st.rerun()
                     else:
-                        st.error("❌ Error al actualizar proveedor")
+                        flash_error("Error al actualizar proveedor")
             with c2:
                 if st.button("🗑️ Eliminar", key=f"pdel_{p[0]}"):
                     try:
                         conn = db.get_connection()
                         conn.execute("DELETE FROM proveedores WHERE id=?", (p[0],))
                         conn.commit()
-                        st.success("✅ Eliminado correctamente")
+                        flash_exito("Eliminado correctamente")
                     except sqlite3.IntegrityError:
-                        st.error("❌ No se puede eliminar: hay productos asociados a este proveedor")
+                        flash_error("No se puede eliminar: hay productos asociados a este proveedor")
                     except Exception as e:
-                        st.error(f"❌ Error: {e}")
+                        flash_error(f"Error: {e}")
                     finally:
                         conn.close()
                     st.rerun()
@@ -223,12 +224,12 @@ if proveedores:
                 if st.button("Aplicar aumento general", key=f"pup_{p[0]}"):
                     if pct > 0:
                         if db.aumentar_precios_proveedor(p[0], pct):
-                            st.success(f"✅ Precios aumentados un {pct}% correctamente")
+                            flash_exito(f"Precios aumentados un {pct}% correctamente")
                             st.rerun()
                         else:
-                            st.error("❌ Error al aplicar el aumento")
+                            flash_error("Error al aplicar el aumento")
                     else:
-                        st.error("❌ El porcentaje debe ser mayor a 0")
+                        flash_error("El porcentaje debe ser mayor a 0")
 
             # Aumento parcial por categoria
             with st.expander("Aumento por categoria", expanded=False):
@@ -250,12 +251,12 @@ if proveedores:
                     )
                     if st.button("Aplicar aumento a categoria", key=f"pup_cat_{p[0]}"):
                         if pct_cat <= 0:
-                            st.error("❌ El porcentaje debe ser mayor a 0")
+                            flash_error("El porcentaje debe ser mayor a 0")
                         else:
                             cat_id = cat_opts[sel_cat]
                             actualizados = db.aumentar_precios_por_categoria(p[0], pct_cat, cat_id)
                             if actualizados > 0:
-                                st.success(f"✅ {actualizados} productos actualizados un {pct_cat}% correctamente")
+                                flash_exito(f"{actualizados} productos actualizados un {pct_cat}% correctamente")
                                 st.rerun()
                             else:
                                 st.warning("⚠️ No se actualizo ningun producto (verifique categoria/proveedor)")
@@ -275,10 +276,10 @@ with st.form("add_serv"):
     if st.form_submit_button("Agregar Servicio"):
         if serv_nombre:
             if db.add_servicio(serv_nombre, serv_precio):
-                st.success("✅ Servicio agregado correctamente")
+                flash_exito("Servicio agregado correctamente")
                 st.rerun()
             else:
-                st.error("❌ Error al agregar servicio")
+                flash_error("Error al agregar servicio")
 
 if servicios:
     for s in servicios:
@@ -290,20 +291,20 @@ if servicios:
                 new_pre = st.number_input("Precio", value=float(s[2]), min_value=0.0, key=f"sp_{s[0]}")
             if st.button("💾 Guardar", key=f"ssave_{s[0]}"):
                 if db.update_servicio(s[0], new_nom, new_pre):
-                    st.success("✅ Actualizado correctamente")
+                    flash_exito("Actualizado correctamente")
                     st.rerun()
                 else:
-                    st.error("❌ Error al actualizar servicio")
+                    flash_error("Error al actualizar servicio")
             if st.button("🗑️ Eliminar", key=f"sdel_{s[0]}"):
                 try:
                     conn = db.get_connection()
                     conn.execute("DELETE FROM servicios WHERE id=?", (s[0],))
                     conn.commit()
-                    st.success("✅ Servicio eliminado correctamente")
+                    flash_exito("Servicio eliminado correctamente")
                 except sqlite3.IntegrityError:
-                    st.error("❌ No se puede eliminar: hay órdenes usando este servicio")
+                    flash_error("No se puede eliminar: hay órdenes usando este servicio")
                 except Exception as e:
-                    st.error(f"❌ Error: {e}")
+                    flash_error(f"Error: {e}")
                 finally:
                     conn.close()
                 st.rerun()
@@ -332,16 +333,16 @@ if impresoras:
     with c1:
         if st.button("🖨️ Imprimir prueba"):
             if tk.imprimir_prueba():
-                st.success("✅ Impresión de prueba enviada")
+                flash_exito("Impresión de prueba enviada")
             else:
-                st.error("❌ Error al imprimir. Verificá que la impresora esté conectada.")
+                flash_error("Error al imprimir. Verificá que la impresora esté conectada.")
 
     with c2:
         if st.button("💰 Abrir cajón de dinero"):
             if tk.abrir_cajon():
-                st.success("✅ Comando de apertura enviado")
+                flash_exito("Comando de apertura enviado")
             else:
-                st.error("❌ Error al abrir cajón")
+                flash_error("Error al abrir cajón")
 
     st.caption(f"Impresora activa: **{sel}**")
 else:

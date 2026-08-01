@@ -1,10 +1,11 @@
 import streamlit as st
 import sqlite3
 import database as db
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Gestión de Productos")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -33,10 +34,10 @@ with cat_cols[0]:
         if st.form_submit_button("Agregar"):
             if cat_nombre.strip():
                 if db.add_categoria(cat_nombre):
-                    st.success("✅ Categoría agregada correctamente")
+                    flash_exito("Categoría agregada correctamente")
                     st.rerun()
                 else:
-                    st.error("❌ Ya existe")
+                    flash_error("Ya existe")
 
 if categorias:
     for c in categorias:
@@ -49,11 +50,11 @@ if categorias:
                     conn = db.get_connection()
                     conn.execute("DELETE FROM categorias WHERE id=?", (c[0],))
                     conn.commit()
-                    st.success("✅ Categoría eliminada correctamente")
+                    flash_exito("Categoría eliminada correctamente")
                 except sqlite3.IntegrityError:
-                    st.error("❌ No se puede eliminar: hay productos usando esta categoría")
+                    flash_error("No se puede eliminar: hay productos usando esta categoría")
                 except Exception as e:
-                    st.error(f"❌ Error: {e}")
+                    flash_error(f"Error: {e}")
                 finally:
                     conn.close()
                 st.rerun()
@@ -104,15 +105,15 @@ if categorias and proveedores:
          submitted = st.form_submit_button("Guardar Producto")
          if submitted:
              if not nombre.strip():
-                 st.error("❌ El nombre es obligatorio.")
+                 flash_error("El nombre es obligatorio.")
              else:
                  try:
                      db.add_producto(codigo_barras, nombre, descripcion, cat_dict[categoria], prov_dict[proveedor], tipo_unidad, stock_minimo, precio_costo, precio_venta, stock_inicial=stock_inicial)
                      st.session_state.clear_scanner = True
-                     st.success("✅ Producto agregado correctamente")
+                     flash_exito("Producto agregado correctamente")
                      st.rerun()
                  except sqlite3.IntegrityError:
-                     st.error("❌ Error: código de barras duplicado.")
+                     flash_error("Error: código de barras duplicado.")
 
 st.divider()
 
@@ -143,15 +144,18 @@ for p in productos:
         if st.button("💾 Guardar cambios", key=f"save_{pid}"):
             ok = db.update_producto(pid, new_cod_bar, new_nombre, new_desc, cat_dict[new_cat], prov_dict[new_prov], new_tipo, new_stock_min, new_prec_costo, new_prec_venta)
             if ok:
-                st.success("✅ Actualizado correctamente")
+                flash_exito("Actualizado correctamente")
                 st.rerun()
             else:
-                st.error("❌ Error al actualizar (¿código duplicado?)")
+                flash_error("Error al actualizar (¿código duplicado?)")
         
         if st.button("🗑️ Desactivar", key=f"del_{pid}", type="secondary"):
             conn = db.get_connection()
-            conn.execute("UPDATE productos SET activo=0 WHERE id=?", (pid,))
+            cur = conn.execute("UPDATE productos SET activo=0 WHERE id=?", (pid,))
             conn.commit()
             conn.close()
-            st.success("✅ Producto desactivado correctamente")
-            st.rerun()
+            if cur.rowcount == 1:
+                flash_exito("Producto desactivado correctamente")
+                st.rerun()
+            else:
+                flash_error("No se pudo desactivar el producto.")

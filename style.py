@@ -31,3 +31,25 @@ def inject_global_css():
     .st-emotion-cache-1v0p1ee, .st-emotion-cache-ll22cq { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
+
+
+def flash_exito(mensaje):
+    """Guarda un mensaje de exito para mostrar en el proximo render."""
+    st.session_state["flash"] = ("success", mensaje)
+    st.toast(mensaje)
+
+
+def flash_error(mensaje):
+    """Guarda un mensaje de error para mostrar en el proximo render."""
+    st.session_state["flash"] = ("error", mensaje)
+
+
+def mostrar_flash():
+    """Muestra el mensaje flash pendiente (exito/error) y lo limpia."""
+    if "flash" in st.session_state and st.session_state["flash"]:
+        tipo, mensaje = st.session_state["flash"]
+        if tipo == "success":
+            st.success(mensaje)
+        elif tipo == "error":
+            st.error(mensaje)
+        st.session_state["flash"] = None

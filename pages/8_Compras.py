@@ -1,10 +1,11 @@
 import sqlite3
 import streamlit as st
 import database as db
-from style import inject_global_css
+from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Compras", layout="wide")
 inject_global_css()
+mostrar_flash()
 
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.warning("⚠️ Debe iniciar sesión para acceder a esta página.")
@@ -128,18 +129,18 @@ if proveedores and productos:
                 })
 
         if not items:
-            st.error("❌ Agregá al menos un producto con cantidad y precio mayor a 0.")
+            flash_error("Agregá al menos un producto con cantidad y precio mayor a 0.")
         else:
             try:
                 compra_id = db.crear_compra(prov_dict[proveedor_sel], items, observaciones)
             except sqlite3.IntegrityError:
                 compra_id = None
             if compra_id:
-                st.success(f"✅ Compra #{compra_id} registrada correctamente.")
+                flash_exito(f"Compra #{compra_id} registrada correctamente.")
                 st.session_state.compra_items = [{'producto': None, 'cantidad': 1.0, 'precio': 0.0}]
                 st.rerun()
             else:
-                st.error("❌ Error al registrar la compra.")
+                flash_error("Error al registrar la compra.")
 
 st.divider()
 
