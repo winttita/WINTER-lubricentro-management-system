@@ -35,6 +35,8 @@ def init_session():
         st.session_state.user_nombre = None
     if 'user_rol' not in st.session_state:
         st.session_state.user_rol = None
+    if 'user_username' not in st.session_state:
+        st.session_state.user_username = None
 
 
 def cerrar_sesion():
@@ -43,6 +45,7 @@ def cerrar_sesion():
     st.session_state.user_id = None
     st.session_state.user_nombre = None
     st.session_state.user_rol = None
+    st.session_state.user_username = None
 
 
 init_session()
@@ -77,6 +80,7 @@ if not st.session_state.logged_in:
                         st.session_state.user_id = user["user_id"]
                         st.session_state.user_nombre = user["nombre"]
                         st.session_state.user_rol = user["rol"]
+                        st.session_state.user_username = user["username"]
                         st.rerun()
 
     # st.caption("Usuario por defecto: **admin** | Contraseña: **winter1234**")
@@ -113,7 +117,7 @@ with st.sidebar:
                 elif len(new_pw) < 4:
                     st.error("La nueva contraseña debe tener al menos 4 caracteres.")
                 else:
-                    user = db.verificar_login(st.session_state.user_nombre, current_pw)
+                    user = db.verificar_login(st.session_state.user_username, current_pw)
                     if user is None:
                         st.error("La contraseña actual es incorrecta.")
                     else:
