@@ -1837,5 +1837,24 @@ def test_resolver_producto_por_codigo_o_nombre(temp_db):
     assert database.resolver_producto("zzz inexistente") is None
 
 
+# --- Código autogenerado F-XXXX para productos fraccionados ---
+def test_proximo_codigo_fraccionado_primero_es_F0001(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    assert database.proximo_codigo_fraccionado() == "F0001"
+
+
+def test_proximo_codigo_fraccionado_incrementa(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("F0001", "Aceite suelto", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    database.add_producto("F0002", "Aceite suelto 2", "", cat_id, prov_id, "Fraccionable", 1, 1, 2)
+    assert database.proximo_codigo_fraccionado() == "F0003"
+
+
+def test_proximo_codigo_fraccionado_ignora_codigos_no_F(temp_db):
+    cat_id, prov_id = _crear_dependencias()
+    database.add_producto("7794001", "Aceite 20L", "", cat_id, prov_id, "Entero", 1, 1, 2)
+    assert database.proximo_codigo_fraccionado() == "F0001"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

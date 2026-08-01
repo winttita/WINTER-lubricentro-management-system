@@ -1060,6 +1060,24 @@ def add_producto(codigo_barras, nombre, descripcion, categoria_id, proveedor_id,
         conn.close()
     return True
 
+def proximo_codigo_fraccionado():
+    """Devuelve el siguiente codigo F-XXXX libre para productos sin codigo de barras fisico."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT codigo_barras FROM productos WHERE codigo_barras LIKE 'F%'"
+        ).fetchall()
+        max_num = 0
+        for (codigo,) in rows:
+            if codigo is None:
+                continue
+            sufijo = codigo[1:]
+            if sufijo.isdigit():
+                max_num = max(max_num, int(sufijo))
+        return f"F{max_num + 1:04d}"
+    finally:
+        conn.close()
+
 # --- Funciones de Reportes ---
 def get_reporte_ventas(fecha_desde=None, fecha_hasta=None):
     """Reporte de ventas: ordenes de servicio y movimientos de venta en un rango de fechas.

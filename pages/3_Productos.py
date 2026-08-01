@@ -70,6 +70,9 @@ if categorias and proveedores:
      scanner_value = "" if st.session_state.clear_scanner else st.session_state.get("codigo_barras_scanner", "")
      st.text_input("Código de Barras (escanear)", key="codigo_barras_scanner", 
                    value=scanner_value, placeholder="Escaneá el código de barras aquí")
+     if st.button("Generar codigo F (sin barras)", key="gen_codigo_f"):
+         st.session_state.codigo_barras_scanner = db.proximo_codigo_fraccionado()
+         st.rerun()
      # Reset the clear flag after using it
      if st.session_state.clear_scanner:
          st.session_state.clear_scanner = False
@@ -125,6 +128,9 @@ for p in productos:
         with col1:
             new_nombre = st.text_input("Nombre", value=p[2], key=f"nom_{pid}")
             new_cod_bar = st.text_input("Código Barras", value=p[1] or "", key=f"cb_{pid}")
+            if st.button("Generar F", key=f"gen_f_{pid}"):
+                st.session_state[f"cb_{pid}"] = db.proximo_codigo_fraccionado()
+                st.rerun()
             new_tipo = st.selectbox("Tipo Unidad", ["Entero", "Fraccionable"], index=["Entero", "Fraccionable"].index(p[6]), key=f"tu_{pid}")
             new_cat = st.selectbox("Categoría", list(cat_dict.keys()), index=list(cat_dict.values()).index(p[4]) if p[4] in cat_dict.values() else 0, key=f"cat_{pid}")
         with col2:
