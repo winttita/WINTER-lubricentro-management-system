@@ -5,6 +5,31 @@ Todas las versiones notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.5.5] - 2026-07-31
+
+### Corregido
+- Ventas: `pages/7_Ventas.py` crasheaba con `NameError` al imprimir el ticket (`imprimir_venta` se usaba antes de definirse) y con `KeyError` al buscar productos; reescrito con lookup de todo el catalogo
+- `tickets.py`: `except` mal indentado causaba `SyntaxError`; directorio `comprobantes/` ahora se resuelve desde `__file__` (no depende del CWD, se escribia en cualquier lado en la app empaquetada)
+- `pages/4_Ordenes.py`: `pid = item['producto']` mal indentado causaba `SyntaxError`
+- Migracion de DB: `database.py:init_db` fallaba en bases legacy porque `ALTER TABLE DROP COLUMN` no permite columnas con restriccion UNIQUE; se recrea la tabla `productos` sin `codigo_interno` preservando datos
+- Lista de precios: `lista_precios_pdf.py:generar_pdf` lanzaba `FPDFUnicodeEncodingException` con simbolos como el euro; se registran fuentes DejaVu Sans Unicode desde `fonts/` con fallback a Helvetica
+- Contraseñas: `database.py:hash_password` pasó de SHA-256 a scrypt con salt; `_verify_password` soporta ambos formatos y `verificar_login` migra hashes legacy al loguearse; se agrega cambio de contraseña en la barra lateral (`app.py`)
+- `app.py`: `TypeError` por `precio_costo`/`stock_actual`/`stock_minimo` NULL en el inventario (ahora `(p[10] or 0) * (p[7] or 0)`)
+- Updater: `updater.py:_write_update_batch_secure` ya no descarta `update_retry` al inicio (solo al exito) y no mata procesos pythonw/streamlit ajenos al launcher; `update_worker.py` (codigo muerto) y `_spawn_update_worker` eliminados; `find_asset_with_checksum` y el segundo `_sanitize_filename` eliminados
+- Launcher: `build/launcher.py:_recover_interrupted_update` restaura `runtime.old`/launcher `.bak` si una actualizacion queda a medio aplicar; el `import shutil` faltante causaba `NameError` en esa ruta; arranque de Streamlit espera a que el puerto responda (polling, sin `sleep(1.5)` fijo) y el puerto es configurable (`LUBRICENTRO_PORT`); `pip install` solo corre si falta alguna dependencia, no en cada arranque
+- Backup: `database.py:backup_db` usa la API de backup de SQLite (copia consistente de DB viva) con fallback a `shutil.copy2`
+- `app.py`: la verificacion de actualizaciones se cachea 1 hora (`_update_check_cache`), se omiten las comprobaciones repetidas al cambiar de pagina
+- CI: `.github/workflows/release.yml` incluye `fonts/` en el ZIP (sin ellos el PDF de lista de precios pierde los acentos) y lo verifica
+
+### Removido
+- `debug.py` (script de depuracion sin uso)
+- `update_worker.py` (codigo muerto del flujo de actualizacion)
+
+### Agregado
+- Tests de compilacion (`tests/test_compile.py`): los 26 modulos Python del repo compilan sin errores
+- Tests de migracion de DB legacy (`tests/test_migration_legacy.py`)
+- `requirements.txt`: `hypothesis` para tests basados en propiedades (`tests/test_property_based.py`)
+
 ## [0.5.4] - 2026-07-31
 
 ### Corregido
