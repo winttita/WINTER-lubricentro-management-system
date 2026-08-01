@@ -10,13 +10,13 @@
     "semantic_hash": "3ea725724bc8ebe483c9f13d6aa1124f"
   },
   "app.py": {
-    "mtime": 1785456715.1102176,
-    "ast_hash": "36b8b92365dd5e28fc870210c0906d43",
+    "mtime": 1785543991.9901602,
+    "ast_hash": "8df399855d553c9aac2d541cc529d6e0",
     "semantic_hash": ""
   },
   "database.py": {
-    "mtime": 1785457124.8399367,
-    "ast_hash": "860521a95c72aff8702990b28d9fe5ad",
+    "mtime": 1785543751.2380521,
+    "ast_hash": "4907447db7c5920e7ee92975cb78b3ff",
     "semantic_hash": ""
   },
   "pages/3_Productos.py": {
@@ -30,13 +30,13 @@
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1785419815.1092656,
-    "ast_hash": "77fbe381d2b5d1e60e8f125f18056402",
+    "mtime": 1785544349.002288,
+    "ast_hash": "c1e5899cb794a3f7a81df5557abe13d5",
     "semantic_hash": ""
   },
   "updater.py": {
-    "mtime": 1785457779.0645347,
-    "ast_hash": "c06c0a0295c198a134d673efb7513502",
+    "mtime": 1785544282.8502665,
+    "ast_hash": "959f49772b4bb5bd5b2961d807b0b781",
     "semantic_hash": ""
   },
   ".opencode/agents/testing.md": {
@@ -60,18 +60,18 @@
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1785248996.8469656,
-    "ast_hash": "290e0d1a525e17f2ec61cc26ba5ba112",
+    "mtime": 1785544278.0422647,
+    "ast_hash": "640afb7ad552be55fc9f6d1014510dc0",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1785158520.206615,
-    "ast_hash": "058b840637ae89a01d85c4e570ba4bb9",
+    "mtime": 1785544272.726263,
+    "ast_hash": "88671d6a32cb62e4bca0222f981adb1c",
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1785457788.7603047,
-    "ast_hash": "25cd6a240cd8c7fe0d8f1a8e71473dda",
+    "mtime": 1785544295.0582705,
+    "ast_hash": "14af4e5dae897871668491c157558d88",
     "semantic_hash": ""
   },
   "optimized-prompt.md": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "pages/7_Ventas.py": {
-    "mtime": 1785452203.576468,
-    "ast_hash": "85a292860017876050c6a5033e495857",
+    "mtime": 1785542020.8589482,
+    "ast_hash": "92092339b7e8a77e2f7b824513306b19",
     "semantic_hash": ""
   },
   "tickets.py": {
-    "mtime": 1785456585.9843764,
-    "ast_hash": "07cbfb89ab5872f2913d344ceed983bf",
+    "mtime": 1785544193.3262358,
+    "ast_hash": "5fda3decab5ce342775ef1ad7c27811d",
     "semantic_hash": ""
   },
   "prompt_optimizado.md": {
@@ -102,11 +102,6 @@
   "CONVENTIONS.md": {
     "mtime": 1784552763.2357056,
     "ast_hash": "8aef841f8cfdf8c9391c50a24642cec1",
-    "semantic_hash": ""
-  },
-  "debug.py": {
-    "mtime": 1784636879.129576,
-    "ast_hash": "00731e1e369d9119c526e4d311ad74c7",
     "semantic_hash": ""
   },
   ".github/ISSUE_TEMPLATE/bug_report.yml": {
@@ -165,13 +160,13 @@
     "semantic_hash": ""
   },
   "pages/4_Ordenes.py": {
-    "mtime": 1785452318.2404184,
-    "ast_hash": "ec09dbdbef55f2fd8613c42423e589d5",
+    "mtime": 1785541723.0625389,
+    "ast_hash": "853c79df7f093a3694ac9115c8d9aa8c",
     "semantic_hash": ""
   },
   "style.py": {
-    "mtime": 1784842379.8553371,
-    "ast_hash": "42bb1a7bdeeaad30b1760a13cc72bddc",
+    "mtime": 1785509831.56206,
+    "ast_hash": "b288405a2c5c0c39a3fbae8af4114faa",
     "semantic_hash": ""
   },
   "CERTIFICATE_SIGNING.md": {
@@ -185,18 +180,13 @@
     "semantic_hash": ""
   },
   "docker/test_updater.py": {
-    "mtime": 1784934628.77888,
-    "ast_hash": "143402d81b6108f85324c61cb38ca33e",
-    "semantic_hash": ""
-  },
-  "update_worker.py": {
-    "mtime": 1785158248.0465438,
-    "ast_hash": "a1a937dc3460afff752ff90e1da7b171",
+    "mtime": 1785542380.804804,
+    "ast_hash": "ca96e1997ba9b08b9061a2bd213ae1ba",
     "semantic_hash": ""
   },
   "pages/10_ListaPrecios.py": {
-    "mtime": 1785457456.4906676,
-    "ast_hash": "f2b2befcf0ec852a681c6a3676f77e50",
+    "mtime": 1785510180.0731325,
+    "ast_hash": "b793f3db5973662f9de2788af4ede238",
     "semantic_hash": ""
   },
   "pages/8_Caja.py": {
@@ -247,6 +237,46 @@
   "centro_automotor.png": {
     "mtime": 1785452277.2964358,
     "ast_hash": "6da0e5a383b514ebafa68021f02a2690",
+    "semantic_hash": ""
+  },
+  "tests/test_logo.py": {
+    "mtime": 1785509822.2025363,
+    "ast_hash": "7a18108c0fc304925b525663d2c304ba",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-07-31-logo-png-fix.md": {
+    "mtime": 1785509782.864632,
+    "ast_hash": "95b7280772bd1bac4bfa2e25efe10ecc",
+    "semantic_hash": ""
+  },
+  "lista_precios_pdf.py": {
+    "mtime": 1785542925.7853754,
+    "ast_hash": "fc5cdb6ebea2777b4048c1fd27c6975d",
+    "semantic_hash": ""
+  },
+  "tests/test_lista_precios_pdf.py": {
+    "mtime": 1785511129.1007173,
+    "ast_hash": "87baf8dcedc2156c7151234f1bd0b4fd",
+    "semantic_hash": ""
+  },
+  "tests/test_app_logo.py": {
+    "mtime": 1785511123.9327471,
+    "ast_hash": "e8abb7c601ea050d8ad1994998678922",
+    "semantic_hash": ""
+  },
+  "tests/test_compile.py": {
+    "mtime": 1785542114.6036975,
+    "ast_hash": "e0eab56c3a3ea12bbf4793a859fa2047",
+    "semantic_hash": ""
+  },
+  "tests/test_migration_legacy.py": {
+    "mtime": 1785542322.6286478,
+    "ast_hash": "d007b507b825e4b94c5bba059d8c1e22",
+    "semantic_hash": ""
+  },
+  "tests/test_property_based.py": {
+    "mtime": 1785533682.372602,
+    "ast_hash": "6cfb2ea1e04c63c9f3f44555e84960fb",
     "semantic_hash": ""
   }
 }
