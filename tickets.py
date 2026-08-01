@@ -141,11 +141,22 @@ def metodo_pago_nombre(metodo):
     }.get(metodo, metodo)
 
 
+# Directorio de comprobantes: siempre junto al script (no depende del CWD,
+# que en la app congelada no es el directorio de la app).
+COMPROBANTES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comprobantes")
+
+
 def guardar_comprobante_archivo(texto, venta, tipo):
     """Guarda el comprobante en archivo para imprimir después."""
-    os.makedirs("comprobantes", exist_ok=True)
+    comprobantes_dir = COMPROBANTES_DIR
+    try:
+        os.makedirs(comprobantes_dir, exist_ok=True)
+    except OSError:
+        # Fallback: si el dir del script no es escribible, usar CWD.
+        comprobantes_dir = "comprobantes"
+        os.makedirs(comprobantes_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"comprobantes/{tipo}_{venta['punto_venta']}_{venta['numero_comprobante']:08d}_{timestamp}.txt"
+    filename = os.path.join(comprobantes_dir, f"{tipo}_{venta['punto_venta']}_{venta['numero_comprobante']:08d}_{timestamp}.txt")
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(texto)
     return filename
@@ -202,9 +213,9 @@ def imprimir_comprobante(texto):
                 pass
 
         return False
-except Exception as e:
-            print(f"Error al imprimir en Windows: {e}")
-            return False
+    except Exception as e:
+        print(f"Error al imprimir en Windows: {e}")
+        return False
 
 
 def imprimir_prueba():

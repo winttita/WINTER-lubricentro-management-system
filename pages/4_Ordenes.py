@@ -233,7 +233,7 @@ if st.button("✅ Confirmar Orden", type="primary", use_container_width=True):
                 if ok_all:
                     for item in st.session_state.orden_productos:
                         if item['producto'] and item['cantidad'] > 0 and item.get('precio', 0) > 0:
-                pid = item['producto']
+                            pid = item['producto']
                             if not db.add_orden_detalle(orden_id, producto_id=pid, cantidad=item['cantidad'], precio_unitario=item['precio']):
                                 ok_all = False
                                 st.error(f"❌ Error al agregar producto #{pid}")

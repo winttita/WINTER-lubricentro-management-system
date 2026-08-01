@@ -32,12 +32,72 @@ if not productos_activos:
     st.warning("⚠️ No hay productos activos con stock disponible.")
     st.stop()
 
-# Lookup de productos por ID
-prod_lookup = {p[0]: p for p in productos_activos}
+# Lookup de productos por ID - incluye todos los productos para validación de carrito
+prod_lookup = {p[0]: p for p in productos}
+prod_lookup_activos = {p[0]: p for p in productos_activos}
 
 # Estado del carrito
 if 'venta_items' not in st.session_state:
     st.session_state.venta_items = []
+
+
+def imprimir_venta(venta_id, tipo_comp, cliente_id):
+    """Genera e imprime el comprobante de una venta."""
+    try:
+        vc = db.get_venta_completa(venta_id)
+        if not vc:
+            logging.error(f"get_venta_completa devolvio None para venta_id={venta_id}")
+            return False
+        v = vc['venta']
+        if not v:
+            logging.error(f"vc['venta'] es None para venta_id={venta_id}")
+            return False
+        items_db = vc.get('items', [])
+
+        venta_dict = {
+            'tipo_comprobante': v[2],
+            'punto_venta': v[3],
+            'numero_comprobante': v[4],
+            'subtotal': v[5],
+            'iva': v[6],
+            'total': v[7],
+            'metodo_pago': v[8],
+            'creado_en': str(v[10]) if v[10] else "",
+        }
+        items_dict = [{
+            'producto_nombre': it[5],
+            'cantidad': it[2],
+            'precio_unitario': it[3],
+            'subtotal': it[4],
+        } for it in items_db]
+
+        cliente_dict = None
+        if cliente_id:
+            clientes = db.get_clientes()
+            cli = next((c for c in clientes if c[0] == cliente_id), None)
+            if cli:
+                cliente_dict = {'nombre': cli[1], 'telefono': cli[2], 'email': cli[3]}
+
+        if tipo_comp == 'ticket':
+            texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
+        elif tipo_comp == 'factura_a':
+            texto = tk.generar_factura_a_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
+        elif tipo_comp == 'factura_b':
+            texto = tk.generar_factura_b_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
+        elif tipo_comp == 'factura_c':
+            texto = tk.generar_factura_c_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
+        else:
+            texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
+
+        # Guardar como respaldo
+        tk.guardar_comprobante_archivo(texto, venta_dict, tipo_comp)
+        # Enviar a impresora
+        result = tk.imprimir_comprobante(texto)
+        logging.info(f"imprimir_comprobante resulto: {result}")
+        return result
+    except Exception as e:
+        logging.exception(f"Error en imprimir_venta para venta_id={venta_id}: {e}")
+        return False
 
 
 def calcular_totales(items, tipo_comprobante):
@@ -153,7 +213,13 @@ with st.form("venta_form"):
         error_fraccion = False
         for item in st.session_state.venta_items:
             if item['cantidad'] > 0 and item['precio'] > 0:
-                tipo_unidad = prod_lookup[item['producto_id']][6] if len(prod_lookup[item['producto_id']]) > 6 else 'Entero'
+                # Usar prod_lookup (todos los productos) para validación de tipo_unidad
+                p_lookup = prod_lookup.get(item['producto_id'])
+                if not p_lookup:
+                    st.error(f"❌ Producto ID {item['producto_id']} no encontrado en la base de datos.")
+                    error_fraccion = True
+                    break
+                tipo_unidad = p_lookup[6] if len(p_lookup) > 6 else 'Entero'
                 if tipo_unidad == 'Entero' and not float(item['cantidad']).is_integer():
                     st.error(f"❌ No se puede vender \"{item['nombre']}\" fraccionado, seleccione una cantidad entera (ej: 1, 2, 3)")
                     error_fraccion = True
@@ -171,7 +237,12 @@ with st.form("venta_form"):
         else:
             stock_ok = True
             for it in items:
-                p = prod_lookup[it['producto_id']]
+                # Usar prod_lookup_activos para validación de stock (solo activos con stock)
+                p = prod_lookup_activos.get(it['producto_id'])
+                if not p:
+                    stock_ok = False
+                    st.error(f"❌ Producto no disponible o sin stock: ID {it['producto_id']}")
+                    break
                 if it['cantidad'] > p[7]:
                     stock_ok = False
                     st.error(f"❌ Stock insuficiente de \"{p[2]}\": solicitado {it['cantidad']}, disponible {p[7]}")
@@ -199,64 +270,6 @@ with st.form("venta_form"):
                 else:
                     st.error(f"❌ {error or 'Error al procesar la venta.'}")
 
-
-def imprimir_venta(venta_id, tipo_comp, cliente_id):
-    """Genera e imprime el comprobante de una venta."""
-    try:
-        vc = db.get_venta_completa(venta_id)
-        if not vc:
-            logging.error(f"get_venta_completa devolvio None para venta_id={venta_id}")
-            return False
-        v = vc['venta']
-        if not v:
-            logging.error(f"vc['venta'] es None para venta_id={venta_id}")
-            return False
-        items_db = vc.get('items', [])
-
-        venta_dict = {
-            'tipo_comprobante': v[2],
-            'punto_venta': v[3],
-            'numero_comprobante': v[4],
-            'subtotal': v[5],
-            'iva': v[6],
-            'total': v[7],
-            'metodo_pago': v[8],
-            'creado_en': str(v[10]) if v[10] else "",
-        }
-        items_dict = [{
-            'producto_nombre': it[5],
-            'cantidad': it[2],
-            'precio_unitario': it[3],
-            'subtotal': it[4],
-        } for it in items_db]
-
-        cliente_dict = None
-        if cliente_id:
-            clientes = db.get_clientes()
-            cli = next((c for c in clientes if c[0] == cliente_id), None)
-            if cli:
-                cliente_dict = {'nombre': cli[1], 'telefono': cli[2], 'email': cli[3]}
-
-        if tipo_comp == 'ticket':
-            texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
-        elif tipo_comp == 'factura_a':
-            texto = tk.generar_factura_a_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
-        elif tipo_comp == 'factura_b':
-            texto = tk.generar_factura_b_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
-        elif tipo_comp == 'factura_c':
-            texto = tk.generar_factura_c_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
-        else:
-            texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
-
-        # Guardar como respaldo
-        tk.guardar_comprobante_archivo(texto, venta_dict, tipo_comp)
-        # Enviar a impresora
-        result = tk.imprimir_comprobante(texto)
-        logging.info(f"imprimir_comprobante resulto: {result}")
-        return result
-    except Exception as e:
-        logging.exception(f"Error en imprimir_venta para venta_id={venta_id}: {e}")
-        return False
 
 # Totales calculados (visual)
 subtotal, iva, total = calcular_totales(st.session_state.venta_items, tipo_comp)
