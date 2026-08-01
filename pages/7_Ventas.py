@@ -43,8 +43,8 @@ if 'venta_items' not in st.session_state:
     st.session_state.venta_items = []
 
 
-def imprimir_venta(venta_id, tipo_comp, cliente_id):
-    """Genera e imprime el comprobante de una venta."""
+def imprimir_venta(venta_id):
+    """Genera e imprime el comprobante de una venta usando sus datos almacenados."""
     try:
         vc = db.get_venta_completa(venta_id)
         if not vc:
@@ -55,6 +55,12 @@ def imprimir_venta(venta_id, tipo_comp, cliente_id):
             logging.error(f"vc['venta'] es None para venta_id={venta_id}")
             return False
         items_db = vc.get('items', [])
+
+        # Usar SIEMPRE los datos almacenados de la venta (no los selectboxes actuales):
+        # v[1]=cliente_id, v[2]=tipo_comprobante, v[10]=creado_en,
+        # v[11]=cliente_nombre, v[12]=cliente_telefono, v[13]=cliente_email (JOIN)
+        tipo_comp_real = v[2]
+        cliente_id_real = v[1]
 
         venta_dict = {
             'tipo_comprobante': v[2],
@@ -74,25 +80,25 @@ def imprimir_venta(venta_id, tipo_comp, cliente_id):
         } for it in items_db]
 
         cliente_dict = None
-        if cliente_id:
+        if cliente_id_real:
             clientes = db.get_clientes()
-            cli = next((c for c in clientes if c[0] == cliente_id), None)
+            cli = next((c for c in clientes if c[0] == cliente_id_real), None)
             if cli:
                 cliente_dict = {'nombre': cli[1], 'telefono': cli[2], 'email': cli[3]}
 
-        if tipo_comp == 'ticket':
+        if tipo_comp_real == 'ticket':
             texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
-        elif tipo_comp == 'factura_a':
+        elif tipo_comp_real == 'factura_a':
             texto = tk.generar_factura_a_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
-        elif tipo_comp == 'factura_b':
+        elif tipo_comp_real == 'factura_b':
             texto = tk.generar_factura_b_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
-        elif tipo_comp == 'factura_c':
+        elif tipo_comp_real == 'factura_c':
             texto = tk.generar_factura_c_texto(venta_dict, items_dict, cliente_dict or {'nombre': 'Consumidor Final'})
         else:
             texto = tk.generar_ticket_texto(venta_dict, items_dict, cliente_dict)
 
         # Guardar como respaldo
-        tk.guardar_comprobante_archivo(texto, venta_dict, tipo_comp)
+        tk.guardar_comprobante_archivo(texto, venta_dict, tipo_comp_real)
         # Enviar a impresora
         result = tk.imprimir_comprobante(texto)
         logging.info(f"imprimir_comprobante resulto: {result}")
@@ -159,14 +165,27 @@ if termino:
             if p[7] <= 0:
                 st.error("Producto sin stock disponible.")
             else:
-                st.session_state.venta_items.append({
-                    'producto_id': p[0],
-                    'nombre': p[2],
-                    'cantidad': 1.0,
-                    'precio': float(p[10]),
-                    'stock': float(p[7])
-                })
-                st.rerun()
+                # Si el producto ya esta en el carrito, incrementar cantidad
+                # en lugar de duplicar la fila (evita stock sobrevendido).
+                existente = next(
+                    (it for it in st.session_state.venta_items if it['producto_id'] == p[0]),
+                    None
+                )
+                if existente:
+                    if existente['cantidad'] + 1 > float(p[7]):
+                        st.error(f"Stock insuficiente de \"{p[2]}\": maximo disponible {p[7]:.0f}.")
+                    else:
+                        existente['cantidad'] += 1.0
+                        st.rerun()
+                else:
+                    st.session_state.venta_items.append({
+                        'producto_id': p[0],
+                        'nombre': p[2],
+                        'cantidad': 1.0,
+                        'precio': float(p[10]),
+                        'stock': float(p[7])
+                    })
+                    st.rerun()
     else:
         coincidencias = db.buscar_productos_por_nombre(termino)
         if coincidencias:
@@ -253,7 +272,7 @@ with st.form("venta_form"):
                     st.session_state.venta_items = []
 
                     if imprimir_ticket:
-                        ok_print = imprimir_venta(venta_id, tipo_comp, cliente_id)
+                        ok_print = imprimir_venta(venta_id)
                         if ok_print:
                             st.info("Comprobante enviado a la impresora.")
                         else:
@@ -277,7 +296,7 @@ col_t3.metric("Total", f"${total:.2f}")
 if st.session_state.imprimir_ultima:
     st.warning(f"⚠️ Impresión pendiente de venta #{st.session_state.imprimir_ultima}")
     if st.button("🖨️ Reintentar impresión"):
-        ok = imprimir_venta(st.session_state.imprimir_ultima, tipo_comp, cliente_id)
+        ok = imprimir_venta(st.session_state.imprimir_ultima)
         if ok:
             st.success("✅ Comprobante impreso correctamente.")
             st.session_state.imprimir_ultima = None
