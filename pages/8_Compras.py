@@ -45,6 +45,29 @@ if proveedores and productos:
 
     st.markdown("#### Productos")
 
+    col_scan, col_scan_info = st.columns([2, 2])
+    with col_scan:
+        codigo_scan = st.text_input(
+            "Codigo de barras (escanear)",
+            placeholder="Escane el codigo para rellenar el producto",
+            key="compra_codigo_scan"
+        )
+    with col_scan_info:
+        st.write("")
+        if codigo_scan and st.button("Cargar en fila", key="compra_cargar_scan"):
+            p = db.buscar_producto_por_codigo(codigo_scan)
+            if p is None:
+                st.error("No se encontro un producto con ese codigo de barras.")
+            else:
+                fila = next((i for i, it in enumerate(st.session_state.compra_items) if not it['producto']), None)
+                if fila is None:
+                    st.error("Todas las filas ya tienen producto. Quite una o agregue una fila.")
+                else:
+                    st.session_state.compra_items[fila]['producto'] = p[0]
+                    st.session_state.compra_items[fila]['precio'] = float(p[9])
+                    st.session_state.compra_codigo_scan = ""
+                    st.rerun()
+
     for idx, item in enumerate(st.session_state.compra_items):
         col_prod, col_cant, col_precio, col_del = st.columns([3, 1, 1, 0.5])
         with col_prod:
