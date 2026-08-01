@@ -5,6 +5,7 @@ from datetime import datetime
 import pytest
 
 import fechas
+import tickets
 
 
 def _set_tz(tz):
@@ -48,20 +49,26 @@ def test_string_invalido_devuelve_crudo():
     assert fechas.formatear_fecha_hora("no-es-fecha") == "no-es-fecha"
 
 
-import tickets
-
-
+@needs_tzset
 def test_ticket_venta_formatea_fecha_utc_a_local():
-    venta = {
-        "tipo_comprobante": "ticket",
-        "punto_venta": "0001",
-        "numero_comprobante": 42,
-        "subtotal": 100.0,
-        "iva": 0.0,
-        "total": 100.0,
-        "metodo_pago": "efectivo",
-        "creado_en": "2026-08-01 14:30:45",
-    }
-    texto = tickets.generar_ticket_texto(venta, [], None)
-    assert "Fecha:" in texto
-    assert "2026-08-01 14:30:45" not in texto
+    tz_original = os.environ.get("TZ")
+    _set_tz("America/Argentina/Buenos_Aires")
+    try:
+        venta = {
+            "tipo_comprobante": "ticket",
+            "punto_venta": "0001",
+            "numero_comprobante": 42,
+            "subtotal": 100.0,
+            "iva": 0.0,
+            "total": 100.0,
+            "metodo_pago": "efectivo",
+            "creado_en": "2026-08-01 14:30:45",
+        }
+        texto = tickets.generar_ticket_texto(venta, [], None)
+        assert "Fecha: 01/08/2026 11:30" in texto
+        assert "2026-08-01 14:30:45" not in texto
+    finally:
+        if tz_original:
+            _set_tz(tz_original)
+        else:
+            os.environ.pop("TZ", None)
