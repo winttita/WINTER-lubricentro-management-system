@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 FORMATO_SALIDA = "%d/%m/%Y %H:%M"
 FORMATO_UTC = "%Y-%m-%d %H:%M:%S"
+FORMATO_UTC_FRACCIONAL = "%Y-%m-%d %H:%M:%S.%f"
 
 
 def formatear_fecha_hora(valor):
@@ -9,8 +10,8 @@ def formatear_fecha_hora(valor):
 
     - datetime: se formatea directo.
     - str con 'T': ISO local del adapter de database.py, se parsea directo.
-    - str sin 'T' (YYYY-MM-DD HH:MM:SS): UTC de CURRENT_TIMESTAMP de SQLite,
-      se convierte a hora local (DST-aware).
+    - str sin 'T' (YYYY-MM-DD HH:MM:SS o con .ffffff): UTC de CURRENT_TIMESTAMP
+      o del adapter legacy de Python, se convierte a hora local (DST-aware).
     Devuelve "" para None/vacio y el string crudo si no puede parsear.
     """
     if valor is None or valor == "":
@@ -23,7 +24,10 @@ def formatear_fecha_hora(valor):
         if "T" in s:
             dt = datetime.fromisoformat(s)
         else:
-            dt = datetime.strptime(s, FORMATO_UTC)
+            try:
+                dt = datetime.strptime(s, FORMATO_UTC_FRACCIONAL)
+            except ValueError:
+                dt = datetime.strptime(s, FORMATO_UTC)
             dt = dt.replace(tzinfo=timezone.utc).astimezone().replace(tzinfo=None)
     except ValueError:
         return s

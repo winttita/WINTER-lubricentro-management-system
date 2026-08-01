@@ -2,7 +2,6 @@ import sqlite3
 import streamlit as st
 import database as db
 import fechas
-from datetime import datetime
 from style import inject_global_css, mostrar_flash, flash_exito, flash_error
 
 st.set_page_config(page_title="Cuenta Corriente", layout="wide")

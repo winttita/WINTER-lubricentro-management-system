@@ -6,7 +6,6 @@ Usa la DB configurada en database.DB_NAME (por defecto lubricentro.db)."""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import database
-from datetime import datetime, timedelta
 import random
 
 random.seed(42)

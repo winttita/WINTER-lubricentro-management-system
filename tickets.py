@@ -68,8 +68,8 @@ def generar_ticket_texto(venta, items, cliente=None):
     lineas.append(f"Pago: {metodo_pago_nombre}")
     
     if venta['metodo_pago'] == 'efectivo':
-        lineas.append(f"Recibido: $_______")
-        lineas.append(f"Vuelto: $_______")
+        lineas.append("Recibido: $_______")
+        lineas.append("Vuelto: $_______")
     
     lineas.append("=" * ancho)
     lineas.append("Gracias por su compra!".center(ancho))
@@ -93,7 +93,7 @@ def generar_factura_a_texto(venta, items, cliente):
     lineas.append("=" * ancho)
     lineas.append(f"Punto de Venta: {venta['punto_venta']}  Comp. Nro: {venta['numero_comprobante']:08d}")
     lineas.append(f"Fecha: {fechas.formatear_fecha_hora(venta['creado_en'])}")
-    lineas.append(f"CAE: NO DISPONIBLE (requiere integración AFIP)")
+    lineas.append("CAE: NO DISPONIBLE (requiere integración AFIP)")
     lineas.append("-" * ancho)
     
     # Datos del cliente
@@ -195,7 +195,7 @@ def imprimir_comprobante(texto):
                     return False
                 hPrinter = win32print.OpenPrinter(printer_name)
                 try:
-                    hJob = win32print.StartDocPrinter(hPrinter, 1, ("Comprobante", None, "RAW"))
+                    win32print.StartDocPrinter(hPrinter, 1, ("Comprobante", None, "RAW"))
                     win32print.StartPagePrinter(hPrinter)
                     win32print.WritePrinter(hPrinter, payload)
                     win32print.EndPagePrinter(hPrinter)
@@ -254,7 +254,7 @@ def abrir_cajon():
                 return False
             hPrinter = win32print.OpenPrinter(printer_name)
             try:
-                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Cajon", None, "RAW"))
+                win32print.StartDocPrinter(hPrinter, 1, ("Cajon", None, "RAW"))
                 win32print.StartPagePrinter(hPrinter)
                 win32print.WritePrinter(hPrinter, payload)
                 win32print.EndPagePrinter(hPrinter)

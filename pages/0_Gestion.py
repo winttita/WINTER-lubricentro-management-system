@@ -218,7 +218,7 @@ if proveedores:
             st.markdown("**Aumento porcentual de precios**")
             col_pct, col_btn = st.columns([1, 1])
             with col_pct:
-                pct = st.number_input(f"% aumento precio venta (todos los productos)", min_value=0.0, step=1.0, key=f"pct_{p[0]}")
+                pct = st.number_input("% aumento precio venta (todos los productos)", min_value=0.0, step=1.0, key=f"pct_{p[0]}")
             with col_btn:
                 st.write("")
                 if st.button("Aplicar aumento general", key=f"pup_{p[0]}"):

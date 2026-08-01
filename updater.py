@@ -16,13 +16,10 @@ from __future__ import annotations
 import os
 import re
 import sys
-import time
 import shutil
-import tempfile
 import urllib.request
 import urllib.error
 import json
-import subprocess
 import hashlib
 import zipfile
 from typing import Optional, Tuple
@@ -322,7 +319,6 @@ def _write_update_batch_secure(root: str, zip_path: str) -> str:
     bat_path = os.path.join(root, "update.bat")
     launcher_name = "LubricentroWinter.exe"
     zip_abs = os.path.abspath(zip_path)
-    root_abs = os.path.abspath(root)
 
     bat_content = rf"""@echo off
 setlocal enabledelayedexpansion
