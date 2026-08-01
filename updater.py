@@ -102,25 +102,6 @@ def compare_versions(current: str, latest: str) -> str:
     return "older"
 
 
-def _sanitize_filename(name: str) -> str:
-    """
-    Sanitiza un nombre de archivo para evitar path traversal.
-    Rechaza nombres con separadores de ruta, rutas absolutas, o nombres vacíos.
-    """
-    if not name:
-        return "download.bin"
-    # Solo el basename (elimina cualquier directorio)
-    base = os.path.basename(name)
-    # Rechazar si contiene separadores o es nombre reservado
-    if base != name or os.path.isabs(base) or base in (".", ".."):
-        return "download.bin"
-    # Limitar longitud
-    if len(base) > 255:
-        root, ext = os.path.splitext(base)
-        base = root[:255 - len(ext)] + ext
-    return base
-
-
 def _verify_checksum(path: str, expected_sha256: str) -> bool:
     """Verifica SHA256 del archivo contra el hash esperado (hex lowercase)."""
     sha256 = hashlib.sha256()

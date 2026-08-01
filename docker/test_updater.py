@@ -17,8 +17,8 @@ Casos:
 5. test_backup_db_runs_before_apply — verify backup_db + cleanup_old_backups.
 6. test_apply_update_handles_path_traversal — _extract_zip_safe rechaza
    zips con rutas absolutas o "..".
-7. test_sanitize_filename_rejects_traversal — el _sanitize_filename activo
-   rechaza nombres con separadores de path.
+7. test_extract_zip_safe_rejects_backslash_traversal — _extract_zip_safe
+   rechaza también rutas windows con backslash que escapen del destino.
 """
 from __future__ import annotations
 
@@ -54,8 +54,8 @@ def _make_db_with_products(db_path: str, n: int = 10) -> None:
             cat_id = database.get_categorias()[-1][0]
             prov_id = database.get_proveedores()[-1][0]
             database.add_producto(
-                f"P{i}", f"CB00{i}", f"Producto {i}", "", cat_id, prov_id,
-                "Entero", 0, 10.0, 121.0, 10
+                f"CB00{i}", f"Producto {i}", "", cat_id, prov_id,
+                "Entero", 0, 10.0, 121.0, stock_inicial=10
             )
     finally:
         database.DB_NAME = old_db
@@ -257,27 +257,13 @@ def test_extract_zip_safe_rejects_path_traversal(tmp_path):
         updater._extract_zip_safe(evil_zip, dest)
 
 
-def test_sanitize_filename_rejects_traversal():
-    """El _sanitize_filename activo (línea 216, el segundo) debe rechazar
-    nombres con separadores de path. En Linux os.path.basename usa '/' como
-    separador y puede no recortar rutas windows con '\\'. Para que se
-    rechace, el base (basename) debe contener '..', ser absoluto o != normpath."""
-    # Casos que se rechazan: 'subdir/../evil' al hacer basename queda
-    # '../evil' (basename respesta '..' como último componente) y norma
-    # != base, así que se rechaza.
-    rejected = [
-        "/abs/path/archivo.exe",       # isabs True en Linux
-        "subdir\\evil.exe",            # en Linux backslash NO es sep; basename no
-                                      # recorta, y '\\' != normpath? no — normpath
-                                      # deja igual. skip
-    ]
-    for name in rejected:
-        try:
-            r = updater._sanitize_filename(name)
-            # si no revienta, al menos que no sea path traversal real
-            assert os.path.isabs(r) is False
-        except updater.UpdateError:
-            pass
-    # Paths válidos: basename simple
-    assert updater._sanitize_filename("LubricentroWinter.zip") == "LubricentroWinter.zip"
-    assert updater._sanitize_filename("../subdir/safe.zip") == "safe.zip"
+def test_extract_zip_safe_rejects_backslash_traversal(tmp_path):
+    """_extract_zip_safe debe rechazar también rutas windows (backslash) que
+    escapen del directorio destino."""
+    evil_zip = str(tmp_path / "evil2.zip")
+    with zipfile.ZipFile(evil_zip, "w") as zf:
+        zf.writestr("..\\escape.txt", "malicious")
+    dest = str(tmp_path / "dest2")
+    os.makedirs(dest)
+    with pytest.raises(updater.UpdateError, match="path traversal|insegura"):
+        updater._extract_zip_safe(evil_zip, dest)
