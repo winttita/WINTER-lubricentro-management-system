@@ -69,10 +69,13 @@ if categorias and proveedores:
      # --- ESCANER CÓDIGO DE BARRAS (fuera del form para evitar submit prematuro) ---
      # Check if we need to clear the scanner
      scanner_value = "" if st.session_state.clear_scanner else st.session_state.get("codigo_barras_scanner", "")
+     if st.session_state.get("gen_codigo_f", False):
+         st.session_state["codigo_barras_scanner"] = db.proximo_codigo_fraccionado()
+         st.session_state["gen_codigo_f"] = False
      st.text_input("Código de Barras (escanear)", key="codigo_barras_scanner", 
                    value=scanner_value, placeholder="Escaneá el código de barras aquí")
      if st.button("Generar codigo F (sin barras)", key="gen_codigo_f"):
-         st.session_state.codigo_barras_scanner = db.proximo_codigo_fraccionado()
+         st.session_state["gen_codigo_f"] = True
          st.rerun()
      # Reset the clear flag after using it
      if st.session_state.clear_scanner:

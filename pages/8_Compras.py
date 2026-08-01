@@ -49,6 +49,8 @@ if proveedores and productos:
 
     col_scan, col_scan_info = st.columns([2, 2])
     with col_scan:
+        if st.session_state.pop("compra_scan_clear", False):
+            st.session_state["compra_codigo_scan"] = ""
         codigo_scan = st.text_input(
             "Codigo de barras (escanear)",
             placeholder="Escanee el codigo para rellenar el producto",
@@ -67,7 +69,7 @@ if proveedores and productos:
                 else:
                     st.session_state.compra_items[fila]['producto'] = p[0]
                     st.session_state.compra_items[fila]['precio'] = float(p[9])
-                    st.session_state.compra_codigo_scan = ""
+                    st.session_state.compra_scan_clear = True
                     st.rerun()
 
     for idx, item in enumerate(st.session_state.compra_items):
