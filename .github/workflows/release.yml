@@ -173,8 +173,10 @@ jobs:
           # Copy additional assets
           Copy-Item style.py $STAGE/ -ErrorAction SilentlyContinue
           Copy-Item tickets.py $STAGE/ -ErrorAction SilentlyContinue
+          Copy-Item lista_precios_pdf.py $STAGE/ -ErrorAction Stop
           Copy-Item build/icon.ico $STAGE/icon.ico -ErrorAction SilentlyContinue
           Copy-Item centro_automotor.png $STAGE/centro_automotor.png -ErrorAction Stop
+          Copy-Item fonts $STAGE/fonts -Recurse -ErrorAction Stop
           
           # Create ZIP
           Write-Host "Creating ZIP archive..."
@@ -221,6 +223,14 @@ jobs:
           Expand-Archive -Path $ZIP -DestinationPath $TMP -ErrorAction Stop
           if (-not (Test-Path "$TMP/centro_automotor.png")) {
             Write-Error "centro_automotor.png no esta en el ZIP"
+            exit 1
+          }
+          if (-not (Test-Path "$TMP/lista_precios_pdf.py")) {
+            Write-Error "lista_precios_pdf.py no esta en el ZIP"
+            exit 1
+          }
+          if (-not (Test-Path "$TMP/fonts/DejaVuSans.ttf")) {
+            Write-Error "fonts/DejaVuSans.ttf no esta en el ZIP"
             exit 1
           }
           Get-ChildItem $TMP -Recurse | ForEach-Object { Write-Host "  $($_.FullName) - $($_.Length) bytes" }
