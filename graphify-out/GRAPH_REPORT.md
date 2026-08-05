@@ -1,16 +1,16 @@
-# Graph Report - Lubricentro  (2026-08-01)
+# Graph Report - Lubricentro  (2026-08-05)
 
 ## Corpus Check
-- 51 files · ~103,693 words
+- 51 files · ~103,850 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 860 nodes · 1096 edges · 128 communities (56 shown, 72 thin omitted)
+- 884 nodes · 1118 edges · 130 communities (58 shown, 72 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4991a988`
+- Built from commit: `be876751`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -139,6 +139,8 @@
 - formatear_fecha_hora
 - get_logo_path
 - 7_Ventas.py
+- Global Constraints
+- Global Constraints
 
 ## God Nodes (most connected - your core abstractions)
 1. `get_connection()` - 64 edges
@@ -149,8 +151,8 @@
 6. `_num_finito()` - 15 edges
 7. `Guía de Firma Digital (Code Signing) para Lubricentro Winter` - 13 edges
 8. `Global Constraints` - 13 edges
-9. `Convenciones del proyecto — Lubricentro Winter` - 12 edges
-10. `stock_de()` - 11 edges
+9. `Global Constraints` - 12 edges
+10. `Convenciones del proyecto — Lubricentro Winter` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `generar_factura_a_texto()` --calls--> `formatear_fecha_hora()`  [EXTRACTED]
@@ -167,7 +169,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (128 total, 72 thin omitted)
+## Communities (130 total, 72 thin omitted)
 
 ### Community 0 - "updater.py"
 Cohesion: 0.05
@@ -282,8 +284,8 @@ Cohesion: 0.22
 Nodes (8): Adaptación a otros lenguajes, Buenas prácticas generales, Checklist antes de hacer commit, Con pdoc (más simple), Con Sphinx (recomendado para Python), Documentar Código, Generar documentación automática, Pasos para documentar un módulo (ejemplo en Python)
 
 ### Community 38 - "Sistema de Gestión para LUBRICENTRO WINTER"
-Cohesion: 0.15
-Nodes (12): Actualizaciones Remotas, Build del .exe (Windows), Cambiar la versión actual, Configuración en la app, Descripción, Estado del Proyecto, Estructura Técnica, Impresora Térmica (+4 more)
+Cohesion: 0.14
+Nodes (13): Actualizaciones Remotas, Build del .exe (Windows), Cambiar la versión actual, Configuración en la app, Descripción, Estado del Proyecto, Estructura Técnica, Impresora Térmica (+5 more)
 
 ### Community 39 - "Agente de Testing"
 Cohesion: 0.40
@@ -377,8 +379,16 @@ Nodes (5): get_logo_path(), Devuelve la ruta absoluta del logo si existe, o None
 Cohesion: 0.40
 Nodes (4): calcular_totales(), imprimir_venta(), Calcula subtotal, iva y total segun el tipo de comprobante.     Reglas (alineada, Genera e imprime el comprobante de una venta usando sus datos almacenados.
 
+### Community 128 - "Global Constraints"
+Cohesion: 0.14
+Nodes (13): Fix post-review whole-branch (revisor final, todos Minor/baratos):, Global Constraints, Release v0.5.6 - Barras, Fechas, Impresión, Carteles y Códigos Autogenerados - Implementation Plan, Task 10: CHANGELOG v0.5.6 y APP_VERSION, Task 1: Módulo `fechas.py` con `formatear_fecha_hora` y tests, Task 2: Tickets usan `formatear_fecha_hora` (prueba y venta con mismo formato), Task 3: Helpers de búsqueda de producto por código/nombre en `database.py`, Task 4: Ventas — campo único de escaneo que agrega al carrito (+5 more)
+
+### Community 129 - "Global Constraints"
+Cohesion: 0.22
+Nodes (8): Fix Logo PNG (centro_automotor.png) Implementation Plan, Global Constraints, Task 1: Helper `get_logo_path()` en `style.py`, Task 2: Módulo `lista_precios_pdf.py` con fallback de logo, Task 3: Integrar en `pages/10_ListaPrecios.py`, Task 4: `app.py` — logo robusto en login y pantalla principal, Task 5: Incluir el PNG en el ZIP de release, Task 6: CHANGELOG y verificación final
+
 ## Knowledge Gaps
-- **195 isolated node(s):** `Agregado`, `Corregido`, `Removido`, `Corregido`, `Removido` (+190 more)
+- **213 isolated node(s):** `Task 1: Refactor `pages/8_Compras.py` — estructura fuera del form + preview`, `Global Constraints`, `Data flow after fix`, `Task 1: Refactor updater.py — verify ZIP integrity, standardize path, remove worker`, `Task 2: Fix update.bat — cleanup on error, .exe backup, extraction fallback` (+208 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **72 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -386,11 +396,11 @@ Nodes (4): calcular_totales(), imprimir_venta(), Calcula subtotal, iva y total s
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `get_connection()` connect `test_get_ventas_pendientes_cc_tras_pago_parcial` to `get_connection`, `get_venta_completa`, `get_reporte_ventas_detallado`, `update_categoria`, `7_Ventas.py`, `8_Compras.py`, `get_logo_path`, `get_ultimo_numero_comprobante`, `update_cliente`, `get_ventas`, `update_producto`, `backup_db`, `imprimir_venta`, `get_ultimo_numero_comprobante`, `update_cliente`, `reactivar_cliente`, `test_get_productos_por_proveedor_happy_path`, `test_get_precios_para_lista_solo_activos_con_stock`, `test_add_producto_con_stock_inicial`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **Why does `Changelog - Lubricentro Winter` connect `add_movimiento` to `registrar_movimiento_caja`, `get_cuenta_corriente_cliente`, `get_detalle_compra`, `init_db`, `crear_ajuste_stock`, `[0.5.1] - 2026-07-30`, `get_reporte_ventas`, `get_reporte_ingresos_egresos`, `get_reporte_inventario`, `update_vehiculo`, `test_add_movimiento_uso_interno`, `get_ventas`, `test_add_movimiento_tipo_invalido`, `test_add_movimiento_tipo_nulo`, `[0.5.3] - 2026-07-30`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **What connects `Agregado`, `Corregido`, `Removido` to the rest of the system?**
-  _195 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `Task 1: Refactor `pages/8_Compras.py` — estructura fuera del form + preview`, `Global Constraints`, `Data flow after fix` to the rest of the system?**
+  _213 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `updater.py` be split into smaller, more focused modules?**
   _Cohesion score 0.05137844611528822 - nodes in this community are weakly interconnected._
 - **Should `get_movimientos` be split into smaller, more focused modules?**
